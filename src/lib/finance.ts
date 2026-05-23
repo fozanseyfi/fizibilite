@@ -65,8 +65,26 @@ export function computeFinance(input: FinanceInput): FinanceResult {
     const opexInflation = config.fx.trInflationPct / 100;
     const priceMul = Math.pow(1 + electricityInflation, yIdx);
     const purchase = config.tariff.purchasePriceTlKwh * priceMul;
-    const sale = config.tariff.salePriceTlKwh * priceMul;
+    let sale = config.tariff.salePriceTlKwh * priceMul;
     const opexMul = Math.pow(1 + opexInflation, yIdx);
+
+    // PPA — Power Purchase Agreement
+    let ppaSurplusPrice: number | null = null;
+    if (config.ppa?.enabled && y <= config.ppa.ppaTermYears) {
+      const ppaMul = Math.pow(1 + (config.ppa.ppaEscalationPct ?? 0) / 100, yIdx);
+      ppaSurplusPrice = config.ppa.ppaPriceTlKwh * ppaMul;
+      if (config.ppa.scope === 'all') sale = ppaSurplusPrice;
+    }
+
+    // Carbon credit (yıllık)
+    let annualCarbonCreditTl = 0;
+    let annualCarbonCertCostTl = 0;
+    if (config.carbonCredit?.enabled && y <= config.carbonCredit.creditingPeriodYears) {
+      const annualGenY = generationByYear[yIdx].reduce((a, b) => a + b, 0);
+      const tonsCO2 = (annualGenY * 0.45) / 1000; // TR grid factor
+      annualCarbonCreditTl = tonsCO2 * config.carbonCredit.pricePerTonUsd * config.fx.usdTry;
+      annualCarbonCertCostTl = config.carbonCredit.certificationCostUsdYearly * config.fx.usdTry * opexMul;
+    }
 
     // Yıllık kalemler
     const annualOpex = computeAnnualOpex(config, totalCapexTl, opexMul, y);
@@ -105,7 +123,9 @@ export function computeFinance(input: FinanceInput): FinanceResult {
 
       // Gelir
       const savingsFromNetting = periodNetted * purchase;
-      const saleRevenue = periodPaidSurplus * sale;
+      const surplusPrice = ppaSurplusPrice ?? sale;
+      const saleRevenue = periodPaidSurplus * surplusPrice;
+      const carbonRev = annualCarbonCreditTl / 12;
       let batteryArb = 0;
       if (config.battery.enabled && battery) {
         const totalDis = battery.discharge.reduce((a, b) => a + b, 0);
@@ -117,7 +137,7 @@ export function computeFinance(input: FinanceInput): FinanceResult {
         ? batteryArb * 0.1
         : 0;
 
-      const salesRevenue = savingsFromNetting + saleRevenue + batteryArb + peakShaveSavings;
+      const salesRevenue = savingsFromNetting + saleRevenue + batteryArb + peakShaveSavings + carbonRev;
       const scrappedEquipment = m === 12 ? annualScrap : 0;
       const netSales = salesRevenue + scrappedEquipment;
 
@@ -528,22 +548,43 @@ function buildLoanSchedule(config: ProjectConfig, totalCapexTl: number): LoanSch
   const termYears = config.financing.loanTermYears ?? 7;
   const annualRate = (config.financing.interestRatePctTl ?? 35) / 100;
   const repay = config.financing.repaymentType ?? 'annuity';
+  const refi = config.financing.refinancing;
 
   const yearly: LoanSchedule['yearly'] = [];
   let balance = loanPrincipal;
-  if (repay === 'annuity') {
-    const r = annualRate;
-    const annuity = r === 0 ? loanPrincipal / termYears : (loanPrincipal * r) / (1 - Math.pow(1 + r, -termYears));
-    for (let y = 0; y < termYears; y++) {
-      const interest = balance * annualRate;
+  let currentRate = annualRate;
+  let currentTermRemaining = termYears;
+
+  const computeAnnuity = (bal: number, r: number, n: number) =>
+    r === 0 ? bal / n : (bal * r) / (1 - Math.pow(1 + r, -n));
+
+  let annuity = computeAnnuity(loanPrincipal, currentRate, currentTermRemaining);
+
+  for (let y = 0; y < termYears * 3 && balance > 0.01; y++) {
+    const yearOfLoan = y + 1; // 1-based
+
+    // Refinansman tetiklemesi
+    if (refi?.enabled && yearOfLoan === refi.yearN) {
+      const refinanceFee = balance * (refi.refinancingFeePct / 100);
+      currentRate = refi.newInterestRatePctTl / 100;
+      currentTermRemaining = refi.newTermYears;
+      annuity = computeAnnuity(balance, currentRate, currentTermRemaining);
+      // Refinansman komisyonu o yılın faizine eklenir
+      const interest = balance * currentRate + refinanceFee;
+      const principal = Math.min(annuity - balance * currentRate, balance);
+      balance -= principal;
+      yearly.push({ interest, principal, endBalance: balance });
+      continue;
+    }
+
+    if (repay === 'annuity') {
+      const interest = balance * currentRate;
       const principal = Math.min(annuity - interest, balance);
       balance -= principal;
       yearly.push({ interest, principal, endBalance: balance });
-    }
-  } else {
-    const principalPerYear = loanPrincipal / termYears;
-    for (let y = 0; y < termYears; y++) {
-      const interest = balance * annualRate;
+    } else {
+      const principalPerYear = loanPrincipal / termYears;
+      const interest = balance * currentRate;
       const principal = Math.min(principalPerYear, balance);
       balance -= principal;
       yearly.push({ interest, principal, endBalance: balance });

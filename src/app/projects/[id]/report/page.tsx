@@ -252,6 +252,53 @@ export default function ReportPage({
         </table>
       </Section>
 
+      {/* 7b. Kredi Geri Ödeme Tablosu (eğer kredi varsa) */}
+      {config.financing.type === 'loan' && result.finance.yearly.some((y) => y.interestExpenseTl > 0) && (
+        <Section title="7b. Kredi Geri Ödeme Tablosu (Yıllık)" pageBreakBefore>
+          <p className="text-sm mb-2">
+            Kredi tutarı: <strong>{mc(result.finance.totalCapexTl * (1 - (config.financing.equityPct ?? 0.3)))}</strong> ·
+            Vade: <strong>{config.financing.loanTermYears} yıl</strong> ·
+            Faiz: <strong>%{config.financing.interestRatePctTl}</strong> ·
+            Yöntem: <strong>{config.financing.repaymentType === 'annuity' ? 'Annüite' : 'Eşit Anapara'}</strong>
+            {config.financing.refinancing?.enabled && (
+              <> · <em>Refinansman yıl {config.financing.refinancing.yearN}: %{config.financing.refinancing.newInterestRatePctTl} faiz, {config.financing.refinancing.newTermYears} yıl yeni vade</em></>
+            )}
+          </p>
+          <table className="w-full text-xs border border-slate-200">
+            <thead className="bg-slate-100">
+              <tr>
+                <th className="text-left p-2">Yıl</th>
+                <th className="text-right p-2 num">Faiz</th>
+                <th className="text-right p-2 num">Anapara</th>
+                <th className="text-right p-2 num">Toplam Taksit</th>
+                <th className="text-right p-2 num">Kalan Bakiye</th>
+                <th className="text-right p-2 num">DSCR</th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.finance.yearly.filter((y) => y.interestExpenseTl > 0 || y.principalPaymentTl !== 0).map((y) => {
+                const totalPayment = y.interestExpenseTl + Math.abs(y.principalPaymentTl);
+                // Remaining balance approximation
+                const remaining = y.principalPaymentTl !== 0 ? Math.max(0, y.principalPaymentTl) : 0;
+                return (
+                  <tr key={y.year} className="border-b border-slate-100">
+                    <td className="p-2">{y.year}</td>
+                    <td className="p-2 text-right num">{mc(y.interestExpenseTl)}</td>
+                    <td className="p-2 text-right num">{mc(Math.abs(y.principalPaymentTl))}</td>
+                    <td className="p-2 text-right num font-medium">{mc(totalPayment)}</td>
+                    <td className="p-2 text-right num text-slate-500">—</td>
+                    <td className="p-2 text-right num">{y.dscr > 0 ? y.dscr.toFixed(2) : '—'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <p className="text-xs text-slate-500 mt-2">
+            Kalan bakiye sütunu için aylık takvim Excel raporunda mevcuttur. DSCR ≥ 1.20 banka asgari koşuludur.
+          </p>
+        </Section>
+      )}
+
       {/* 8. Finansman */}
       <Section title="8. Finansman & Vergi" pageBreakBefore>
         <table className="w-full text-sm border border-slate-200">

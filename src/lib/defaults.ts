@@ -133,6 +133,20 @@ export function buildDefaultConfig(overrides: Partial<ProjectConfig> = {}): Proj
       capexOverrunTriangular: [0, 0, 0.2],
     },
     analysisYears: 25,
+    ppa: {
+      enabled: false,
+      ppaPriceTlKwh: 4.5,
+      ppaTermYears: 10,
+      ppaEscalationPct: 2,
+      scope: 'surplus_only',
+    },
+    carbonCredit: {
+      enabled: false,
+      standard: 'VCS',
+      pricePerTonUsd: 12, // VCS solar tipik 2026: $8-15/tCO2e
+      certificationCostUsdYearly: 8000,
+      creditingPeriodYears: 10,
+    },
     ...overrides,
   };
 }

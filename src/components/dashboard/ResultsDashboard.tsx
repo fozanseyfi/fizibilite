@@ -9,6 +9,8 @@ import { HourDayHeatmap } from './Heatmap';
 import { CurrencyToggle } from './CurrencyToggle';
 import { AssumptionsTab } from './AssumptionsTab';
 import { HourlyDataTable } from './HourlyDataTable';
+import { LcoeComparison } from './LcoeComparison';
+import { EsgReport } from './EsgReport';
 import {
   CashFlowTable, INCOME_STATEMENT_ROWS, CASH_FLOW_STATEMENT_ROWS, CASH_WATERFALL_ROWS,
 } from './CashFlowTable';
@@ -147,6 +149,7 @@ export function ResultsDashboard({
           <TabsTrigger value="waterfall">Cash Waterfall</TabsTrigger>
           <TabsTrigger value="risk">Risk (MC)</TabsTrigger>
           <TabsTrigger value="sensitivity">Duyarlılık</TabsTrigger>
+          <TabsTrigger value="esg">ESG</TabsTrigger>
           <TabsTrigger value="assumptions">Varsayımlar</TabsTrigger>
         </TabsList>
 
@@ -195,6 +198,13 @@ export function ResultsDashboard({
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          <LcoeComparison
+            config={config}
+            lcoeTlKwh={result.finance.lcoeTlKwh}
+            lcoeUsdKwh={result.finance.lcoeUsdKwh}
+            currency={currency}
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
@@ -462,6 +472,11 @@ export function ResultsDashboard({
               </Card>
             </>
           )}
+        </TabsContent>
+
+        {/* === ESG === */}
+        <TabsContent value="esg" className="space-y-6">
+          <EsgReport config={config} result={result} />
         </TabsContent>
 
         {/* === VARSAYIMLAR & METODOLOJİ === */}

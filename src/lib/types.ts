@@ -157,6 +157,48 @@ export interface FinancingConfig {
   leasingResidualPctTl?: number;
   // Genel
   discountRatePct: number; // WACC veya opportunity cost
+  // Refinansman (opsiyonel)
+  refinancing?: RefinancingConfig;
+}
+
+export interface RefinancingConfig {
+  enabled: boolean;
+  /** Yıl N başında refinansman yapılır */
+  yearN: number;
+  /** Yeni faiz oranı (%) */
+  newInterestRatePctTl: number;
+  /** Yeni vade (yıl) — refinansman tarihinden itibaren */
+  newTermYears: number;
+  /** Refinansman komisyonu (kalan anaparanın yüzdesi) */
+  refinancingFeePct: number;
+}
+
+/** PPA — Power Purchase Agreement (ikili anlaşma) */
+export interface PPAConfig {
+  enabled: boolean;
+  /** Anlaşma fiyatı (TL/kWh, sabit) */
+  ppaPriceTlKwh: number;
+  /** Anlaşma süresi (yıl) — bu süre boyunca PPA fiyatı kullanılır, sonra tarife */
+  ppaTermYears: number;
+  /** PPA fiyatı yıllık escalation (%) */
+  ppaEscalationPct: number;
+  /** Kapsam: 'all' tüm satış PPA fiyatından, 'surplus_only' sadece ihtiyaç fazlası */
+  scope: 'all' | 'surplus_only';
+  /** Karşı taraf adı (rapor için) */
+  counterpartyName?: string;
+}
+
+/** Karbon Kredisi (VCS / Gold Standard) */
+export interface CarbonCreditConfig {
+  enabled: boolean;
+  /** Standart: VCS, Gold Standard, CDM, vs */
+  standard: 'VCS' | 'GOLD_STANDARD' | 'CDM' | 'OTHER';
+  /** USD per ton CO2e */
+  pricePerTonUsd: number;
+  /** Sertifika maliyeti (yıllık, USD) — audit + verification + registry */
+  certificationCostUsdYearly: number;
+  /** Crediting period (yıl) */
+  creditingPeriodYears: number;
 }
 
 export interface TaxConfig {
@@ -207,8 +249,14 @@ export interface ProjectConfig {
   tax: TaxConfig;
   fx: FxConfig;
   monteCarlo: MonteCarloConfig;
-  analysisYears: number; // 25 default
-  generationOverride?: number[]; // 8760
+  analysisYears: number;
+  generationOverride?: number[];
+  /** Power Purchase Agreement (opsiyonel) */
+  ppa?: PPAConfig;
+  /** Karbon kredisi (opsiyonel) */
+  carbonCredit?: CarbonCreditConfig;
+  /** PTF saatlik veri (opsiyonel) — batarya arbitraj için */
+  ptfHourly?: number[];
 }
 
 // ========== Results ==========

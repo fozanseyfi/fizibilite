@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Sun } from 'lucide-react';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { LocaleToggle } from '@/components/LocaleToggle';
 
 export const metadata: Metadata = {
   title: 'GES-Fizibilite Pro — EPDK Saatlik Mahsuplaşma Fizibilitesi',
@@ -27,7 +29,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="flex items-center gap-1 text-sm">
               <Link href="/" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">Projeler</Link>
               <Link href="/projects/new" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">Yeni Proje</Link>
+              <Link href="/projects/compare" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">Karşılaştır</Link>
               <Link href="/about" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">Hakkında</Link>
+              <div className="ml-2 flex items-center gap-1.5">
+                <LocaleToggle />
+                <ThemeToggle />
+              </div>
             </nav>
           </div>
         </header>

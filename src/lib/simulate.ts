@@ -96,6 +96,7 @@ export async function runFullSimulation(config: ProjectConfig): Promise<Simulati
       prevYearConsumptionKwh:
         y === 0 ? config.consumption.prevYearKwh : consumptionByYearMatrix[y - 1].reduce((a, b) => a + b, 0),
       effectiveCapacityKwh,
+      hourlyPtfTlKwh: config.ptfHourly,
     });
     cumulativeCycles += dispatch.cycles;
     batteryByYear.push(dispatch);

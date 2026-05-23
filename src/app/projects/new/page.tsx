@@ -15,6 +15,9 @@ import { ConsumptionBuilder } from '@/components/wizard/ConsumptionBuilder';
 import { TariffPicker } from '@/components/wizard/TariffPicker';
 import { CapexOpexCockpit } from '@/components/wizard/CapexOpexCockpit';
 import { InflationFxCockpit } from '@/components/wizard/InflationFxCockpit';
+import { OptimalAngleFinder } from '@/components/wizard/OptimalAngleFinder';
+import { ModuleInverterSizer } from '@/components/wizard/ModuleInverterSizer';
+import { PtfLoader } from '@/components/wizard/PtfLoader';
 import { buildDefaultConfig, buildDefaultCapex } from '@/lib/defaults';
 import { DEFAULT_DAILY_OFFICE, DEFAULT_MONTHLY_EQUAL } from '@/lib/consumption-builder';
 import type { ProjectConfig, ProjectType, ModuleTech, Mounting, FinancingType } from '@/lib/types';
@@ -240,6 +243,17 @@ export default function NewProjectPage() {
               onAspectChange={(v) => updateNested('pv', 'aspect', v)}
             />
 
+            <OptimalAngleFinder
+              location={config.location}
+              pv={config.pv}
+              onApply={(angle, aspect) => {
+                updateNested('pv', 'angle', angle);
+                updateNested('pv', 'aspect', aspect);
+              }}
+            />
+
+            <ModuleInverterSizer peakPowerKwp={config.pv.peakPowerKwp} />
+
             <div className="grid grid-cols-2 gap-4">
               <Field label="Modül Teknolojisi">
                 <Select value={config.pv.moduleTech} onValueChange={(v) => updateNested('pv', 'moduleTech', v as ModuleTech)}>
@@ -351,6 +365,13 @@ export default function NewProjectPage() {
                 <div className="rounded-lg bg-secondary/50 p-4 text-sm">
                   Batarya CAPEX: <span className="font-mono text-foreground">{formatTl(config.battery.nominalCapacityKwh * config.battery.capexTlPerKwh + config.battery.nominalPowerKw * config.battery.capexTlPerKw + config.battery.bosTl, { compact: true })}</span>
                 </div>
+
+                {config.battery.enableArbitrage && (
+                  <PtfLoader
+                    ptfHourly={config.ptfHourly}
+                    onChange={(h) => updateConfig('ptfHourly', h)}
+                  />
+                )}
               </>
             )}
           </CardContent>
@@ -435,6 +456,73 @@ export default function NewProjectPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="İterasyon"><Input type="number" step="100" value={config.monteCarlo.iterations} onChange={(e) => updateNested('monteCarlo', 'iterations', parseFloat(e.target.value))} /></Field>
                   <Field label="Seed (tekrarlanabilirlik)"><Input type="number" step="1" value={config.monteCarlo.seed ?? 42} onChange={(e) => updateNested('monteCarlo', 'seed', parseInt(e.target.value, 10))} /></Field>
+                </div>
+              )}
+            </div>
+
+            {/* --- PPA --- */}
+            {config.financing.type === 'loan' && (
+              <div className="pt-4 border-t">
+                <div className="flex items-center gap-3 mb-3">
+                  <Switch checked={!!config.financing.refinancing?.enabled} onCheckedChange={(c) => updateConfig('financing', { ...config.financing, refinancing: { enabled: c, yearN: config.financing.refinancing?.yearN ?? 5, newInterestRatePctTl: config.financing.refinancing?.newInterestRatePctTl ?? 22, newTermYears: config.financing.refinancing?.newTermYears ?? 5, refinancingFeePct: config.financing.refinancing?.refinancingFeePct ?? 1 } })} />
+                  <Label>Refinansman (yıl N'de yeni faizle yenile)</Label>
+                </div>
+                {config.financing.refinancing?.enabled && (
+                  <div className="grid grid-cols-4 gap-3">
+                    <Field label="Refi Yılı"><Input type="number" min={2} max={20} value={config.financing.refinancing.yearN} onChange={(e) => updateConfig('financing', { ...config.financing, refinancing: { ...config.financing.refinancing!, yearN: parseInt(e.target.value) || 5 } })} /></Field>
+                    <Field label="Yeni Faiz (%)"><Input type="number" step="0.5" value={config.financing.refinancing.newInterestRatePctTl} onChange={(e) => updateConfig('financing', { ...config.financing, refinancing: { ...config.financing.refinancing!, newInterestRatePctTl: parseFloat(e.target.value) || 22 } })} /></Field>
+                    <Field label="Yeni Vade (yıl)"><Input type="number" value={config.financing.refinancing.newTermYears} onChange={(e) => updateConfig('financing', { ...config.financing, refinancing: { ...config.financing.refinancing!, newTermYears: parseInt(e.target.value) || 5 } })} /></Field>
+                    <Field label="Refi Komisyonu (%)"><Input type="number" step="0.1" value={config.financing.refinancing.refinancingFeePct} onChange={(e) => updateConfig('financing', { ...config.financing, refinancing: { ...config.financing.refinancing!, refinancingFeePct: parseFloat(e.target.value) || 1 } })} /></Field>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="pt-4 border-t">
+              <div className="flex items-center gap-3 mb-3">
+                <Switch checked={!!config.ppa?.enabled} onCheckedChange={(c) => updateConfig('ppa', { ...(config.ppa ?? { ppaPriceTlKwh: 4.5, ppaTermYears: 10, ppaEscalationPct: 2, scope: 'surplus_only' as const }), enabled: c })} />
+                <Label className="flex items-center gap-1.5">PPA (İkili Anlaşma) <InfoTooltip title="PPA" body="Power Purchase Agreement. Kurumsal alıcı ile sabit fiyat anlaşması (örn. 10 yıl). PPA fiyatı tarife satış fiyatı yerine geçer." /></Label>
+              </div>
+              {config.ppa?.enabled && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="PPA Fiyatı (TL/kWh)"><Input type="number" step="0.05" value={config.ppa.ppaPriceTlKwh} onChange={(e) => updateConfig('ppa', { ...config.ppa!, ppaPriceTlKwh: parseFloat(e.target.value) || 0 })} /></Field>
+                  <Field label="Vade (yıl)"><Input type="number" value={config.ppa.ppaTermYears} onChange={(e) => updateConfig('ppa', { ...config.ppa!, ppaTermYears: parseInt(e.target.value) || 10 })} /></Field>
+                  <Field label="Yıllık Escalation (%)"><Input type="number" step="0.5" value={config.ppa.ppaEscalationPct} onChange={(e) => updateConfig('ppa', { ...config.ppa!, ppaEscalationPct: parseFloat(e.target.value) || 0 })} /></Field>
+                  <Field label="Kapsam">
+                    <Select value={config.ppa.scope} onValueChange={(v) => updateConfig('ppa', { ...config.ppa!, scope: v as 'all' | 'surplus_only' })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="surplus_only">Yalnız İhtiyaç Fazlası</SelectItem>
+                        <SelectItem value="all">Tüm Üretim (mahsup yok)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Karşı Taraf (rapor için)"><Input value={config.ppa.counterpartyName ?? ''} onChange={(e) => updateConfig('ppa', { ...config.ppa!, counterpartyName: e.target.value })} placeholder="örn. Migros, Türk Telekom" /></Field>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-4 border-t">
+              <div className="flex items-center gap-3 mb-3">
+                <Switch checked={!!config.carbonCredit?.enabled} onCheckedChange={(c) => updateConfig('carbonCredit', { ...(config.carbonCredit ?? { standard: 'VCS' as const, pricePerTonUsd: 12, certificationCostUsdYearly: 8000, creditingPeriodYears: 10 }), enabled: c })} />
+                <Label className="flex items-center gap-1.5">Karbon Kredisi <InfoTooltip title="Karbon Kredisi" body="VCS / Gold Standard / CDM ile her ton önlenen CO2e için kredi satışı. 2026 VCS solar tipik $8-15/ton. Sertifika maliyetini yıllık OPEX'e ekler." /></Label>
+              </div>
+              {config.carbonCredit?.enabled && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Standart">
+                    <Select value={config.carbonCredit.standard} onValueChange={(v) => updateConfig('carbonCredit', { ...config.carbonCredit!, standard: v as 'VCS' | 'GOLD_STANDARD' | 'CDM' | 'OTHER' })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="VCS">VCS (Verra)</SelectItem>
+                        <SelectItem value="GOLD_STANDARD">Gold Standard</SelectItem>
+                        <SelectItem value="CDM">CDM (UN)</SelectItem>
+                        <SelectItem value="OTHER">Diğer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Fiyat (USD/tCO₂e)"><Input type="number" step="0.5" value={config.carbonCredit.pricePerTonUsd} onChange={(e) => updateConfig('carbonCredit', { ...config.carbonCredit!, pricePerTonUsd: parseFloat(e.target.value) || 0 })} /></Field>
+                  <Field label="Yıllık Sertifika Maliyeti (USD)"><Input type="number" step="500" value={config.carbonCredit.certificationCostUsdYearly} onChange={(e) => updateConfig('carbonCredit', { ...config.carbonCredit!, certificationCostUsdYearly: parseFloat(e.target.value) || 0 })} /></Field>
+                  <Field label="Crediting Period (yıl)"><Input type="number" value={config.carbonCredit.creditingPeriodYears} onChange={(e) => updateConfig('carbonCredit', { ...config.carbonCredit!, creditingPeriodYears: parseInt(e.target.value) || 10 })} /></Field>
                 </div>
               )}
             </div>
