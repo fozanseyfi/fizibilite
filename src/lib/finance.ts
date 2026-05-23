@@ -15,6 +15,8 @@ import {
   PeriodFinance,
   HOURS_PER_YEAR,
 } from './types';
+import { generateCapexSchedule } from './pf/capex-schedule';
+import { calculateIdc } from './pf/idc';
 
 const CO2_INTENSITY_KG_PER_KWH = 0.45;
 const TREES_PER_TON_CO2 = 16.5;
@@ -34,7 +36,38 @@ export function computeFinance(input: FinanceInput): FinanceResult {
   const years = config.analysisYears;
   const discountRate = config.financing.discountRatePct / 100;
 
-  const totalCapexTl = computeTotalCapex(config);
+  const baseCapexTl = computeTotalCapex(config);
+
+  // MODÜL 1+2: IDC ve S-curve (sadece loan finansmanında)
+  let idcTotal = 0;
+  let arrangementFee = 0;
+  let commitmentFeeTotal = 0;
+  if (config.financing.type === 'loan' && config.financing.construction) {
+    const cc = config.financing.construction;
+    const equityPct = config.financing.equityPct ?? 0.3;
+    const debtRatio = 1 - equityPct;
+    const schedule = generateCapexSchedule({
+      totalCapexTl: baseCapexTl,
+      constructionMonths: cc.monthsToCod,
+      curveType: cc.curveType,
+      customMonthlyPct: cc.customMonthlyPct,
+    });
+    const idc = calculateIdc({
+      monthlyCapexDrawdowns: schedule.monthlyCapexTotal,
+      debtRatio,
+      annualInterestRate: (config.financing.interestRatePctTl ?? 35) / 100,
+      commitmentFeeRate: cc.commitmentFeeRate ?? 0.005,
+      arrangementFeePct: cc.arrangementFeePct ?? 0.01,
+    });
+    if (cc.capitalizeIdc !== false) {
+      idcTotal = idc.totalIdc;
+    }
+    arrangementFee = idc.arrangementFee;
+    commitmentFeeTotal = idc.monthlyCommitmentFee.reduce((a, b) => a + b, 0);
+  }
+
+  // IDC kapitalize edildiyse total CAPEX'e ekleniyor (amortisman base artar)
+  const totalCapexTl = baseCapexTl + idcTotal + arrangementFee + commitmentFeeTotal;
   const loanSchedule = buildLoanSchedule(config, totalCapexTl);
   const augmentationCapexByYear = computeAugmentationCapex(config);
 

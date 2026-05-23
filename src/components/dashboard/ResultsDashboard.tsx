@@ -11,6 +11,9 @@ import { AssumptionsTab } from './AssumptionsTab';
 import { HourlyDataTable } from './HourlyDataTable';
 import { LcoeComparison } from './LcoeComparison';
 import { EsgReport } from './EsgReport';
+import { MasterCheckBadge } from './MasterCheckBadge';
+import { CoverageTab } from './CoverageTab';
+import { ScenarioMatrixTab } from './ScenarioMatrixTab';
 import {
   CashFlowTable, INCOME_STATEMENT_ROWS, CASH_FLOW_STATEMENT_ROWS, CASH_WATERFALL_ROWS,
 } from './CashFlowTable';
@@ -90,6 +93,7 @@ export function ResultsDashboard({
           </p>
         </div>
         <div className="flex gap-2 flex-wrap items-center">
+          <MasterCheckBadge projectId={projectId} />
           <CurrencyToggle value={currency} onChange={setCurrency} usdTry={usdTry} />
           <Button variant="outline" asChild>
             <Link href={`/projects/new?edit=${projectId}`}>
@@ -147,6 +151,8 @@ export function ResultsDashboard({
           <TabsTrigger value="pnl">P&amp;L</TabsTrigger>
           <TabsTrigger value="cf">Cash Flow</TabsTrigger>
           <TabsTrigger value="waterfall">Cash Waterfall</TabsTrigger>
+          <TabsTrigger value="coverage">Borç Karşılama</TabsTrigger>
+          <TabsTrigger value="scenarios">Senaryo Matrisi</TabsTrigger>
           <TabsTrigger value="risk">Risk (MC)</TabsTrigger>
           <TabsTrigger value="sensitivity">Duyarlılık</TabsTrigger>
           <TabsTrigger value="esg">ESG</TabsTrigger>
@@ -472,6 +478,16 @@ export function ResultsDashboard({
               </Card>
             </>
           )}
+        </TabsContent>
+
+        {/* === BORÇ KARŞILAMA === */}
+        <TabsContent value="coverage" className="space-y-6">
+          <CoverageTab projectId={projectId} />
+        </TabsContent>
+
+        {/* === SENARYO MATRİSİ === */}
+        <TabsContent value="scenarios" className="space-y-6">
+          <ScenarioMatrixTab projectId={projectId} currency={currency} usdTry={usdTry} />
         </TabsContent>
 
         {/* === ESG === */}

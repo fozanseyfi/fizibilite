@@ -432,6 +432,32 @@ function NewProjectPageInner() {
               </Select>
             </Field>
             {config.financing.type === 'loan' && (
+              <>
+              <div className="rounded-lg bg-primary/5 border border-primary/30 p-3 space-y-2">
+                <Label className="flex items-center gap-1.5 text-xs">
+                  🏗️ İnşaat Dönemi (IDC + S-Curve)
+                  <InfoTooltip title="Interest During Construction" body="İnşaat dönemi faizi ödenmek yerine kapitalize edilir ve operasyon başladığında amortismana tabi tutulur. Banka kredisi kullanan tüm projelerde uygulanır. Toplam yatırımı büyütür." />
+                </Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="İnşaat (ay)"><Input type="number" min={1} max={36} value={config.financing.construction?.monthsToCod ?? 6} onChange={(e) => updateConfig('financing', { ...config.financing, construction: { ...(config.financing.construction ?? { curveType: 'realistic' as const, commitmentFeeRate: 0.005, arrangementFeePct: 0.01, capitalizeIdc: true }), monthsToCod: parseInt(e.target.value) || 6 } })} /></Field>
+                  <Field label="S-Curve Tipi">
+                    <Select value={config.financing.construction?.curveType ?? 'realistic'} onValueChange={(v) => updateConfig('financing', { ...config.financing, construction: { ...(config.financing.construction ?? { monthsToCod: 6, commitmentFeeRate: 0.005, arrangementFeePct: 0.01, capitalizeIdc: true }), curveType: v as 'realistic' | 'linear' | 'beta' | 'front' | 'back' | 'custom' } })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="realistic">Realistic (5/15/30/25/15/10%)</SelectItem>
+                        <SelectItem value="linear">Linear (eşit)</SelectItem>
+                        <SelectItem value="beta">Beta (çan)</SelectItem>
+                        <SelectItem value="front">Front-loaded</SelectItem>
+                        <SelectItem value="back">Back-loaded (modüller son)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Arrangement Fee (%)"><Input type="number" step="0.1" value={(config.financing.construction?.arrangementFeePct ?? 0.01) * 100} onChange={(e) => updateConfig('financing', { ...config.financing, construction: { ...(config.financing.construction ?? { monthsToCod: 6, curveType: 'realistic' as const, commitmentFeeRate: 0.005, capitalizeIdc: true }), arrangementFeePct: parseFloat(e.target.value) / 100 } })} /></Field>
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  IDC kapitalize edilir → CAPEX'e eklenir → amortisman base'i büyür. Tahmini IDC simülasyondan sonra Genel Bakış'ta görünür.
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <Field label={<span className="flex items-center gap-1.5">Öz Sermaye Payı (%) <InfoTooltip title="Öz Sermaye Payı" body="Toplam yatırımın yüzde kaçının öz kaynaktan finanse edileceği. Türkiye'de banka asgari %25-30 öz sermaye talep eder. Örn. %30 = sponsor 30, banka 70 kredi sağlar." /></span>} hint="Banka asgari: %25-30">
                   <div className="flex items-center gap-2">
@@ -451,6 +477,7 @@ function NewProjectPageInner() {
                   </Select>
                 </Field>
               </div>
+              </>
             )}
             <div className="grid grid-cols-2 gap-4 pt-2 border-t">
               <Field label={<span className="flex items-center gap-1.5">İndirgeme Oranı / WACC (%) <InfoTooltip {...TOOLTIPS.npv} /></span>}>

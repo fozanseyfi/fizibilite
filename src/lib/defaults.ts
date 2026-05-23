@@ -102,6 +102,13 @@ export function buildDefaultConfig(overrides: Partial<ProjectConfig> = {}): Proj
       graceMonths: 0,
       repaymentType: 'annuity',
       discountRatePct: 18,
+      construction: {
+        monthsToCod: 6,
+        curveType: 'realistic',
+        commitmentFeeRate: 0.005,
+        arrangementFeePct: 0.01,
+        capitalizeIdc: true,
+      },
     },
     tax: {
       vatPct: 0.2,

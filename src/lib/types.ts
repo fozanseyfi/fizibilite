@@ -156,9 +156,25 @@ export interface FinancingConfig {
   leasingTermMonths?: number;
   leasingResidualPctTl?: number;
   // Genel
-  discountRatePct: number; // WACC veya opportunity cost
+  discountRatePct: number;
   // Refinansman (opsiyonel)
   refinancing?: RefinancingConfig;
+  // İnşaat dönemi parametreleri (MODÜL 1-2)
+  construction?: ConstructionConfig;
+}
+
+export interface ConstructionConfig {
+  /** İnşaat süresi (ay) — Notice-to-Proceed → COD */
+  monthsToCod: number;
+  /** S-curve tipi */
+  curveType: 'beta' | 'linear' | 'front' | 'back' | 'realistic' | 'custom';
+  customMonthlyPct?: number[];
+  /** Commitment fee yıllık % (kullanılmayan kredi üzerinden) */
+  commitmentFeeRate?: number;
+  /** Arrangement fee tek seferlik % (kredi tutarı üzerinden) */
+  arrangementFeePct?: number;
+  /** IDC kapitalize edilsin mi (default true) */
+  capitalizeIdc?: boolean;
 }
 
 export interface RefinancingConfig {
