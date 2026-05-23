@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,14 @@ const CITY_PRESETS: Record<string, { lat: number; lon: number }> = {
 };
 
 export default function NewProjectPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12 text-muted-foreground">Yükleniyor…</div>}>
+      <NewProjectPageInner />
+    </Suspense>
+  );
+}
+
+function NewProjectPageInner() {
   const router = useRouter();
   const params = useSearchParams();
   const editingId = params.get('edit');
@@ -94,7 +102,10 @@ export default function NewProjectPage() {
   const updateNested = <K extends keyof ProjectConfig, S extends keyof ProjectConfig[K]>(
     key: K, field: S, value: ProjectConfig[K][S]
   ) => {
-    setConfig((prev) => ({ ...prev, [key]: { ...(prev[key] as object), [field]: value } as ProjectConfig[K] }));
+    setConfig((prev) => ({
+      ...prev,
+      [key]: { ...(prev[key] as object), [field]: value } as unknown as ProjectConfig[K],
+    }));
   };
 
   async function submit() {

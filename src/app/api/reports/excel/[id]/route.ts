@@ -36,7 +36,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 
   const filename = encodeURIComponent(`${row.name}${suffix}.xlsx`);
-  return new NextResponse(buf, {
+  // Buffer'ı Uint8Array'e çevir — Web API BodyInit ile uyumlu olsun (Vercel/edge)
+  return new NextResponse(new Uint8Array(buf), {
     status: 200,
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

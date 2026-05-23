@@ -276,15 +276,14 @@ export default function ReportPage({
               </tr>
             </thead>
             <tbody>
-              {result.finance.yearly.filter((y) => y.interestExpenseTl > 0 || y.principalPaymentTl !== 0).map((y) => {
-                const totalPayment = y.interestExpenseTl + Math.abs(y.principalPaymentTl);
-                // Remaining balance approximation
-                const remaining = y.principalPaymentTl !== 0 ? Math.max(0, y.principalPaymentTl) : 0;
+              {result.finance.yearly.filter((y) => y.interestExpenseTl > 0 || y.repaymentTl !== 0).map((y) => {
+                const principal = Math.abs(y.repaymentTl);
+                const totalPayment = y.interestExpenseTl + principal;
                 return (
                   <tr key={y.year} className="border-b border-slate-100">
                     <td className="p-2">{y.year}</td>
                     <td className="p-2 text-right num">{mc(y.interestExpenseTl)}</td>
-                    <td className="p-2 text-right num">{mc(Math.abs(y.principalPaymentTl))}</td>
+                    <td className="p-2 text-right num">{mc(principal)}</td>
                     <td className="p-2 text-right num font-medium">{mc(totalPayment)}</td>
                     <td className="p-2 text-right num text-slate-500">—</td>
                     <td className="p-2 text-right num">{y.dscr > 0 ? y.dscr.toFixed(2) : '—'}</td>

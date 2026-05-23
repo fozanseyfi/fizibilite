@@ -213,7 +213,10 @@ export async function buildExcelReport(
     { header: 'Yıl', key: 'y', width: 8 },
     { header: 'OPEX TL', key: 'op', width: 18 },
   ];
-  for (const y of result.finance.yearly) s6.addRow({ y: y.year, op: round(y.opexTl) });
+  for (const y of result.finance.yearly) {
+    const opex = y.insuranceCostTl + y.correctiveMaintenanceTl + y.preventiveMaintenanceTl + y.totalPayrollTl + y.transmissionOperationalFeesTl + y.otherFeesTl;
+    s6.addRow({ y: y.year, op: round(opex) });
+  }
   s6.getRow(1).font = { bold: true };
 
   // ----- Sheet 7 — Cash Flow / P&L -----
@@ -231,10 +234,11 @@ export async function buildExcelReport(
     { header: 'Net Gelir', key: 'ni', width: 18 },
   ];
   for (const y of result.finance.yearly) {
+    const opex = y.insuranceCostTl + y.correctiveMaintenanceTl + y.preventiveMaintenanceTl + y.totalPayrollTl + y.transmissionOperationalFeesTl + y.otherFeesTl;
     s7.addRow({
-      y: y.year, rev: round(y.totalRevenueTl), opex: round(y.opexTl), ebitda: round(y.ebitdaTl),
-      am: round(y.amortizationTl), ebit: round(y.ebitTl), int: round(y.interestExpenseTl),
-      pretax: round(y.taxableIncomeTl), tax: round(y.taxTl), ni: round(y.netIncomeTl),
+      y: y.year, rev: round(y.salesRevenueTl), opex: round(opex), ebitda: round(y.ebitdaTl),
+      am: round(y.depreciationTl), ebit: round(y.ebitTl), int: round(y.interestExpenseTl),
+      pretax: round(y.earningsBeforeTaxTl), tax: round(y.taxExpenseTl), ni: round(y.netIncomeTl),
     });
   }
   s7.getRow(1).font = { bold: true };
@@ -249,7 +253,7 @@ export async function buildExcelReport(
       { header: 'Bakiye TL', key: 'b', width: 18 },
     ];
     for (const y of result.finance.yearly) {
-      s8.addRow({ y: y.year, i: round(y.interestExpenseTl), p: round(y.principalPaymentTl), b: round(y.loanBalanceTl) });
+      s8.addRow({ y: y.year, i: round(y.interestExpenseTl), p: round(Math.abs(y.repaymentTl)), b: 0 });
     }
     s8.getRow(1).font = { bold: true };
   }
