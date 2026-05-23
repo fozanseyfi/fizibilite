@@ -4,6 +4,10 @@ import { Sun } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LocaleToggle } from '@/components/LocaleToggle';
+import { cookies } from 'next/headers';
+import { t, Locale } from '@/lib/i18n';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'GES-Fizibilite Pro — EPDK Saatlik Mahsuplaşma Fizibilitesi',
@@ -12,8 +16,10 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const localeCookie = cookies().get('locale')?.value;
+  const locale: Locale = localeCookie === 'en' ? 'en' : 'tr';
   return (
-    <html lang="tr">
+    <html lang={locale}>
       <body className="min-h-screen bg-background antialiased">
         <header className="border-b border-border/60 bg-background/95 backdrop-blur sticky top-0 z-40">
           <div className="container flex items-center justify-between h-16">
@@ -27,10 +33,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </Link>
             <nav className="flex items-center gap-1 text-sm">
-              <Link href="/" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">Projeler</Link>
-              <Link href="/projects/new" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">Yeni Proje</Link>
-              <Link href="/projects/compare" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">Karşılaştır</Link>
-              <Link href="/about" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">Hakkında</Link>
+              <Link href="/" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">{t('nav.projects', locale)}</Link>
+              <Link href="/projects/new" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">{t('nav.newProject', locale)}</Link>
+              <Link href="/projects/compare" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">{t('nav.compare', locale)}</Link>
+              <Link href="/about" className="px-3 py-2 rounded-md hover:bg-secondary text-foreground/80 hover:text-foreground">{t('nav.about', locale)}</Link>
               <div className="ml-2 flex items-center gap-1.5">
                 <LocaleToggle />
                 <ThemeToggle />

@@ -399,6 +399,8 @@ function NewProjectPageInner() {
           peakPowerKwp={config.pv.peakPowerKwp}
           usdTry={config.fx.usdTry}
           projectType={config.projectType}
+          scenarioMatrixInputs={config.scenarioMatrixInputs}
+          onScenarioMatrixInputsChange={(s) => updateConfig('scenarioMatrixInputs', s)}
         />
       )}
 

@@ -134,8 +134,8 @@ export function HourlyDataTable({
             <table className="min-w-full text-xs">
               <thead className="bg-secondary sticky top-0 z-10">
                 <tr>
-                  <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Saat</th>
-                  <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Tarih · Saat</th>
+                  <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">#</th>
+                  <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Tarih · Saat Aralığı</th>
                   <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">Üretim (kWh)</th>
                   <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">Tüketim (kWh)</th>
                   <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">Mahsup (kWh)</th>
@@ -251,8 +251,10 @@ function hourToTimestamp(h: number): string {
   const d = hourToDate(h);
   const day = String(d.getUTCDate()).padStart(2, '0');
   const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const hour = String(d.getUTCHours()).padStart(2, '0');
-  return `${day}.${month} · ${hour}:00`;
+  const startHour = String(d.getUTCHours()).padStart(2, '0');
+  const endHour = String((d.getUTCHours() + 1) % 24).padStart(2, '0');
+  const dow = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'][(d.getUTCDay() + 6) % 7];
+  return `${day}.${month} ${dow} · ${startHour}:00–${endHour}:00`;
 }
 
 function formatDate(d: Date): string {

@@ -14,6 +14,7 @@ import { EsgReport } from './EsgReport';
 import { MasterCheckBadge } from './MasterCheckBadge';
 import { CoverageTab } from './CoverageTab';
 import { ScenarioMatrixTab } from './ScenarioMatrixTab';
+import { PnlExplainer, CashFlowExplainer, WaterfallExplainer, CoverageExplainer } from './TabExplainer';
 import {
   CashFlowTable, INCOME_STATEMENT_ROWS, CASH_FLOW_STATEMENT_ROWS, CASH_WATERFALL_ROWS,
 } from './CashFlowTable';
@@ -422,18 +423,21 @@ export function ResultsDashboard({
 
         {/* === P&L === */}
         <TabsContent value="pnl" className="space-y-3">
+          <PnlExplainer />
           <CashFlowPeriodSelector value={cfPeriod} onChange={setCfPeriod} hasMonthly={result.monthlyYear1.length > 0} />
           <CashFlowTable sections={[INCOME_STATEMENT_ROWS]} periods={cfPeriods} totalRowLabel="Net Income (toplam)" currency={currency} usdTry={usdTry} />
         </TabsContent>
 
         {/* === CASH FLOW STATEMENT === */}
         <TabsContent value="cf" className="space-y-3">
+          <CashFlowExplainer />
           <CashFlowPeriodSelector value={cfPeriod} onChange={setCfPeriod} hasMonthly={result.monthlyYear1.length > 0} />
           <CashFlowTable sections={CASH_FLOW_STATEMENT_ROWS} periods={cfPeriods} totalRowLabel="Net Cash Flow (toplam)" currency={currency} usdTry={usdTry} />
         </TabsContent>
 
         {/* === CASH WATERFALL === */}
         <TabsContent value="waterfall" className="space-y-3">
+          <WaterfallExplainer />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
             <KpiCard label="FCFC Payback" value={formatYears(result.finance.fcfcPaybackYears)} accent="solar" />
             <KpiCard label="FCFE Payback" value={formatYears(result.finance.fcfePaybackYears)} accent="eco" />
@@ -482,6 +486,7 @@ export function ResultsDashboard({
 
         {/* === BORÇ KARŞILAMA === */}
         <TabsContent value="coverage" className="space-y-6">
+          <CoverageExplainer />
           <CoverageTab projectId={projectId} />
         </TabsContent>
 

@@ -51,6 +51,10 @@ export function runScenarioMatrix(input: ScenarioMatrixInput): ScenarioMatrixRes
   const electricityInflation = baseConfig.tariff.electricityInflationPct / 100;
   const opexInflation = baseConfig.fx.trInflationPct / 100;
 
+  // Kullanıcı CAPEX/OPEX inputs verdiyse onları kullan, yoksa scaling factor (eski yöntem)
+  const userInputs = baseConfig.scenarioMatrixInputs;
+  const useUserInputs = !!userInputs;
+
   // BatterySize ratio → kWh kapasite (günlük üretim ortalaması × ratio)
   const dailyGenAvg = baseGenAnnual / 365;
 
@@ -59,12 +63,26 @@ export function runScenarioMatrix(input: ScenarioMatrixInput): ScenarioMatrixRes
   for (const dcAc of DC_AC_VALUES) {
     for (const structure of STRUCTURE_VALUES) {
       for (const batRatio of BATTERY_RATIOS) {
+        // Yapı bazlı CAPEX: kullanıcı verdiyse direkt, yoksa structure premium × base
+        let structureCapex: number;
+        let structureOpexPerKwp: number;
+        if (useUserInputs) {
+          const capexUsdWp = userInputs.capexUsdPerWp[structure] ?? 0.48;
+          structureCapex = baseConfig.pv.peakPowerKwp * 1000 * capexUsdWp * baseConfig.fx.usdTry;
+          structureOpexPerKwp = userInputs.opexTlPerKwpYear[structure] ?? baseConfig.opex.omTlPerKwpYear;
+        } else {
+          const structurePremium = structure.includes('tracker') ? 1.15 : structure.includes('bifacial') ? 1.05 : 1.0;
+          structureCapex = baseCapex * structurePremium;
+          structureOpexPerKwp = baseConfig.opex.omTlPerKwpYear;
+        }
+
         const point = evaluateScenario({
           dcAc,
           structure,
           batRatio,
           baseGenAnnual,
-          baseCapex,
+          structureCapex,
+          structureOpexPerKwp,
           baseConsumption,
           purchasePrice,
           salePrice,
@@ -76,7 +94,7 @@ export function runScenarioMatrix(input: ScenarioMatrixInput): ScenarioMatrixRes
           peakPowerKwp: baseConfig.pv.peakPowerKwp,
           opex: baseConfig.opex,
           usdTry: baseConfig.fx.usdTry,
-          batteryCapexTlPerKwh: baseConfig.battery.capexTlPerKwh || 8500,
+          batteryCapexTlPerKwh: userInputs?.batteryCapexTlPerKwh ?? baseConfig.battery.capexTlPerKwh ?? 8500,
         });
         scenarios.push(point);
       }
@@ -101,7 +119,10 @@ interface EvalInput {
   structure: StructureType;
   batRatio: number;
   baseGenAnnual: number;
-  baseCapex: number;
+  /** Yapı için temel CAPEX (USD/Wp × kWp × usdTry — DC/AC premium öncesi) */
+  structureCapex: number;
+  /** Yapı için yıllık OPEX (TL/kWp/yıl) */
+  structureOpexPerKwp: number;
   baseConsumption: number;
   purchasePrice: number;
   salePrice: number;
@@ -122,23 +143,21 @@ function evaluateScenario(e: EvalInput): ScenarioPoint {
   const dcAcGenMultiplier = e.dcAc <= 1.2 ? e.dcAc : 1.2 + (e.dcAc - 1.2) * 0.6;
   const annualGen = e.baseGenAnnual * yieldFactor * dcAcGenMultiplier;
 
-  // Mahsuplaşma yaklaşık: min(üretim, tüketim) ana etken
-  // Self-consumption oranı battery boyutuyla artar
+  // Mahsuplaşma yaklaşık
   const selfConsumptionRatio = Math.min(0.95, 0.50 + e.batRatio * 0.35);
   const netted = Math.min(annualGen, e.baseConsumption) * selfConsumptionRatio;
   const surplus = Math.max(0, annualGen - netted);
-  const paidSurplus = Math.min(surplus, e.baseConsumption); // bedelli limit yaklaşımı
+  const paidSurplus = Math.min(surplus, e.baseConsumption);
 
-  // CAPEX adjusted
-  const structurePremium = e.structure.includes('tracker') ? 1.15 : e.structure.includes('bifacial') ? 1.05 : 1.0;
+  // CAPEX: yapı bazlı + DC/AC premium + batarya
   const dcAcPremium = 0.85 + e.dcAc * 0.15; // 1.0 → 1.0, 1.4 → 1.06
   const batteryKwh = e.dailyGenAvg * e.batRatio;
   const batteryCapex = batteryKwh * e.batteryCapexTlPerKwh;
-  const totalCapex = e.baseCapex * structurePremium * dcAcPremium + batteryCapex;
+  const totalCapex = e.structureCapex * dcAcPremium + batteryCapex;
 
-  // Yıllık nakit akış (basitleştirilmiş)
+  // Yıllık nakit akış (yapı bazlı OPEX kullan)
   const yearlyRevenue = netted * e.purchasePrice + paidSurplus * e.salePrice;
-  const yearlyOpex = e.opex.omTlPerKwpYear * e.peakPowerKwp + e.opex.spareParts + e.opex.managementFees + totalCapex * e.opex.insurancePctCapex;
+  const yearlyOpex = e.structureOpexPerKwp * e.peakPowerKwp + e.opex.spareParts + e.opex.managementFees + totalCapex * e.opex.insurancePctCapex;
 
   // 25 yıllık iskontolu nakit akış (degredasyon ihmal — kabaca tahmin)
   const cashFlows: number[] = [-totalCapex];

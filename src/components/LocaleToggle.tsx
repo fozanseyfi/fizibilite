@@ -3,18 +3,20 @@
 import { useEffect, useState } from 'react';
 import { Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getLocale, setLocale, Locale } from '@/lib/i18n';
+import { getClientLocale, setClientLocale, Locale } from '@/lib/i18n';
 
 export function LocaleToggle() {
   const [locale, setLocaleState] = useState<Locale>('tr');
 
-  useEffect(() => { setLocaleState(getLocale()); }, []);
+  useEffect(() => {
+    setLocaleState(getClientLocale());
+  }, []);
 
   function switchLocale() {
     const next: Locale = locale === 'tr' ? 'en' : 'tr';
-    setLocale(next);
+    setClientLocale(next);
     setLocaleState(next);
-    // Server component'leri tekrar render etmek için sayfa reload
+    // Server component'leri yeniden render için reload (cookie set edildi)
     if (typeof window !== 'undefined') window.location.reload();
   }
 

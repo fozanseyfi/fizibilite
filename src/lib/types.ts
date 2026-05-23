@@ -273,6 +273,17 @@ export interface ProjectConfig {
   carbonCredit?: CarbonCreditConfig;
   /** PTF saatlik veri (opsiyonel) — batarya arbitraj için */
   ptfHourly?: number[];
+  /** Senaryo matrisi için yapı-bazlı CAPEX/OPEX (opsiyonel) */
+  scenarioMatrixInputs?: ScenarioMatrixInputsConfig;
+}
+
+export interface ScenarioMatrixInputsConfig {
+  /** Her yapı için birim CAPEX (USD/Wp) */
+  capexUsdPerWp: Record<string, number>; // key: StructureType, value: USD/Wp
+  /** Her yapı için yıllık OPEX (TL/kWp/yıl) */
+  opexTlPerKwpYear: Record<string, number>;
+  /** Batarya birim CAPEX (TL/kWh) */
+  batteryCapexTlPerKwh: number;
 }
 
 // ========== Results ==========

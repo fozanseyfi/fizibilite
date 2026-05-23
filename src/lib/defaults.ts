@@ -154,6 +154,25 @@ export function buildDefaultConfig(overrides: Partial<ProjectConfig> = {}): Proj
       certificationCostUsdYearly: 8000,
       creditingPeriodYears: 10,
     },
+    scenarioMatrixInputs: {
+      capexUsdPerWp: {
+        fixed_mono: 0.48,          // Base: PV+inv+mount+kablo+işçilik+müh = ~0.42, +bağlantı+sigorta+beklenmeyen = 0.48
+        fixed_bifacial: 0.52,      // +%8 modül premium
+        tracker_mono: 0.62,        // +%30 tracker yapı + motorizasyon
+        tracker_bifacial: 0.66,    // ikisi birlikte
+        tilted_mono: 0.50,         // ayarlı tilt yapı
+        tilted_bifacial: 0.54,
+      },
+      opexTlPerKwpYear: {
+        fixed_mono: 120,
+        fixed_bifacial: 125,
+        tracker_mono: 165,         // tracker bakım ekstra (~%40 daha pahalı)
+        tracker_bifacial: 170,
+        tilted_mono: 130,
+        tilted_bifacial: 135,
+      },
+      batteryCapexTlPerKwh: 8500,
+    },
     ...overrides,
   };
 }

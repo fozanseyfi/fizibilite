@@ -61,6 +61,18 @@ surplus[h]         = max(0, üretim[h] − tüketim[h])    // şebekeye veriş`}
         </CardContent>
       </Card>
 
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <CardTitle>📊 Saatlik vs Aylık Mahsuplaşma — Detaylı Karşılaştırma</CardTitle>
+          <CardDescription>Aynı üretim/tüketim için iki rejimin fatura sonucu yan yana, sayısal örnek ile.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <a href="/about/netting-comparison" className="text-primary hover:underline text-sm font-semibold">
+            → Karşılaştırma sayfasını aç (saatlik rejim C&I yatırımcısı için neden %20-35 daha düşük gelir?)
+          </a>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>4. Mesken İstisnası</CardTitle>
