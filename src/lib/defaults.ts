@@ -1,0 +1,303 @@
+/**
+ * Default config builder + 3 demo proje (PRD §15.5).
+ */
+
+import {
+  ProjectConfig,
+  Location,
+  ConsumerGroup,
+  ProjectType,
+  CapexBreakdown,
+} from './types';
+
+export function buildDefaultConfig(overrides: Partial<ProjectConfig> = {}): ProjectConfig {
+  const peakPowerKwp = overrides.pv?.peakPowerKwp ?? 500;
+  const usdTry = overrides.fx?.usdTry ?? 45.5; // TCMB Mayıs 2026 ortalaması
+  const capex = overrides.capex ?? buildDefaultCapex(peakPowerKwp, 'rooftop_ci', usdTry, false);
+
+  return {
+    name: 'Yeni Proje',
+    description: '',
+    projectType: 'rooftop_ci',
+    location: { lat: 36.8969, lon: 30.7133, city: 'Antalya' },
+    pv: {
+      peakPowerKwp,
+      loss: 14,
+      angle: 30,
+      aspect: 0,
+      moduleTech: 'crystSi',
+      mounting: 'building',
+      tracking: 0,
+      lidPct: 0.02,
+      annualDegradationPct: 0.005,
+    },
+    consumption: {
+      profileId: 'office_5x10',
+      annualKwh: 800_000,
+      growthRatePct: 0,
+      prevYearKwh: 800_000,
+      sameMeteringPoint: false,
+      builder: {
+        daily: { slot_00_06: 5, slot_06_10: 20, slot_10_14: 30, slot_14_18: 30, slot_18_24: 15 },
+        monthly: [8.33, 8.33, 8.33, 8.33, 8.33, 8.33, 8.33, 8.33, 8.33, 8.33, 8.33, 8.37],
+        weekendFactor: 0.3,
+      },
+    },
+    tariff: {
+      consumerGroup: 'TICARETHANE_LV',
+      purchasePriceTlKwh: 4.28,
+      salePriceTlKwh: 3.95,
+      hasBilateralContract: false,
+      bilateralPriceTlKwh: null,
+      isLastResortSupply: false,
+      lastResortMultiplier: 1.0938,
+      distributionFeeTlKwh: 0.95,
+      consumptionTaxPct: 0.05,
+      vatPct: 0.2,
+      electricityInflationPct: 30,
+    },
+    battery: {
+      enabled: false,
+      nominalCapacityKwh: 0,
+      nominalPowerKw: 0,
+      roundTripEfficiency: 0.92,
+      minSocPct: 0.1,
+      maxSocPct: 0.95,
+      initialSocPct: 0.5,
+      cycleLifeAt80Dod: 6000,
+      calendarLifeYears: 15,
+      eolCapacityPct: 0.7,
+      capexTlPerKwh: 8500,
+      capexTlPerKw: 3500,
+      bosTl: 0,
+      augmentationEnabled: true,
+      augmentationYears: [8, 16],
+      augmentationKwhPerEvent: 0,
+      augmentationCapexDeclinePct: 0.5,
+      dispatchStrategy: 'rule_based',
+      enableArbitrage: false,
+      enablePeakShaving: false,
+      peakThresholdKw: 0,
+      arbitrageLowThresholdTlKwh: 1.5,
+      arbitrageHighThresholdTlKwh: 5.0,
+    },
+    capex,
+    opex: {
+      omTlPerKwpYear: 120,
+      insurancePctCapex: 0.005,
+      inverterReplacementPctCapex: 0.08,
+      inverterReplacementYear: 12,
+      spareParts: peakPowerKwp * 30,
+      security: 0,
+      systemUsageTlKwh: 0.08,
+      propertyTax: 0,
+      managementFees: 25_000,
+    },
+    financing: {
+      type: 'equity',
+      equityPct: 1.0,
+      loanTermYears: 7,
+      interestRatePctTl: 35,
+      interestRatePctUsd: 10,
+      graceMonths: 0,
+      repaymentType: 'annuity',
+      discountRatePct: 18,
+    },
+    tax: {
+      vatPct: 0.2,
+      vatRefundEnabled: true,
+      corporateTaxPct: 0.25,
+      amortizationYears: 10,
+      investmentIncentiveEnabled: false,
+      incentiveRegion: 1,
+      incentiveCorpTaxReductionPct: 0,
+    },
+    fx: {
+      usdTry,
+      trInflationPct: 28, // TCMB Ocak 2026 raporu orta tahmin
+      usInflationPct: 2.5,
+      fxProjection: 'ppp',
+    },
+    monteCarlo: {
+      enabled: true,
+      iterations: 1000,
+      seed: 42,
+      generationSigmaPct: 0.05,
+      consumptionGrowthSigmaPct: 0.02,
+      electricityInflationTriangular: [0.25, 0.3, 0.4],
+      trInflationTriangular: [0.2, 0.3, 0.45],
+      fxAnnualVolPct: 0.18,
+      degradationSigmaPct: 0.001,
+      cycleLifeSigmaPct: 0.1,
+      omSigmaPct: 0.1,
+      capexOverrunTriangular: [0, 0, 0.2],
+    },
+    analysisYears: 25,
+    ...overrides,
+  };
+}
+
+export function buildDefaultCapex(
+  kWp: number,
+  type: ProjectType,
+  usdTry: number,
+  withBattery: boolean
+): CapexBreakdown {
+  // USD/Wp default kalemler (PRD §7.1)
+  const moduleUsd = 0.18;
+  const inverterUsd = 0.06;
+  const mountingUsd = type === 'ground_mount' ? 0.12 : 0.08;
+  const cablingUsd = 0.04;
+  const laborUsd = 0.05;
+  const engineeringUsd = 0.03;
+
+  const toTl = (usd: number) => usd * kWp * 1000 * usdTry;
+
+  const pvModule = toTl(moduleUsd);
+  const inverter = toTl(inverterUsd);
+  const mounting = toTl(mountingUsd);
+  const cabling = toTl(cablingUsd);
+  const labor = toTl(laborUsd);
+  const engineering = toTl(engineeringUsd);
+  const gridConnection = kWp * 200; // 200 TL/kWp tahmini
+  const tedasZbof = kWp * 150;
+  const land = type === 'ground_mount' ? kWp * 600 : 0;
+  const baseSum = pvModule + inverter + mounting + cabling + labor + engineering + gridConnection + tedasZbof + land;
+  const insurance = baseSum * 0.01;
+  const contingency = baseSum * 0.04;
+  const battery = withBattery ? 0 : 0; // wizard'da hesaplanır
+
+  return {
+    pvModule,
+    inverter,
+    mounting,
+    cabling,
+    labor,
+    engineering,
+    gridConnection,
+    tedasZbof,
+    land,
+    insurance,
+    contingency,
+    battery,
+    total: baseSum + insurance + contingency + battery,
+  };
+}
+
+// ---------- 3 demo proje (PRD §15.5) ----------
+
+export const DEMO_PROJECTS: Array<{ id: string; name: string; config: ProjectConfig }> = [
+  {
+    id: 'demo-antalya-otel',
+    name: 'Antalya 500 kWp Otel Çatı GES',
+    config: buildDefaultConfig({
+      name: 'Antalya 500 kWp Otel Çatı GES',
+      description: 'Side\'da 4 yıldızlı otel için çatı GES fizibilitesi',
+      projectType: 'rooftop_ci',
+      location: { lat: 36.7669, lon: 31.3895, city: 'Antalya', region: 'Side' },
+      pv: {
+        peakPowerKwp: 500, loss: 14, angle: 25, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'building', tracking: 0,
+        lidPct: 0.02, annualDegradationPct: 0.005,
+      },
+      consumption: {
+        profileId: 'hotel', annualKwh: 1_350_000, growthRatePct: 2,
+        prevYearKwh: 1_350_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'TICARETHANE_LV' as ConsumerGroup,
+        purchasePriceTlKwh: 4.28, salePriceTlKwh: 3.95,
+        hasBilateralContract: false, bilateralPriceTlKwh: null,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.95, consumptionTaxPct: 0.05, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+    }),
+  },
+  {
+    id: 'demo-konya-arazi',
+    name: 'Konya 4.9 MW Arazi GES (Lisanssız)',
+    config: buildDefaultConfig({
+      name: 'Konya 4.9 MW Arazi GES (Lisanssız)',
+      description: 'Karapınar bölgesi tüzel kişi lisanssız arazi GES',
+      projectType: 'ground_mount',
+      location: { lat: 37.7167, lon: 33.55, city: 'Konya', region: 'Karapınar' },
+      pv: {
+        peakPowerKwp: 4900, loss: 14, angle: 32, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'free', tracking: 0,
+        lidPct: 0.02, annualDegradationPct: 0.005,
+      },
+      consumption: {
+        profileId: 'factory_3shift', annualKwh: 12_000_000, growthRatePct: 3,
+        prevYearKwh: 12_000_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'SANAYI_MV' as ConsumerGroup,
+        purchasePriceTlKwh: 3.58, salePriceTlKwh: 3.20,
+        hasBilateralContract: true, bilateralPriceTlKwh: 3.20,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.45, consumptionTaxPct: 0.01, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+      financing: {
+        type: 'loan', equityPct: 0.3, loanTermYears: 8,
+        interestRatePctTl: 38, interestRatePctUsd: 10,
+        graceMonths: 12, repaymentType: 'annuity', discountRatePct: 22,
+      },
+    }),
+  },
+  {
+    id: 'demo-izmir-hibrit',
+    name: 'İzmir 1 MWp + 2 MWh BESS Hibrit Fabrika',
+    config: buildDefaultConfig({
+      name: 'İzmir 1 MWp + 2 MWh BESS Hibrit Fabrika',
+      description: 'Çiğli OSB metal işleme tesisi, çatı GES + lityum BESS',
+      projectType: 'hybrid_bess',
+      location: { lat: 38.4192, lon: 27.1287, city: 'İzmir', region: 'Çiğli OSB' },
+      pv: {
+        peakPowerKwp: 1000, loss: 14, angle: 28, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'building', tracking: 0,
+        lidPct: 0.02, annualDegradationPct: 0.005,
+      },
+      consumption: {
+        profileId: 'factory_2shift', annualKwh: 3_800_000, growthRatePct: 4,
+        prevYearKwh: 3_800_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'SANAYI_LV' as ConsumerGroup,
+        purchasePriceTlKwh: 4.05, salePriceTlKwh: 3.70,
+        hasBilateralContract: false, bilateralPriceTlKwh: null,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.87, consumptionTaxPct: 0.01, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+      battery: {
+        enabled: true, nominalCapacityKwh: 2000, nominalPowerKw: 500,
+        roundTripEfficiency: 0.92, minSocPct: 0.1, maxSocPct: 0.95,
+        initialSocPct: 0.5, cycleLifeAt80Dod: 6000, calendarLifeYears: 15,
+        eolCapacityPct: 0.7, capexTlPerKwh: 8500, capexTlPerKw: 3500,
+        bosTl: 250_000, augmentationEnabled: true, augmentationYears: [8, 16],
+        augmentationKwhPerEvent: 400, augmentationCapexDeclinePct: 0.5,
+        dispatchStrategy: 'rule_based', enableArbitrage: false,
+        enablePeakShaving: true, peakThresholdKw: 400,
+        arbitrageLowThresholdTlKwh: 1.5, arbitrageHighThresholdTlKwh: 5.0,
+      },
+    }),
+  },
+];
+
+/**
+ * Demo'lar için CAPEX'i yeniden hesapla (KapasitELer farklı).
+ */
+export function ensureCapexComputed(config: ProjectConfig): ProjectConfig {
+  if (config.capex && config.capex.total > 0) return config;
+  const capex = buildDefaultCapex(config.pv.peakPowerKwp, config.projectType, config.fx.usdTry, config.battery.enabled);
+  if (config.battery.enabled) {
+    capex.battery =
+      config.battery.nominalCapacityKwh * config.battery.capexTlPerKwh +
+      config.battery.nominalPowerKw * config.battery.capexTlPerKw +
+      config.battery.bosTl;
+    capex.total += capex.battery;
+  }
+  return { ...config, capex };
+}

@@ -1,0 +1,17 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "npm install",
+  "regions": ["fra1"],
+  "functions": {
+    "src/app/api/simulate/[id]/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/pvgis/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/reports/excel/[id]/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
