@@ -232,7 +232,7 @@ export function buildDefaultCapex(
   };
 }
 
-// ---------- 3 demo proje (PRD §15.5) ----------
+// ---------- 9 demo proje ----------
 
 export const DEMO_PROJECTS: Array<{ id: string; name: string; config: ProjectConfig }> = [
   {
@@ -329,6 +329,255 @@ export const DEMO_PROJECTS: Array<{ id: string; name: string; config: ProjectCon
         dispatchStrategy: 'rule_based', enableArbitrage: false,
         enablePeakShaving: true, peakThresholdKw: 400,
         arbitrageLowThresholdTlKwh: 1.5, arbitrageHighThresholdTlKwh: 5.0,
+      },
+    }),
+  },
+
+  // ---------- Kullanıcı talebi: 6 yeni demo ----------
+
+  {
+    id: 'demo-rooftop-1mw',
+    name: '1 MWp Çatı GES (Sanayi)',
+    config: buildDefaultConfig({
+      name: '1 MWp Çatı GES (Sanayi)',
+      description: 'Bursa OSB metal işleme fabrikası, çatı GES bataryasız',
+      projectType: 'rooftop_ci',
+      location: { lat: 40.1885, lon: 29.0610, city: 'Bursa', region: 'NOSAB' },
+      pv: {
+        peakPowerKwp: 1000, loss: 14, angle: 28, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'building', tracking: 0,
+        lidPct: 0.02, annualDegradationPct: 0.005,
+        losses: { soilingPct: 2.0, iamPct: 2.0, spectralPct: 0.5, temperaturePct: 5.0, mismatchPct: 1.0, dcCablingPct: 1.0, inverterPct: 2.0, acCablingPct: 1.0, transformerPct: 1.0, availabilityPct: 0.5 },
+      },
+      consumption: {
+        profileId: 'factory_2shift', annualKwh: 3_500_000, growthRatePct: 3,
+        prevYearKwh: 3_400_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'SANAYI_LV' as ConsumerGroup,
+        purchasePriceTlKwh: 4.05, salePriceTlKwh: 3.70,
+        hasBilateralContract: false, bilateralPriceTlKwh: null,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.87, consumptionTaxPct: 0.01, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+    }),
+  },
+
+  {
+    id: 'demo-rooftop-1mw-bess',
+    name: '1 MWp Çatı GES + 1 MWh BESS (Sanayi)',
+    config: buildDefaultConfig({
+      name: '1 MWp Çatı GES + 1 MWh BESS (Sanayi)',
+      description: 'Bursa OSB metal işleme fabrikası, çatı GES + LFP batarya peak shaving',
+      projectType: 'hybrid_bess',
+      location: { lat: 40.1885, lon: 29.0610, city: 'Bursa', region: 'NOSAB' },
+      pv: {
+        peakPowerKwp: 1000, loss: 14, angle: 28, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'building', tracking: 0,
+        lidPct: 0.02, annualDegradationPct: 0.005,
+        losses: { soilingPct: 2.0, iamPct: 2.0, spectralPct: 0.5, temperaturePct: 5.0, mismatchPct: 1.0, dcCablingPct: 1.0, inverterPct: 2.0, acCablingPct: 1.0, transformerPct: 1.0, availabilityPct: 0.5 },
+      },
+      consumption: {
+        profileId: 'factory_2shift', annualKwh: 3_500_000, growthRatePct: 3,
+        prevYearKwh: 3_400_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'SANAYI_LV' as ConsumerGroup,
+        purchasePriceTlKwh: 4.05, salePriceTlKwh: 3.70,
+        hasBilateralContract: false, bilateralPriceTlKwh: null,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.87, consumptionTaxPct: 0.01, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+      battery: {
+        enabled: true, nominalCapacityKwh: 1000, nominalPowerKw: 250,
+        roundTripEfficiency: 0.92, minSocPct: 0.1, maxSocPct: 0.95,
+        initialSocPct: 0.5, cycleLifeAt80Dod: 6000, calendarLifeYears: 15,
+        eolCapacityPct: 0.7, capexTlPerKwh: 8500, capexTlPerKw: 3500,
+        bosTl: 200_000, augmentationEnabled: true, augmentationYears: [8, 16],
+        augmentationKwhPerEvent: 200, augmentationCapexDeclinePct: 0.5,
+        dispatchStrategy: 'rule_based', enableArbitrage: false,
+        enablePeakShaving: true, peakThresholdKw: 400,
+        arbitrageLowThresholdTlKwh: 1.5, arbitrageHighThresholdTlKwh: 5.0,
+      },
+    }),
+  },
+
+  {
+    id: 'demo-ground-10mw',
+    name: '10 MWp Arazi GES (Lisanslı, Sanayi OG)',
+    config: buildDefaultConfig({
+      name: '10 MWp Arazi GES (Lisanslı, Sanayi OG)',
+      description: 'Konya Karapınar — 10 MWp tracker arazi GES, sanayi OG bilateral PPA',
+      projectType: 'ground_mount',
+      location: { lat: 37.7167, lon: 33.55, city: 'Konya', region: 'Karapınar' },
+      pv: {
+        peakPowerKwp: 10_000, loss: 14, angle: 32, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'free', tracking: 1,
+        lidPct: 0.02, annualDegradationPct: 0.005,
+        losses: { soilingPct: 3.0, iamPct: 2.0, spectralPct: 0.5, temperaturePct: 6.0, mismatchPct: 1.0, dcCablingPct: 1.5, inverterPct: 2.0, acCablingPct: 1.0, transformerPct: 1.5, availabilityPct: 0.5 },
+      },
+      consumption: {
+        profileId: 'factory_3shift', annualKwh: 25_000_000, growthRatePct: 3,
+        prevYearKwh: 24_500_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'SANAYI_MV' as ConsumerGroup,
+        purchasePriceTlKwh: 3.58, salePriceTlKwh: 3.20,
+        hasBilateralContract: true, bilateralPriceTlKwh: 3.20,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.45, consumptionTaxPct: 0.01, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+      financing: {
+        type: 'loan', equityPct: 0.3, loanTermYears: 10,
+        interestRatePctTl: 35, interestRatePctUsd: 9,
+        graceMonths: 12, repaymentType: 'annuity', discountRatePct: 20,
+        construction: { monthsToCod: 9, curveType: 'realistic', commitmentFeeRate: 0.005, arrangementFeePct: 0.01, capitalizeIdc: true },
+      },
+    }),
+  },
+
+  {
+    id: 'demo-ground-10mw-bess',
+    name: '10 MWp Arazi GES + 10 MWh BESS',
+    config: buildDefaultConfig({
+      name: '10 MWp Arazi GES + 10 MWh BESS',
+      description: 'Konya Karapınar — 10 MWp arazi + 10 MWh LFP batarya, PTF arbitraj + peak shaving',
+      projectType: 'hybrid_bess',
+      location: { lat: 37.7167, lon: 33.55, city: 'Konya', region: 'Karapınar' },
+      pv: {
+        peakPowerKwp: 10_000, loss: 14, angle: 32, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'free', tracking: 1,
+        lidPct: 0.02, annualDegradationPct: 0.005,
+        losses: { soilingPct: 3.0, iamPct: 2.0, spectralPct: 0.5, temperaturePct: 6.0, mismatchPct: 1.0, dcCablingPct: 1.5, inverterPct: 2.0, acCablingPct: 1.0, transformerPct: 1.5, availabilityPct: 0.5 },
+      },
+      consumption: {
+        profileId: 'factory_3shift', annualKwh: 25_000_000, growthRatePct: 3,
+        prevYearKwh: 24_500_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'SANAYI_MV' as ConsumerGroup,
+        purchasePriceTlKwh: 3.58, salePriceTlKwh: 3.20,
+        hasBilateralContract: true, bilateralPriceTlKwh: 3.20,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.45, consumptionTaxPct: 0.01, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+      battery: {
+        enabled: true, nominalCapacityKwh: 10_000, nominalPowerKw: 2500,
+        roundTripEfficiency: 0.92, minSocPct: 0.1, maxSocPct: 0.95,
+        initialSocPct: 0.5, cycleLifeAt80Dod: 6000, calendarLifeYears: 15,
+        eolCapacityPct: 0.7, capexTlPerKwh: 8500, capexTlPerKw: 3500,
+        bosTl: 1_500_000, augmentationEnabled: true, augmentationYears: [8, 16],
+        augmentationKwhPerEvent: 2000, augmentationCapexDeclinePct: 0.5,
+        dispatchStrategy: 'rule_based', enableArbitrage: true,
+        enablePeakShaving: true, peakThresholdKw: 3000,
+        arbitrageLowThresholdTlKwh: 1.5, arbitrageHighThresholdTlKwh: 5.0,
+      },
+      financing: {
+        type: 'loan', equityPct: 0.3, loanTermYears: 10,
+        interestRatePctTl: 35, interestRatePctUsd: 9,
+        graceMonths: 12, repaymentType: 'annuity', discountRatePct: 20,
+        construction: { monthsToCod: 12, curveType: 'realistic', commitmentFeeRate: 0.005, arrangementFeePct: 0.01, capitalizeIdc: true },
+      },
+    }),
+  },
+
+  {
+    id: 'demo-ground-50mw',
+    name: '50 MWp Utility-Scale Arazi GES',
+    config: buildDefaultConfig({
+      name: '50 MWp Utility-Scale Arazi GES',
+      description: 'Şanlıurfa — 50 MWp utility-scale tracker GES, kurumsal PPA + banka kredisi',
+      projectType: 'ground_mount',
+      location: { lat: 37.1591, lon: 38.7969, city: 'Şanlıurfa', region: 'Suruç' },
+      pv: {
+        peakPowerKwp: 50_000, loss: 14, angle: 30, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'free', tracking: 1,
+        lidPct: 0.02, annualDegradationPct: 0.0045,
+        losses: { soilingPct: 3.5, iamPct: 2.0, spectralPct: 0.5, temperaturePct: 6.5, mismatchPct: 1.0, dcCablingPct: 1.5, inverterPct: 1.8, acCablingPct: 1.0, transformerPct: 1.5, availabilityPct: 0.5 },
+      },
+      consumption: {
+        profileId: 'factory_3shift', annualKwh: 100_000_000, growthRatePct: 2,
+        prevYearKwh: 98_000_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'SANAYI_MV' as ConsumerGroup,
+        purchasePriceTlKwh: 3.58, salePriceTlKwh: 3.20,
+        hasBilateralContract: true, bilateralPriceTlKwh: 3.20,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.45, consumptionTaxPct: 0.01, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+      ppa: {
+        enabled: true,
+        ppaPriceTlKwh: 4.20,
+        ppaTermYears: 15,
+        ppaEscalationPct: 2.5,
+        scope: 'surplus_only',
+        counterpartyName: 'Kurumsal Offtaker (örnek)',
+      },
+      financing: {
+        type: 'loan', equityPct: 0.25, loanTermYears: 12,
+        interestRatePctTl: 32, interestRatePctUsd: 8.5,
+        graceMonths: 18, repaymentType: 'annuity', discountRatePct: 18,
+        construction: { monthsToCod: 15, curveType: 'realistic', commitmentFeeRate: 0.005, arrangementFeePct: 0.0125, capitalizeIdc: true },
+      },
+    }),
+  },
+
+  {
+    id: 'demo-ground-50mw-bess',
+    name: '50 MWp Utility-Scale Arazi GES + 50 MWh BESS',
+    config: buildDefaultConfig({
+      name: '50 MWp Utility-Scale Arazi GES + 50 MWh BESS',
+      description: 'Şanlıurfa — 50 MWp + 50 MWh BESS hybrid, dispatch + arbitraj + peak shaving',
+      projectType: 'hybrid_bess',
+      location: { lat: 37.1591, lon: 38.7969, city: 'Şanlıurfa', region: 'Suruç' },
+      pv: {
+        peakPowerKwp: 50_000, loss: 14, angle: 30, aspect: 0,
+        moduleTech: 'crystSi', mounting: 'free', tracking: 1,
+        lidPct: 0.02, annualDegradationPct: 0.0045,
+        losses: { soilingPct: 3.5, iamPct: 2.0, spectralPct: 0.5, temperaturePct: 6.5, mismatchPct: 1.0, dcCablingPct: 1.5, inverterPct: 1.8, acCablingPct: 1.0, transformerPct: 1.5, availabilityPct: 0.5 },
+      },
+      consumption: {
+        profileId: 'factory_3shift', annualKwh: 100_000_000, growthRatePct: 2,
+        prevYearKwh: 98_000_000, sameMeteringPoint: false,
+      },
+      tariff: {
+        consumerGroup: 'SANAYI_MV' as ConsumerGroup,
+        purchasePriceTlKwh: 3.58, salePriceTlKwh: 3.20,
+        hasBilateralContract: true, bilateralPriceTlKwh: 3.20,
+        isLastResortSupply: false, lastResortMultiplier: 1.0938,
+        distributionFeeTlKwh: 0.45, consumptionTaxPct: 0.01, vatPct: 0.2,
+        electricityInflationPct: 28,
+      },
+      ppa: {
+        enabled: true,
+        ppaPriceTlKwh: 4.20,
+        ppaTermYears: 15,
+        ppaEscalationPct: 2.5,
+        scope: 'surplus_only',
+        counterpartyName: 'Kurumsal Offtaker (örnek)',
+      },
+      battery: {
+        enabled: true, nominalCapacityKwh: 50_000, nominalPowerKw: 12500,
+        roundTripEfficiency: 0.92, minSocPct: 0.1, maxSocPct: 0.95,
+        initialSocPct: 0.5, cycleLifeAt80Dod: 6000, calendarLifeYears: 15,
+        eolCapacityPct: 0.7, capexTlPerKwh: 8000, capexTlPerKw: 3200,
+        bosTl: 5_000_000, augmentationEnabled: true, augmentationYears: [8, 16],
+        augmentationKwhPerEvent: 10_000, augmentationCapexDeclinePct: 0.5,
+        dispatchStrategy: 'rule_based', enableArbitrage: true,
+        enablePeakShaving: true, peakThresholdKw: 15000,
+        arbitrageLowThresholdTlKwh: 1.5, arbitrageHighThresholdTlKwh: 5.0,
+      },
+      financing: {
+        type: 'loan', equityPct: 0.25, loanTermYears: 12,
+        interestRatePctTl: 32, interestRatePctUsd: 8.5,
+        graceMonths: 18, repaymentType: 'annuity', discountRatePct: 18,
+        construction: { monthsToCod: 15, curveType: 'realistic', commitmentFeeRate: 0.005, arrangementFeePct: 0.0125, capitalizeIdc: true },
       },
     }),
   },

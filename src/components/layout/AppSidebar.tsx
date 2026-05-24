@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sun, LayoutDashboard, FolderPlus, GitCompareArrows, BookOpen, FlaskConical, ChevronRight } from 'lucide-react';
+import { Sun, LayoutDashboard, FolderPlus, GitCompareArrows, BookOpen, FlaskConical, ChevronRight, LayoutTemplate, Building2, Mountain, Factory, Battery as BatteryIcon } from 'lucide-react';
+import { DEMO_PROJECTS } from '@/lib/defaults';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LocaleToggle } from '@/components/LocaleToggle';
 import { cn } from '@/lib/utils';
@@ -17,9 +18,21 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: '/', label: 'Projeler', icon: LayoutDashboard, match: (p) => p === '/' },
   { href: '/projects/new', label: 'Yeni Proje', icon: FolderPlus, match: (p) => p === '/projects/new' },
+  { href: '/templates', label: 'Şablonlar', icon: LayoutTemplate, match: (p) => p.startsWith('/templates') },
   { href: '/projects/compare', label: 'Karşılaştır', icon: GitCompareArrows, match: (p) => p.startsWith('/projects/compare') },
   { href: '/about', label: 'EPDK & Metodoloji', icon: BookOpen, match: (p) => p.startsWith('/about') },
 ];
+
+function templateIcon(projectType: string) {
+  if (projectType === 'ground_mount') return Mountain;
+  if (projectType === 'hybrid_bess') return BatteryIcon;
+  return Building2;
+}
+
+function shortLabel(name: string): string {
+  // "1 MWp Çatı GES (Sanayi)" → "1 MWp Çatı"
+  return name.split(/[(]/)[0].trim().replace(/\s+GES.*$/, '').replace(/Utility-Scale\s*/, '');
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -61,7 +74,29 @@ export function AppSidebar() {
           );
         })}
 
-        {/* Secondary */}
+        {/* Şablonlar — quick access */}
+        <div className="px-2 pt-6 pb-2 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <span>Şablonlar</span>
+          <Link href="/templates" className="text-primary hover:underline normal-case tracking-normal">tümü</Link>
+        </div>
+        {DEMO_PROJECTS.map((t) => {
+          const Icon = templateIcon(t.config.projectType);
+          const hasBattery = t.config.battery.enabled;
+          return (
+            <Link
+              key={t.id}
+              href={`/templates#${t.id}`}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs text-foreground/70 hover:bg-secondary hover:text-foreground transition-colors"
+              title={t.name}
+            >
+              <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="truncate">{shortLabel(t.name)}</span>
+              {hasBattery && <BatteryIcon className="h-3 w-3 flex-shrink-0 text-eco-dark" />}
+            </Link>
+          );
+        })}
+
+        {/* Eğitim */}
         <div className="px-2 pt-6 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Eğitim</div>
         <Link
           href="/about/netting-comparison"
