@@ -99,6 +99,18 @@ export function AppSidebar() {
         {/* Eğitim */}
         <div className="px-2 pt-6 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Eğitim</div>
         <Link
+          href="/about/netting-methodology"
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors',
+            pathname === '/about/netting-methodology'
+              ? 'bg-primary/10 text-primary font-semibold border-l-2 border-l-primary'
+              : 'text-foreground/70 hover:bg-secondary hover:text-foreground'
+          )}
+        >
+          <BookOpen className="h-4 w-4" />
+          <span className="truncate">Mahsuplaşma 101</span>
+        </Link>
+        <Link
           href="/about/netting-comparison"
           className={cn(
             'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors',

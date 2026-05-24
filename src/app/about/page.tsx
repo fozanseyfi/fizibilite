@@ -63,6 +63,18 @@ surplus[h]         = max(0, üretim[h] − tüketim[h])    // şebekeye veriş`}
 
       <Card className="border-l-4 border-l-primary">
         <CardHeader>
+          <CardTitle>📚 Mahsuplaşma 101 — Sıfırdan Adım Adım Rehber</CardTitle>
+          <CardDescription>6 bilgi kartı + canlı hesaplayıcı + EPDK Tablo 1/2/3 birebir gösterimle metodolojiyi öğren.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <a href="/about/netting-methodology" className="text-primary hover:underline text-sm font-semibold">
+            → Tam metodoloji sayfasını aç
+          </a>
+        </CardContent>
+      </Card>
+
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
           <CardTitle>📊 Saatlik vs Aylık Mahsuplaşma — Detaylı Karşılaştırma</CardTitle>
           <CardDescription>Aynı üretim/tüketim için iki rejimin fatura sonucu yan yana, sayısal örnek ile.</CardDescription>
         </CardHeader>
