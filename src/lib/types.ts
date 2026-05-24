@@ -37,8 +37,21 @@ export interface PVSystemConfig {
   moduleTech: ModuleTech;
   mounting: Mounting;
   tracking: TrackingType;
-  lidPct: number; // ilk yıl Light Induced Degradation, fraction (0.02 = %2)
-  annualDegradationPct: number; // yıllık panel degradasyonu, fraction (0.005 = %0.5)
+  lidPct: number;
+  annualDegradationPct: number;
+  /** PVSyst tarzı kayıp kırınımı (opsiyonel) */
+  losses?: {
+    soilingPct: number;
+    iamPct: number;
+    spectralPct: number;
+    temperaturePct: number;
+    mismatchPct: number;
+    dcCablingPct: number;
+    inverterPct: number;
+    acCablingPct: number;
+    transformerPct: number;
+    availabilityPct: number;
+  };
 }
 
 export interface ConsumptionProfileMeta {
@@ -279,11 +292,17 @@ export interface ProjectConfig {
 
 export interface ScenarioMatrixInputsConfig {
   /** Her yapı için birim CAPEX (USD/Wp) */
-  capexUsdPerWp: Record<string, number>; // key: StructureType, value: USD/Wp
+  capexUsdPerWp: Record<string, number>;
   /** Her yapı için yıllık OPEX (TL/kWp/yıl) */
   opexTlPerKwpYear: Record<string, number>;
   /** Batarya birim CAPEX (TL/kWh) */
   batteryCapexTlPerKwh: number;
+  /** Hangi yapılar matrisi dahil edilecek (boş = hepsi) */
+  enabledStructures?: string[];
+  /** Hangi DC/AC oranları dahil edilecek */
+  enabledDcAcRatios?: number[];
+  /** Hangi batarya boyutları dahil edilecek */
+  enabledBatteryRatios?: number[];
 }
 
 // ========== Results ==========

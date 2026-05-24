@@ -30,6 +30,11 @@ export function buildDefaultConfig(overrides: Partial<ProjectConfig> = {}): Proj
       tracking: 0,
       lidPct: 0.02,
       annualDegradationPct: 0.005,
+      losses: {
+        soilingPct: 2.0, iamPct: 2.0, spectralPct: 0.5, temperaturePct: 5.0,
+        mismatchPct: 1.0, dcCablingPct: 1.0, inverterPct: 2.0, acCablingPct: 1.0,
+        transformerPct: 1.0, availabilityPct: 0.5,
+      },
     },
     consumption: {
       profileId: 'office_5x10',
@@ -172,6 +177,9 @@ export function buildDefaultConfig(overrides: Partial<ProjectConfig> = {}): Proj
         tilted_bifacial: 135,
       },
       batteryCapexTlPerKwh: 8500,
+      enabledStructures: ['fixed_mono', 'tracker_mono'], // varsayılan: en yaygın 2 yapı
+      enabledDcAcRatios: [1.1, 1.2, 1.3],                // 3 ortak DC/AC
+      enabledBatteryRatios: [0, 0.5],                    // bataryasız + orta boyut
     },
     ...overrides,
   };

@@ -60,9 +60,20 @@ export function runScenarioMatrix(input: ScenarioMatrixInput): ScenarioMatrixRes
 
   const scenarios: ScenarioPoint[] = [];
 
-  for (const dcAc of DC_AC_VALUES) {
-    for (const structure of STRUCTURE_VALUES) {
-      for (const batRatio of BATTERY_RATIOS) {
+  // Aktif filtreler — kullanıcı seçtiyse onları, yoksa tümünü
+  const activeStructures: StructureType[] = (userInputs?.enabledStructures && userInputs.enabledStructures.length > 0
+    ? userInputs.enabledStructures
+    : STRUCTURE_VALUES) as StructureType[];
+  const activeDcAc: number[] = userInputs?.enabledDcAcRatios && userInputs.enabledDcAcRatios.length > 0
+    ? userInputs.enabledDcAcRatios
+    : DC_AC_VALUES;
+  const activeBattery: number[] = userInputs?.enabledBatteryRatios && userInputs.enabledBatteryRatios.length > 0
+    ? userInputs.enabledBatteryRatios
+    : BATTERY_RATIOS;
+
+  for (const dcAc of activeDcAc) {
+    for (const structure of activeStructures) {
+      for (const batRatio of activeBattery) {
         // Yapı bazlı CAPEX: kullanıcı verdiyse direkt, yoksa structure premium × base
         let structureCapex: number;
         let structureOpexPerKwp: number;

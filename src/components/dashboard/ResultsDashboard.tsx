@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { KpiCard } from './KpiCard';
@@ -15,6 +14,7 @@ import { MasterCheckBadge } from './MasterCheckBadge';
 import { CoverageTab } from './CoverageTab';
 import { ScenarioMatrixTab } from './ScenarioMatrixTab';
 import { PnlExplainer, CashFlowExplainer, WaterfallExplainer, CoverageExplainer } from './TabExplainer';
+import { ProjectSubSidebar } from './ProjectSubSidebar';
 import {
   CashFlowTable, INCOME_STATEMENT_ROWS, CASH_FLOW_STATEMENT_ROWS, CASH_WATERFALL_ROWS,
 } from './CashFlowTable';
@@ -43,6 +43,7 @@ export function ResultsDashboard({
 }) {
   const [cfPeriod, setCfPeriod] = useState<'yearly' | 'monthly'>('yearly');
   const [currency, setCurrency] = useState<Currency>('USD'); // banka raporu default
+  const [activeSection, setActiveSection] = useState<string>('overview');
   const usdTry = config.fx.usdTry;
 
   const monthly1Energy = useMemo(
@@ -96,6 +97,9 @@ export function ResultsDashboard({
         <div className="flex gap-2 flex-wrap items-center">
           <MasterCheckBadge projectId={projectId} />
           <CurrencyToggle value={currency} onChange={setCurrency} usdTry={usdTry} />
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/projects/${projectId}/pv-simulation`}>☀️ PV Simülasyon</Link>
+          </Button>
           <Button variant="outline" asChild>
             <Link href={`/projects/new?edit=${projectId}`}>
               <Edit3 className="h-4 w-4 mr-2" /> Düzenle & Tekrar Çalıştır
@@ -142,26 +146,12 @@ export function ResultsDashboard({
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
-          <TabsTrigger value="energy">Enerji</TabsTrigger>
-          <TabsTrigger value="netting">Mahsuplaşma</TabsTrigger>
-          <TabsTrigger value="hourly">Saatlik Veri</TabsTrigger>
-          <TabsTrigger value="battery">Batarya</TabsTrigger>
-          <TabsTrigger value="pnl">P&amp;L</TabsTrigger>
-          <TabsTrigger value="cf">Cash Flow</TabsTrigger>
-          <TabsTrigger value="waterfall">Cash Waterfall</TabsTrigger>
-          <TabsTrigger value="coverage">Borç Karşılama</TabsTrigger>
-          <TabsTrigger value="scenarios">Senaryo Matrisi</TabsTrigger>
-          <TabsTrigger value="risk">Risk (MC)</TabsTrigger>
-          <TabsTrigger value="sensitivity">Duyarlılık</TabsTrigger>
-          <TabsTrigger value="esg">ESG</TabsTrigger>
-          <TabsTrigger value="assumptions">Varsayımlar</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-6 items-start">
+        <ProjectSubSidebar active={activeSection} onChange={setActiveSection} />
+        <div className="flex-1 min-w-0 space-y-4">
 
         {/* === GENEL BAKIŞ === */}
-        <TabsContent value="overview" className="space-y-6">
+        {activeSection === 'overview' && (<div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <KpiCard label="IRR" value={formatPct(result.finance.irrPct)} accent="solar" sub={`MIRR ${formatPct(result.finance.mirrPct)}`} />
             <KpiCard
@@ -253,10 +243,10 @@ export function ResultsDashboard({
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </div>)}
 
         {/* === ENERJİ === */}
-        <TabsContent value="energy" className="space-y-6">
+        {activeSection === 'energy' && (<div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader><CardTitle>Üretim Heatmap (1. yıl)</CardTitle></CardHeader>
@@ -307,10 +297,10 @@ export function ResultsDashboard({
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>)}
 
         {/* === MAHSUPLAŞMA === */}
-        <TabsContent value="netting" className="space-y-6">
+        {activeSection === 'netting' && (<div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <KpiCard label="Mahsuplaşılan (Yıl 1)" value={formatKwh(result.year1.netting.annual.totalNetted, { compact: true })} accent="eco" />
             <KpiCard label="Bedelli Satış" value={formatKwh(result.year1.netting.annual.totalPaidSurplus, { compact: true })} accent="solar" />
@@ -359,20 +349,20 @@ export function ResultsDashboard({
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>)}
 
         {/* === SAATLİK VERİ === */}
-        <TabsContent value="hourly" className="space-y-6">
+        {activeSection === 'hourly' && (<div className="space-y-6">
           <HourlyDataTable
             projectId={projectId}
             generation={result.year1.generation}
             consumption={result.year1.consumption}
             netting={result.year1.netting}
           />
-        </TabsContent>
+        </div>)}
 
         {/* === BATARYA === */}
-        <TabsContent value="battery" className="space-y-6">
+        {activeSection === 'battery' && (<div className="space-y-6">
           {!config.battery.enabled ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground"><BatteryIcon className="h-12 w-12 mx-auto mb-2" /> Bu projede batarya yok.</CardContent></Card>
           ) : (
@@ -419,24 +409,24 @@ export function ResultsDashboard({
               </Card>
             </>
           )}
-        </TabsContent>
+        </div>)}
 
         {/* === P&L === */}
-        <TabsContent value="pnl" className="space-y-3">
+        {activeSection === 'pnl' && (<div className="space-y-3">
           <PnlExplainer />
           <CashFlowPeriodSelector value={cfPeriod} onChange={setCfPeriod} hasMonthly={result.monthlyYear1.length > 0} />
           <CashFlowTable sections={[INCOME_STATEMENT_ROWS]} periods={cfPeriods} totalRowLabel="Net Income (toplam)" currency={currency} usdTry={usdTry} />
-        </TabsContent>
+        </div>)}
 
         {/* === CASH FLOW STATEMENT === */}
-        <TabsContent value="cf" className="space-y-3">
+        {activeSection === 'cf' && (<div className="space-y-3">
           <CashFlowExplainer />
           <CashFlowPeriodSelector value={cfPeriod} onChange={setCfPeriod} hasMonthly={result.monthlyYear1.length > 0} />
           <CashFlowTable sections={CASH_FLOW_STATEMENT_ROWS} periods={cfPeriods} totalRowLabel="Net Cash Flow (toplam)" currency={currency} usdTry={usdTry} />
-        </TabsContent>
+        </div>)}
 
         {/* === CASH WATERFALL === */}
-        <TabsContent value="waterfall" className="space-y-3">
+        {activeSection === 'waterfall' && (<div className="space-y-3">
           <WaterfallExplainer />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
             <KpiCard label="FCFC Payback" value={formatYears(result.finance.fcfcPaybackYears)} accent="solar" />
@@ -446,10 +436,10 @@ export function ResultsDashboard({
           </div>
           <CashFlowPeriodSelector value={cfPeriod} onChange={setCfPeriod} hasMonthly={result.monthlyYear1.length > 0} />
           <CashFlowTable sections={CASH_WATERFALL_ROWS} periods={cfPeriods} totalRowLabel="CFADS (toplam)" currency={currency} usdTry={usdTry} />
-        </TabsContent>
+        </div>)}
 
         {/* === RİSK === */}
-        <TabsContent value="risk" className="space-y-6">
+        {activeSection === 'risk' && (<div className="space-y-6">
           {!result.monteCarlo ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground">Monte Carlo bu projede çalıştırılmadı.</CardContent></Card>
           ) : (
@@ -482,31 +472,31 @@ export function ResultsDashboard({
               </Card>
             </>
           )}
-        </TabsContent>
+        </div>)}
 
         {/* === BORÇ KARŞILAMA === */}
-        <TabsContent value="coverage" className="space-y-6">
+        {activeSection === 'coverage' && (<div className="space-y-6">
           <CoverageExplainer />
           <CoverageTab projectId={projectId} />
-        </TabsContent>
+        </div>)}
 
         {/* === SENARYO MATRİSİ === */}
-        <TabsContent value="scenarios" className="space-y-6">
+        {activeSection === 'scenarios' && (<div className="space-y-6">
           <ScenarioMatrixTab projectId={projectId} currency={currency} usdTry={usdTry} />
-        </TabsContent>
+        </div>)}
 
         {/* === ESG === */}
-        <TabsContent value="esg" className="space-y-6">
+        {activeSection === 'esg' && (<div className="space-y-6">
           <EsgReport config={config} result={result} />
-        </TabsContent>
+        </div>)}
 
         {/* === VARSAYIMLAR & METODOLOJİ === */}
-        <TabsContent value="assumptions" className="space-y-6">
+        {activeSection === 'assumptions' && (<div className="space-y-6">
           <AssumptionsTab config={config} result={result} currency={currency} />
-        </TabsContent>
+        </div>)}
 
         {/* === DUYARLILIK === */}
-        <TabsContent value="sensitivity" className="space-y-6">
+        {activeSection === 'sensitivity' && (<div className="space-y-6">
           {!result.monteCarlo ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground">Tornado için Monte Carlo gerekli.</CardContent></Card>
           ) : (
@@ -538,8 +528,9 @@ export function ResultsDashboard({
               </CardContent>
             </Card>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>)}
+        </div>
+      </div>
     </div>
   );
 }

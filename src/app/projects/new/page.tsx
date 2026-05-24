@@ -18,6 +18,8 @@ import { InflationFxCockpit } from '@/components/wizard/InflationFxCockpit';
 import { OptimalAngleFinder } from '@/components/wizard/OptimalAngleFinder';
 import { ModuleInverterSizer } from '@/components/wizard/ModuleInverterSizer';
 import { PtfLoader } from '@/components/wizard/PtfLoader';
+import { PvSystemDesign } from '@/components/wizard/PvSystemDesign';
+import { DEFAULT_LOSSES } from '@/lib/pv-losses';
 import { buildDefaultConfig, buildDefaultCapex } from '@/lib/defaults';
 import { DEFAULT_DAILY_OFFICE, DEFAULT_MONTHLY_EQUAL } from '@/lib/consumption-builder';
 import type { ProjectConfig, ProjectType, ModuleTech, Mounting, FinancingType } from '@/lib/types';
@@ -264,6 +266,13 @@ function NewProjectPageInner() {
             />
 
             <ModuleInverterSizer peakPowerKwp={config.pv.peakPowerKwp} />
+
+            <PvSystemDesign
+              pv={config.pv}
+              onPvChange={(next) => updateConfig('pv', next)}
+              losses={config.pv.losses ?? DEFAULT_LOSSES}
+              onLossesChange={(losses) => updateConfig('pv', { ...config.pv, losses })}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <Field label="Modül Teknolojisi">

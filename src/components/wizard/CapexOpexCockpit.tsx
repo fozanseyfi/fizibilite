@@ -176,96 +176,194 @@ export function CapexOpexCockpit({
         </CardContent>
       </Card>
 
-      {/* SENARYO MATRİSİ INPUTS */}
+      {/* SENARYO MATRİSİ SEÇİMİ + INPUTS */}
       {scenarioMatrixInputs && onScenarioMatrixInputsChange && (
         <Card className="lg:col-span-2 border-primary/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Grid3x3 className="h-5 w-5 text-primary" />
-              Senaryo Matrisi — Yapı Bazlı CAPEX/OPEX
-              <InfoTooltip title="Senaryo Matrisi Girişleri" body="Dashboard'daki 'Senaryo Matrisi' sekmesi 6 farklı PV yapı (fixed/tracker × mono/bifacial) için ayrı CAPEX/OPEX kullanır. Buradaki değerler dolaysız senaryo karşılaştırmasının doğruluğunu belirler — boş bırakırsan varsayılan piyasa oranları kullanılır." />
+              Senaryo Matrisi — Hangi Kombinasyonları Dahil Edelim?
+              <InfoTooltip title="Senaryo Seçimi" body="Aşağıda hangi yapıları, DC/AC oranlarını ve batarya boyutlarını matrise dahil edeceğini seç. Yalnızca seçtiğin yapılar için CAPEX/OPEX girilir. Tümünü dahil edersen 150 senaryo, az seçersen daha az ama daha gerçekçi." />
             </CardTitle>
             <CardDescription>
-              Her yapı için birim CAPEX (USD/Wp) ve yıllık OPEX (TL/kWp/yıl). Bu değerler 150 senaryolu matriste kullanılır.
-              Boş bırakırsan piyasa varsayılanları kullanılır.
+              <strong>1. Adım:</strong> Hangi PV yapıları, DC/AC oranları ve batarya boyutları dashboard senaryo matrisinde olsun?
+              Seçili = matrise dahil. <strong>2. Adım:</strong> Aşağıdaki tabloda her seçili yapı için manuel CAPEX/OPEX gir.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-secondary">
-                  <tr>
-                    <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Yapı</th>
-                    <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">CAPEX (USD/Wp)</th>
-                    <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">Toplam (TL)</th>
-                    <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">OPEX (TL/kWp/yıl)</th>
-                    <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">Yıllık OPEX (TL)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {STRUCTURE_VALUES.map((s) => {
-                    const capexUsdWp = scenarioMatrixInputs.capexUsdPerWp[s] ?? 0.48;
-                    const opexTlKwp = scenarioMatrixInputs.opexTlPerKwpYear[s] ?? 120;
-                    const totalCapex = peakPowerKwp * 1000 * capexUsdWp * usdTry;
-                    const annualOpex = peakPowerKwp * opexTlKwp;
-                    return (
-                      <tr key={s} className="border-b border-border/30">
-                        <td className="px-3 py-2 font-medium whitespace-nowrap">{STRUCTURE_LABELS[s]}</td>
-                        <td className="px-3 py-2 text-right">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={capexUsdWp}
-                            onChange={(e) => onScenarioMatrixInputsChange({
-                              ...scenarioMatrixInputs,
-                              capexUsdPerWp: { ...scenarioMatrixInputs.capexUsdPerWp, [s]: parseFloat(e.target.value) || 0 },
-                            })}
-                            className="h-8 text-xs text-right w-24 ml-auto"
-                          />
-                        </td>
-                        <td className="px-3 py-2 text-right tabular-nums text-muted-foreground whitespace-nowrap">{formatTl(totalCapex, { compact: true })}</td>
-                        <td className="px-3 py-2 text-right">
-                          <Input
-                            type="number"
-                            step="5"
-                            value={opexTlKwp}
-                            onChange={(e) => onScenarioMatrixInputsChange({
-                              ...scenarioMatrixInputs,
-                              opexTlPerKwpYear: { ...scenarioMatrixInputs.opexTlPerKwpYear, [s]: parseFloat(e.target.value) || 0 },
-                            })}
-                            className="h-8 text-xs text-right w-24 ml-auto"
-                          />
-                        </td>
-                        <td className="px-3 py-2 text-right tabular-nums text-muted-foreground whitespace-nowrap">{formatTl(annualOpex, { compact: true })}</td>
-                      </tr>
-                    );
-                  })}
-                  <tr className="bg-secondary/40">
-                    <td className="px-3 py-2 font-medium whitespace-nowrap" colSpan={4}>
-                      Batarya Birim CAPEX (matriste 0/25/50/75/100% günlük üretim seçenekleri için)
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <Input
-                          type="number"
-                          step="100"
-                          value={scenarioMatrixInputs.batteryCapexTlPerKwh}
-                          onChange={(e) => onScenarioMatrixInputsChange({
-                            ...scenarioMatrixInputs,
-                            batteryCapexTlPerKwh: parseFloat(e.target.value) || 0,
-                          })}
-                          className="h-8 text-xs text-right w-24"
-                        />
-                        <span className="text-[10px] text-muted-foreground">TL/kWh</span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <CardContent className="space-y-5">
+            {/* Yapı seçimi */}
+            <div>
+              <div className="text-xs font-semibold mb-2">PV Yapısı (en az 1 seç)</div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {STRUCTURE_VALUES.map((s) => {
+                  const enabled = (scenarioMatrixInputs.enabledStructures ?? []).includes(s);
+                  return (
+                    <label key={s} className={`flex items-center gap-2 p-2 rounded border cursor-pointer text-xs transition-colors ${enabled ? 'border-primary bg-primary/5' : 'border-border hover:bg-secondary'}`}>
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={(e) => {
+                          const cur = scenarioMatrixInputs.enabledStructures ?? [];
+                          const next = e.target.checked ? [...cur, s] : cur.filter((x) => x !== s);
+                          onScenarioMatrixInputsChange({ ...scenarioMatrixInputs, enabledStructures: next });
+                        }}
+                        className="h-3.5 w-3.5"
+                      />
+                      <span>{STRUCTURE_LABELS[s]}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
-            <div className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
-              <strong>Not:</strong> Tracker yapılar bakım maliyeti daha yüksektir (~%40 ekstra), motorizasyon CAPEX'i artırır.
-              Bifacial paneller +%5-8 premium getirir ama +%8-15 üretim sağlar. Senaryo matrisinde bu trade-off otomatik hesaplanır.
+
+            {/* DC/AC seçimi */}
+            <div>
+              <div className="text-xs font-semibold mb-2">DC/AC Oranı (en az 1 seç)</div>
+              <div className="grid grid-cols-5 gap-2">
+                {[1.0, 1.1, 1.2, 1.3, 1.4].map((d) => {
+                  const enabled = (scenarioMatrixInputs.enabledDcAcRatios ?? []).includes(d);
+                  return (
+                    <label key={d} className={`flex items-center gap-2 p-2 rounded border cursor-pointer text-xs transition-colors ${enabled ? 'border-primary bg-primary/5' : 'border-border hover:bg-secondary'}`}>
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={(e) => {
+                          const cur = scenarioMatrixInputs.enabledDcAcRatios ?? [];
+                          const next = e.target.checked ? [...cur, d] : cur.filter((x) => x !== d);
+                          onScenarioMatrixInputsChange({ ...scenarioMatrixInputs, enabledDcAcRatios: next });
+                        }}
+                        className="h-3.5 w-3.5"
+                      />
+                      <span className="font-mono">{d.toFixed(1)}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Batarya seçimi */}
+            <div>
+              <div className="text-xs font-semibold mb-2">Batarya Boyutu (günlük üretim oranı)</div>
+              <div className="grid grid-cols-5 gap-2">
+                {[0, 0.25, 0.50, 0.75, 1.00].map((b) => {
+                  const enabled = (scenarioMatrixInputs.enabledBatteryRatios ?? []).includes(b);
+                  return (
+                    <label key={b} className={`flex items-center gap-2 p-2 rounded border cursor-pointer text-xs transition-colors ${enabled ? 'border-primary bg-primary/5' : 'border-border hover:bg-secondary'}`}>
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={(e) => {
+                          const cur = scenarioMatrixInputs.enabledBatteryRatios ?? [];
+                          const next = e.target.checked ? [...cur, b] : cur.filter((x) => x !== b);
+                          onScenarioMatrixInputsChange({ ...scenarioMatrixInputs, enabledBatteryRatios: next });
+                        }}
+                        className="h-3.5 w-3.5"
+                      />
+                      <span>{b === 0 ? 'Yok' : `%${(b * 100).toFixed(0)}`}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Toplam senaryo */}
+            <div className="rounded-md bg-primary/10 border border-primary/30 px-3 py-2 text-xs">
+              <strong>Toplam senaryo:</strong>{' '}
+              {(scenarioMatrixInputs.enabledStructures?.length ?? 0) *
+                (scenarioMatrixInputs.enabledDcAcRatios?.length ?? 0) *
+                (scenarioMatrixInputs.enabledBatteryRatios?.length ?? 0)}{' '}
+              kombinasyon ·{' '}
+              <span className="text-muted-foreground">
+                {scenarioMatrixInputs.enabledStructures?.length ?? 0} yapı ×{' '}
+                {scenarioMatrixInputs.enabledDcAcRatios?.length ?? 0} DC/AC ×{' '}
+                {scenarioMatrixInputs.enabledBatteryRatios?.length ?? 0} batarya
+              </span>
+            </div>
+
+            {/* CAPEX/OPEX tablosu (sadece seçili yapılar için) */}
+            {(scenarioMatrixInputs.enabledStructures ?? []).length > 0 && (
+              <div>
+                <div className="text-xs font-semibold mb-2">Seçili Yapılar için CAPEX/OPEX</div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-secondary">
+                      <tr>
+                        <th className="text-left px-3 py-2 font-semibold whitespace-nowrap">Yapı</th>
+                        <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">CAPEX (USD/Wp)</th>
+                        <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">Toplam CAPEX</th>
+                        <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">OPEX (TL/kWp/yıl)</th>
+                        <th className="text-right px-3 py-2 font-semibold whitespace-nowrap">Yıllık OPEX</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {STRUCTURE_VALUES.filter((s) => (scenarioMatrixInputs.enabledStructures ?? []).includes(s)).map((s) => {
+                        const capexUsdWp = scenarioMatrixInputs.capexUsdPerWp[s] ?? 0.48;
+                        const opexTlKwp = scenarioMatrixInputs.opexTlPerKwpYear[s] ?? 120;
+                        const totalCapex = peakPowerKwp * 1000 * capexUsdWp * usdTry;
+                        const annualOpex = peakPowerKwp * opexTlKwp;
+                        return (
+                          <tr key={s} className="border-b border-border/30">
+                            <td className="px-3 py-2 font-medium whitespace-nowrap">{STRUCTURE_LABELS[s]}</td>
+                            <td className="px-3 py-2 text-right">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={capexUsdWp}
+                                onChange={(e) => onScenarioMatrixInputsChange({
+                                  ...scenarioMatrixInputs,
+                                  capexUsdPerWp: { ...scenarioMatrixInputs.capexUsdPerWp, [s]: parseFloat(e.target.value) || 0 },
+                                })}
+                                className="h-8 text-xs text-right w-24 ml-auto"
+                              />
+                            </td>
+                            <td className="px-3 py-2 text-right tabular-nums text-muted-foreground whitespace-nowrap">{formatTl(totalCapex, { compact: true })}</td>
+                            <td className="px-3 py-2 text-right">
+                              <Input
+                                type="number"
+                                step="5"
+                                value={opexTlKwp}
+                                onChange={(e) => onScenarioMatrixInputsChange({
+                                  ...scenarioMatrixInputs,
+                                  opexTlPerKwpYear: { ...scenarioMatrixInputs.opexTlPerKwpYear, [s]: parseFloat(e.target.value) || 0 },
+                                })}
+                                className="h-8 text-xs text-right w-24 ml-auto"
+                              />
+                            </td>
+                            <td className="px-3 py-2 text-right tabular-nums text-muted-foreground whitespace-nowrap">{formatTl(annualOpex, { compact: true })}</td>
+                          </tr>
+                        );
+                      })}
+                      {(scenarioMatrixInputs.enabledBatteryRatios ?? []).some((b) => b > 0) && (
+                        <tr className="bg-secondary/40">
+                          <td className="px-3 py-2 font-medium whitespace-nowrap" colSpan={4}>
+                            Batarya Birim CAPEX (seçili batarya boyutları için)
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <div className="flex items-center gap-2 justify-end">
+                              <Input
+                                type="number"
+                                step="100"
+                                value={scenarioMatrixInputs.batteryCapexTlPerKwh}
+                                onChange={(e) => onScenarioMatrixInputsChange({
+                                  ...scenarioMatrixInputs,
+                                  batteryCapexTlPerKwh: parseFloat(e.target.value) || 0,
+                                })}
+                                className="h-8 text-xs text-right w-24"
+                              />
+                              <span className="text-[10px] text-muted-foreground">TL/kWh</span>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="text-[11px] text-muted-foreground leading-relaxed">
+              <strong>Piyasa referansı 2026:</strong> Fixed-mono ~0.48 USD/Wp, Tracker-mono ~0.62 USD/Wp.
+              Tracker bakım maliyeti %40 daha yüksektir. Bifacial paneller +%5-8 premium getirir ama +%8-15 üretim sağlar.
             </div>
           </CardContent>
         </Card>
