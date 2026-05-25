@@ -73,3 +73,31 @@ export function formatYears(n: number): string {
 export function uid(prefix = 'p'): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
+
+/** ISO tarih → "25 Mayıs 2026" Türkçe gösterim */
+export function formatDate(iso: string | Date): string {
+  if (!iso) return '—';
+  const d = typeof iso === 'string' ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+/** ISO datetime → "25 May 2026, 14:30" */
+export function formatDateTime(iso: string | Date): string {
+  if (!iso) return '—';
+  const d = typeof iso === 'string' ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/** Date → "YYYY-MM-DD" */
+export function toISODate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+/** Tarihe gün ekle (yeni Date döner, orijinal mutate edilmez) */
+export function addDays(d: Date, days: number): Date {
+  const copy = new Date(d);
+  copy.setDate(copy.getDate() + days);
+  return copy;
+}

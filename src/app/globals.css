@@ -67,7 +67,30 @@
   .gradient-navy {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   }
+
+  /* Admin sayfaları için (emerald tema) */
+  .shadow-soft   { box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06); }
+  .shadow-medium { box-shadow: 0 2px 4px -1px rgb(15 23 42 / 0.05), 0 4px 12px -2px rgb(15 23 42 / 0.08); }
+  .shadow-large  { box-shadow: 0 4px 8px -2px rgb(15 23 42 / 0.06), 0 12px 28px -8px rgb(15 23 42 / 0.12); }
+  .shadow-focus  { box-shadow: 0 0 0 4px rgb(16 185 129 / 0.12); }
 }
+
+@keyframes admin-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: admin-fade-in 0.25s ease-out; }
+
+@keyframes admin-slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-up         { animation: admin-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-up-delay-1 { animation: admin-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both; }
+.animate-slide-up-delay-2 { animation: admin-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; }
+.animate-slide-up-delay-3 { animation: admin-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both; }
+.animate-slide-up-delay-4 { animation: admin-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both; }
+
+@keyframes admin-toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.animate-toast-in { animation: admin-toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Details summary marker hide */
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
 
 /* Recharts label tweaks */
 .recharts-cartesian-axis-tick text {

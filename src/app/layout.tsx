@@ -3,6 +3,8 @@ import './globals.css';
 import { cookies } from 'next/headers';
 import { Locale } from '@/lib/i18n';
 import { AppSidebar, MobileTopNav } from '@/components/layout/AppSidebar';
+import { Toaster } from '@/components/admin/toast';
+import { ConfirmRoot } from '@/components/admin/confirm';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </footer>
           </div>
         </div>
+        <Toaster />
+        <ConfirmRoot />
       </body>
     </html>
   );

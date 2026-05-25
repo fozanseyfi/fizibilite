@@ -58,6 +58,22 @@ const config: Config = {
           DEFAULT: '#0f172a',
           light: '#1e293b',
         },
+        // ---------- Admin/Yönetim sayfaları (emerald tema) ----------
+        // Düz isimler (text2, bg2, accent2, blue2) — eski "shadcn" tema bozulmaz.
+        // NOT: "accent" zaten shadcn block'unda HSL emerald-tone tanımlı; admin sayfaları da o değeri kullanır.
+        accent2: '#047857',
+        text: '#0f172a',    text2: '#475569',   text3: '#94a3b8',
+        bg: '#ffffff',      bg2: '#f8fafc',     bg3: '#f1f5f9',  bg4: '#e2e8f0',
+        border2: '#cbd5e1',
+        blue: '#3b82f6',    blue2: '#2563eb',
+        green: '#059669',
+        red: '#ef4444',
+        yellow: '#f59e0b',
+        orange: '#475569',
+        purple: '#8b5cf6',
+        planned: '#3b82f6',
+        realized: '#059669',
+        critical: '#ef4444',
       },
       borderRadius: {
         lg: 'var(--radius)',
