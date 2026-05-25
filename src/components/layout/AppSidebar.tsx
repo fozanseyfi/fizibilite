@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Sun, LayoutDashboard, FolderPlus, GitCompareArrows, BookOpen, FlaskConical,
-  ChevronRight, ChevronDown, ChevronLeft, ChevronsLeft, ChevronsRight,
+  ChevronRight, ChevronDown, ChevronsLeft, ChevronsRight,
   LayoutTemplate, Building2, Mountain, Battery as BatteryIcon,
-  User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu,
+  User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu, Plus,
 } from 'lucide-react';
 import { DEMO_PROJECTS } from '@/lib/defaults';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -23,8 +23,9 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { href: '/', label: 'Projeler', icon: LayoutDashboard, match: (p) => p === '/' },
-  { href: '/projects/new', label: 'Yeni Proje', icon: FolderPlus, match: (p) => p === '/projects/new' },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard, match: (p) => p === '/' },
+  { href: '/projects', label: 'Projeler', icon: FolderPlus, match: (p) => p === '/projects' || (p.startsWith('/projects/') && !p.startsWith('/projects/new') && !p.startsWith('/projects/compare')) },
+  { href: '/projects/new', label: 'Yeni Proje', icon: Plus, match: (p) => p === '/projects/new' },
   { href: '/projects/compare', label: 'Karşılaştır', icon: GitCompareArrows, match: (p) => p.startsWith('/projects/compare') },
   { href: '/about', label: 'EPDK & Metodoloji', icon: BookOpen, match: (p) => p === '/about' || (p.startsWith('/about/') && !p.startsWith('/about/netting')) },
 ];
