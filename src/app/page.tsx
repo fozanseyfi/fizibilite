@@ -103,93 +103,100 @@ export default function DashboardPage() {
       )}
 
       {/* ============================================================
-           STATUS BAR — terminal-style top utility strip
+           HERO PANEL — colored (navy gradient + dot pattern)
+           Status bar üstte, hero altta — hepsi tek koyu panel
          ============================================================ */}
-      <div className="border border-border rounded-md bg-card overflow-hidden">
-        <div className="flex items-stretch divide-x divide-border bg-secondary/30 text-[10px] uppercase tracking-[1.4px] font-semibold text-muted-foreground">
+      <div className="relative rounded-lg overflow-hidden border border-navy/30 shadow-lg shadow-navy/10 text-white" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c4a6e 100%)' }}>
+        {/* Dot pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.08] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '22px 22px' }} />
+        {/* Soft color blobs */}
+        <div className="absolute -top-24 -right-20 w-80 h-80 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 left-1/4 w-96 h-96 rounded-full bg-emerald-400/12 blur-3xl pointer-events-none" />
+
+        {/* Status bar (üst şerit) */}
+        <div className="relative flex items-stretch divide-x divide-white/10 bg-white/[0.04] backdrop-blur text-[10px] uppercase tracking-[1.4px] font-semibold text-white/70 border-b border-white/10">
           <div className="flex-1 px-3.5 py-2 flex items-center gap-2 min-w-0">
-            <div className="h-1.5 w-1.5 rounded-full bg-eco-dark animate-pulse flex-shrink-0" />
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
             <span>FY26 Portfolio · Live</span>
           </div>
           <div className="px-3.5 py-2 hidden sm:flex items-center gap-3 font-mono normal-case tracking-normal text-[10px]">
             <span>{dateStr}</span>
-            <span className="text-muted-foreground/40">·</span>
+            <span className="text-white/30">·</span>
             <span>{timeStr}</span>
           </div>
           <div className="px-3.5 py-2 hidden md:flex items-center gap-1.5 font-mono normal-case tracking-normal text-[10px]">
-            <span className="text-muted-foreground/70">USD/TRY</span>
-            <span className="font-semibold text-foreground">{usdTry.toFixed(2)}</span>
+            <span className="text-white/50">USD/TRY</span>
+            <span className="font-semibold text-amber-300">{usdTry.toFixed(2)}</span>
           </div>
           <div className="px-3.5 py-2 hidden md:flex items-center gap-1.5 normal-case tracking-normal text-[10px]">
-            <span className="text-muted-foreground/70">Reg.</span>
-            <span className="font-mono font-semibold text-foreground">EPDK 14531</span>
+            <span className="text-white/50">Reg.</span>
+            <span className="font-mono font-semibold text-white">EPDK 14531</span>
           </div>
         </div>
 
-        {/* ============================================================
-             HERO — welcome + highlights + actions
-           ============================================================ */}
-        <div className="grid lg:grid-cols-[1fr_auto] gap-6 px-5 sm:px-7 py-6 sm:py-7">
+        {/* Hero içerik */}
+        <div className="relative grid lg:grid-cols-[1fr_auto] gap-6 px-5 sm:px-7 py-6 sm:py-8">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-[1.5px] font-bold text-muted-foreground">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 text-[10px] uppercase tracking-[1.5px] font-bold text-amber-300">
               Hoş Geldiniz
             </div>
-            <h1 className="text-[26px] sm:text-[30px] font-bold tracking-tight leading-none mt-1.5 text-foreground">
+            <h1 className="text-[26px] sm:text-[32px] font-bold tracking-tight leading-none mt-2.5 text-white">
               Ozan Seyfi
             </h1>
-            <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground mt-1.5">
+            <div className="flex items-center gap-1.5 text-[12px] text-white/70 mt-2">
               <Building2 className="h-3 w-3" />
               <span>Kontrolmatik · Investment &amp; Project Finance</span>
             </div>
 
             {/* Highlights */}
-            <div className="mt-5 pt-4 border-t border-border/60">
-              <div className="text-[10px] uppercase tracking-[1.5px] font-bold text-muted-foreground mb-2">
-                ★ Portföy Özeti
+            <div className="mt-5 pt-4 border-t border-white/10">
+              <div className="text-[10px] uppercase tracking-[1.5px] font-bold text-white/60 mb-2.5 flex items-center gap-1.5">
+                <span className="text-amber-300">★</span>
+                Portföy Özeti
               </div>
-              <ul className="space-y-1 text-[13px] text-foreground/85">
+              <ul className="space-y-1.5 text-[13px] text-white/90">
                 {totals.total > 0 ? (
                   <>
-                    <li className="flex items-start gap-2">
-                      <span className="text-eco-dark mt-0.5">●</span>
+                    <li className="flex items-start gap-2.5">
+                      <span className="text-sky-400 mt-1 text-[8px]">●</span>
                       <span>
-                        <strong className="font-semibold tabular-nums">{totals.total}</strong> proje portföyde
-                        — <strong className="font-semibold tabular-nums">{totals.completed}</strong> simüle edilmiş,{' '}
-                        <strong className="font-semibold tabular-nums">{totals.drafts}</strong> taslak
+                        <strong className="font-semibold tabular-nums text-white">{totals.total}</strong> proje portföyde
+                        — <strong className="font-semibold tabular-nums text-white">{totals.completed}</strong> simüle edilmiş,{' '}
+                        <strong className="font-semibold tabular-nums text-white">{totals.drafts}</strong> taslak
                       </span>
                     </li>
                     {totals.completed > 0 && (
-                      <li className="flex items-start gap-2">
-                        <span className={`mt-0.5 ${totals.avgDscr >= DSCR_TARGET ? 'text-eco-dark' : totals.avgDscr >= DSCR_FLOOR ? 'text-amber-600' : 'text-destructive'}`}>●</span>
+                      <li className="flex items-start gap-2.5">
+                        <span className={`mt-1 text-[8px] ${totals.avgDscr >= DSCR_TARGET ? 'text-emerald-400' : totals.avgDscr >= DSCR_FLOOR ? 'text-amber-400' : 'text-rose-400'}`}>●</span>
                         <span>
-                          Ortalama DSCR <strong className="font-semibold tabular-nums">{totals.avgDscr.toFixed(2)}x</strong>
-                          {' '}— bank floor <strong className="font-semibold tabular-nums">{DSCR_FLOOR.toFixed(2)}x</strong> üzerinde{' '}
-                          <strong className="font-semibold tabular-nums">{dscrCushion >= 0 ? '+' : ''}{(dscrCushion * 100).toFixed(0)} bps</strong> cushion
+                          Ortalama DSCR <strong className="font-semibold tabular-nums text-white">{totals.avgDscr.toFixed(2)}x</strong>
+                          {' '}— bank floor <strong className="font-semibold tabular-nums text-white">{DSCR_FLOOR.toFixed(2)}x</strong> üzerinde{' '}
+                          <strong className={`font-semibold tabular-nums ${dscrCushion >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{dscrCushion >= 0 ? '+' : ''}{(dscrCushion * 100).toFixed(0)} bps</strong> cushion
                         </span>
                       </li>
                     )}
                     {totals.completed > 0 && (
-                      <li className="flex items-start gap-2">
-                        <span className={`mt-0.5 ${totals.avgIrr >= STRONG_IRR ? 'text-eco-dark' : totals.avgIrr >= HURDLE_IRR ? 'text-amber-600' : 'text-destructive'}`}>●</span>
+                      <li className="flex items-start gap-2.5">
+                        <span className={`mt-1 text-[8px] ${totals.avgIrr >= STRONG_IRR ? 'text-emerald-400' : totals.avgIrr >= HURDLE_IRR ? 'text-amber-400' : 'text-rose-400'}`}>●</span>
                         <span>
-                          IRR ortalaması <strong className="font-semibold tabular-nums">{formatPct(totals.avgIrr)}</strong>
-                          {' · '} hurdle <strong className="font-semibold tabular-nums">{formatPct(HURDLE_IRR)}</strong>
-                          {' · '} spread <strong className={`font-semibold tabular-nums ${irrSpread >= 0 ? 'text-eco-dark' : 'text-destructive'}`}>{irrSpread >= 0 ? '+' : ''}{(irrSpread * 100).toFixed(0)} bps</strong>
+                          IRR ortalaması <strong className="font-semibold tabular-nums text-white">{formatPct(totals.avgIrr)}</strong>
+                          {' · '} hurdle <strong className="font-semibold tabular-nums text-white">{formatPct(HURDLE_IRR)}</strong>
+                          {' · '} spread <strong className={`font-semibold tabular-nums ${irrSpread >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{irrSpread >= 0 ? '+' : ''}{(irrSpread * 100).toFixed(0)} bps</strong>
                         </span>
                       </li>
                     )}
                     {totals.bankableProjects > 0 && (
-                      <li className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">●</span>
+                      <li className="flex items-start gap-2.5">
+                        <span className="text-sky-400 mt-1 text-[8px]">●</span>
                         <span>
-                          <strong className="font-semibold tabular-nums">{totals.bankableProjects}</strong> proje bankalanabilir durumda
-                          {totals.underReviewProjects > 0 && <> · <strong className="font-semibold tabular-nums">{totals.underReviewProjects}</strong> review gerekli</>}
+                          <strong className="font-semibold tabular-nums text-white">{totals.bankableProjects}</strong> proje bankalanabilir durumda
+                          {totals.underReviewProjects > 0 && <> · <strong className="font-semibold tabular-nums text-white">{totals.underReviewProjects}</strong> review gerekli</>}
                         </span>
                       </li>
                     )}
                   </>
                 ) : (
-                  <li className="text-muted-foreground text-[13px]">
+                  <li className="text-white/70 text-[13px]">
                     Portföyde henüz proje yok. EPDK 14531 saatlik mahsuplaşma rejimi altında ilk fizibilitenizi başlatın.
                   </li>
                 )}
@@ -198,20 +205,20 @@ export default function DashboardPage() {
           </div>
 
           {/* Action stack */}
-          <div className="flex lg:flex-col items-start gap-2 flex-wrap lg:items-stretch lg:min-w-[180px]">
-            <Button asChild size="sm" className="w-full justify-center">
+          <div className="flex lg:flex-col items-start gap-2 flex-wrap lg:items-stretch lg:min-w-[200px]">
+            <Button asChild size="sm" className="w-full justify-center bg-amber-400 text-navy hover:bg-amber-300 shadow-md shadow-amber-500/20 font-semibold">
               <Link href="/projects/new"><Plus className="h-3.5 w-3.5 mr-1.5" /> Yeni Proje</Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="w-full justify-center">
+            <Button asChild variant="outline" size="sm" className="w-full justify-center bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white backdrop-blur">
               <Link href="/projects"><FileText className="h-3.5 w-3.5 mr-1.5" /> Tüm Projeler</Link>
             </Button>
             {withResults.length >= 2 && (
-              <Button asChild variant="outline" size="sm" className="w-full justify-center">
+              <Button asChild variant="outline" size="sm" className="w-full justify-center bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white backdrop-blur">
                 <Link href="/projects/compare"><GitCompareArrows className="h-3.5 w-3.5 mr-1.5" /> Karşılaştır</Link>
               </Button>
             )}
-            <div className="hidden lg:block w-full pt-2 mt-1 border-t border-border/60">
-              <DisclaimerSlot />
+            <div className="hidden lg:block w-full pt-2 mt-1 border-t border-white/10">
+              <DisclaimerSlotDark />
             </div>
           </div>
         </div>
@@ -577,11 +584,19 @@ function StatusPill({ kind }: { kind: 'ready' | 'review' | 'risk' }) {
 }
 
 // ====================================================================
-// DISCLAIMER SLOT — wraps DisclaimerModal with neutral button style
+// DISCLAIMER SLOTS — neutral (mobile) + dark (hero panel)
 // ====================================================================
 function DisclaimerSlot() {
   return (
     <div className="[&>button]:!border-border [&>button]:!bg-transparent [&>button]:!text-muted-foreground [&>button]:!backdrop-blur-0 [&>button]:!w-full [&>button]:!justify-center hover:[&>button]:!bg-secondary hover:[&>button]:!text-foreground">
+      <DisclaimerModal />
+    </div>
+  );
+}
+
+function DisclaimerSlotDark() {
+  return (
+    <div className="[&>button]:!border-white/20 [&>button]:!bg-white/5 [&>button]:!text-white/70 [&>button]:!w-full [&>button]:!justify-center hover:[&>button]:!bg-white/10 hover:[&>button]:!text-white">
       <DisclaimerModal />
     </div>
   );
