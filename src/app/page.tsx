@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   ArrowRight, FileText, Sun, Battery, FlaskConical, Info, TrendingUp, Zap, DollarSign,
-  Activity, Plus, Sparkles, GitCompareArrows, BookOpen, LayoutTemplate, BarChart3,
+  Activity, Plus, Sparkles, GitCompareArrows, LayoutTemplate, BarChart3,
 } from 'lucide-react';
 import { DEMO_PROJECTS, ensureCapexComputed } from '@/lib/defaults';
 import { ProjectConfig, SimulationResult } from '@/lib/types';
 import { formatTl, formatKwh, formatPct, formatUsd } from '@/lib/utils';
+import { DisclaimerModal } from '@/components/dashboard/DisclaimerModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,7 @@ export default function DashboardPage() {
   if (IS_DEMO_MODE) autoSeedIfEmpty();
   const projects = listProjects();
 
-  // Sadece simüle edilmiş projeler — KPI için
+  // Sadece simüle edilmiş projeler — KPI + tablo için
   const withResults = projects
     .map((p) => {
       const full = getProject(p.id);
@@ -71,10 +72,10 @@ export default function DashboardPage() {
   };
   const usdTry = withResults[0]?.config.fx.usdTry ?? 45.5;
 
-  // En yeni 3 proje (son güncellenenler)
+  // Son 5 proje
   const recentProjects = [...withResults]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 3);
+    .slice(0, 5);
 
   return (
     <div className="space-y-6 lg:space-y-8">
@@ -93,9 +94,12 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 rounded-2xl gradient-navy text-white p-6 lg:p-10 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
           <div className="relative">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium mb-4 backdrop-blur">
-              <Sparkles className="h-3 w-3" />
-              EPDK 14531 · 04.04.2026 Tarifeleri
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
+                <Sparkles className="h-3 w-3" />
+                EPDK 14531 · 04.04.2026 Tarifeleri
+              </div>
+              <DisclaimerModal />
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 leading-tight">
               Hoş geldin Ozan 👋
@@ -120,39 +124,43 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Hızlı eğitim + şablon kartları */}
-        <div className="space-y-3">
-          <Card className="border-l-4 border-l-amber-400">
-            <CardContent className="p-4 space-y-2">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <BookOpen className="h-4 w-4 text-amber-500" />
-                Saatlik vs Aylık
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                EPDK Karar 14531 ile <strong className="text-foreground">aylık → saatlik</strong> mahsuplaşma değişti.
-                C&amp;I yatırımcı için yıllık gelir %20-35 azaldı.
-              </p>
-              <Link href="/about/netting-comparison" className="text-primary text-xs hover:underline inline-flex items-center gap-1">
-                Detaylı karşılaştırma <ArrowRight className="h-3 w-3" />
-              </Link>
-            </CardContent>
-          </Card>
+        {/* Şablon shortcut */}
+        <Card className="border-l-4 border-l-primary">
+          <CardContent className="p-5 flex flex-col h-full">
+            <div className="flex items-center gap-2 text-sm font-semibold mb-2">
+              <LayoutTemplate className="h-4 w-4 text-primary" />
+              {DEMO_PROJECTS.length} Hazır Şablon
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed flex-1">
+              Çatı C&amp;I, arazi GES ve hibrit BESS şablonlarından klonla, parametreleri değiştir, anında simüle et.
+            </p>
+            <Link href="/templates" className="text-primary text-xs hover:underline inline-flex items-center gap-1 mt-3 self-start">
+              Şablonları gör <ArrowRight className="h-3 w-3" />
+            </Link>
+          </CardContent>
+        </Card>
+      </section>
 
-          <Card className="border-l-4 border-l-primary">
-            <CardContent className="p-4 space-y-2">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <LayoutTemplate className="h-4 w-4 text-primary" />
-                {DEMO_PROJECTS.length} Hazır Şablon
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Çatı C&amp;I, arazi GES ve hibrit BESS şablonlarından klonla, parametreleri değiştir, anında simüle et.
-              </p>
-              <Link href="/templates" className="text-primary text-xs hover:underline inline-flex items-center gap-1">
-                Şablonları gör <ArrowRight className="h-3 w-3" />
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+      {/* ---------- ÖZELLİK REKLAM KARTLARI (üstte) ---------- */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
+        <FeatureCard
+          icon={Sun}
+          accent="solar"
+          title="8760 Saatlik Tam Simülasyon"
+          desc="PVGIS-SARAH3 API ile gerçek meteorolojik veri, lokasyon bazlı saatlik üretim profili."
+        />
+        <FeatureCard
+          icon={Battery}
+          accent="eco"
+          title="BESS Dispatch Motoru"
+          desc="Öz tüketim + bedelli limit koruması + peak shaving + arbitraj. Augmentation planı dahil."
+        />
+        <FeatureCard
+          icon={FlaskConical}
+          accent="navy"
+          title="Monte Carlo + Senaryo Matrisi"
+          desc="1000+ iterasyon risk analizi + 150 senaryolu deterministik karşılaştırma."
+        />
       </section>
 
       {/* ---------- AGGREGATE KPI BAR ---------- */}
@@ -190,7 +198,7 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* ---------- SON PROJELER ---------- */}
+      {/* ---------- SON PROJELER (TABLO) ---------- */}
       {recentProjects.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -199,46 +207,78 @@ export default function DashboardPage() {
               <Link href="/projects" className="text-primary">Tümünü Gör <ArrowRight className="h-3 w-3 ml-1" /></Link>
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {recentProjects.map((p) => (
-              <Link key={p.id} href={`/projects/${p.id}`}>
-                <Card className="hover:shadow-md hover:border-primary/40 transition-all h-full">
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[p.projectType] ?? 'bg-secondary'}`}>
-                        {TYPE_LABELS[p.projectType] ?? p.projectType}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {new Date(p.updatedAt).toLocaleDateString('tr-TR')}
-                      </span>
-                    </div>
-                    <div className="font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem]">{p.name}</div>
-                    <div className="flex items-center justify-between text-xs pt-1 border-t border-border/40">
-                      <span className="text-muted-foreground">IRR</span>
-                      <span className={`font-bold tabular-nums ${p.result.finance.npvTl > 0 ? 'text-eco-dark' : 'text-destructive'}`}>
-                        {formatPct(p.result.finance.irrPct)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">NPV</span>
-                      <span className={`font-bold tabular-nums ${p.result.finance.npvTl > 0 ? 'text-eco-dark' : 'text-destructive'}`}>
-                        {formatTl(p.result.finance.npvTl, { compact: true })}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-secondary/30 text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-2.5 text-left font-semibold">Proje</th>
+                    <th className="px-3 py-2.5 text-left font-semibold hidden sm:table-cell">Tip</th>
+                    <th className="px-3 py-2.5 text-right font-semibold hidden md:table-cell">Güç</th>
+                    <th className="px-3 py-2.5 text-right font-semibold">IRR</th>
+                    <th className="px-3 py-2.5 text-right font-semibold">NPV</th>
+                    <th className="px-3 py-2.5 text-right font-semibold hidden md:table-cell">Payback</th>
+                    <th className="px-3 py-2.5 text-right font-semibold hidden lg:table-cell">DSCR</th>
+                    <th className="px-3 py-2.5 text-right font-semibold hidden xl:table-cell">Tarih</th>
+                    <th className="px-3 py-2.5 w-12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentProjects.map((p, i) => {
+                    const positive = p.result.finance.npvTl > 0;
+                    return (
+                      <tr
+                        key={p.id}
+                        className={`border-b border-border/40 last:border-b-0 hover:bg-secondary/40 transition-colors ${i % 2 === 1 ? 'bg-secondary/15' : ''}`}
+                      >
+                        <td className="px-4 py-3">
+                          <Link href={`/projects/${p.id}`} className="font-semibold text-foreground hover:text-primary transition-colors block leading-tight">
+                            {p.name}
+                          </Link>
+                          <div className="text-[10px] text-muted-foreground mt-0.5 sm:hidden">
+                            {TYPE_LABELS[p.projectType] ?? p.projectType} · {p.config.pv.peakPowerKwp.toLocaleString('tr-TR')} kWp
+                          </div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5 hidden sm:block">
+                            {p.config.location.city ?? '—'}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 hidden sm:table-cell">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${TYPE_COLORS[p.projectType] ?? 'bg-secondary'}`}>
+                            {TYPE_LABELS[p.projectType] ?? p.projectType}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-right text-xs tabular-nums hidden md:table-cell whitespace-nowrap">
+                          {p.config.pv.peakPowerKwp.toLocaleString('tr-TR')} <span className="text-muted-foreground">kWp</span>
+                        </td>
+                        <td className={`px-3 py-3 text-right font-bold tabular-nums whitespace-nowrap ${positive ? 'text-eco-dark' : 'text-destructive'}`}>
+                          {formatPct(p.result.finance.irrPct)}
+                        </td>
+                        <td className={`px-3 py-3 text-right font-bold tabular-nums whitespace-nowrap ${positive ? 'text-eco-dark' : 'text-destructive'}`}>
+                          {formatTl(p.result.finance.npvTl, { compact: true })}
+                        </td>
+                        <td className="px-3 py-3 text-right text-xs tabular-nums hidden md:table-cell whitespace-nowrap">
+                          {Number.isFinite(p.result.finance.fcfcPaybackYears) ? `${p.result.finance.fcfcPaybackYears.toFixed(1)}y` : '—'}
+                        </td>
+                        <td className="px-3 py-3 text-right text-xs tabular-nums hidden lg:table-cell whitespace-nowrap">
+                          {p.result.finance.avgDscr.toFixed(2)}
+                        </td>
+                        <td className="px-3 py-3 text-right text-[11px] text-muted-foreground hidden xl:table-cell whitespace-nowrap">
+                          {new Date(p.updatedAt).toLocaleDateString('tr-TR')}
+                        </td>
+                        <td className="px-3 py-3 text-right">
+                          <Link href={`/projects/${p.id}`} className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors" aria-label="Aç">
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         </section>
       )}
-
-      {/* ---------- ÖZELLİK KARTLARI ---------- */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
-        <FeatureCard icon={Sun} accent="solar" title="8760 Saatlik Tam Simülasyon" desc="PVGIS-SARAH3 API ile gerçek meteorolojik veri, lokasyon bazlı üretim profili." />
-        <FeatureCard icon={Battery} accent="eco" title="BESS Dispatch Motoru" desc="Öz tüketim + bedelli limit koruması + peak shaving + arbitraj. Augmentation planı." />
-        <FeatureCard icon={FlaskConical} accent="navy" title="Monte Carlo + Senaryo Matrisi" desc="1000+ iterasyon risk analizi + 150 senaryolu deterministik karşılaştırma." />
-      </section>
     </div>
   );
 }
