@@ -7,7 +7,7 @@ import {
   Sun, LayoutDashboard, FolderPlus, GitCompareArrows, BookOpen, FlaskConical,
   ChevronRight, ChevronDown, ChevronsLeft, ChevronsRight,
   LayoutTemplate, Building2, Mountain, Battery as BatteryIcon,
-  User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu, Plus,
+  User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu, Plus, BookText,
 } from 'lucide-react';
 import { DEMO_PROJECTS } from '@/lib/defaults';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -35,14 +35,16 @@ const ADMIN_NAV: NavItem[] = [
   { href: '/admin/users', label: 'Kullanıcılar', icon: Users },
   { href: '/admin/share', label: 'Paylaşım', icon: Share2 },
   { href: '/admin/audit', label: 'Aktivite', icon: History },
-  { href: '/admin/how-it-works', label: 'Nasıl Çalışır', icon: HelpCircle },
-  { href: '/admin/contact', label: 'İletişim', icon: MessageSquare },
   { href: '/admin/platforms', label: 'Diğer Platformlar', icon: Boxes },
 ];
 
-const TRAINING_NAV: NavItem[] = [
+// Destek grubu (eski "Eğitim" + Nasıl Çalışır + İletişim + Finansal Terimler)
+const SUPPORT_NAV: NavItem[] = [
   { href: '/about/netting-methodology', label: 'Mahsuplaşma 101', icon: BookOpen },
   { href: '/about/netting-comparison', label: 'Saatlik vs Aylık', icon: FlaskConical },
+  { href: '/admin/financial-terms', label: 'Finansal Terimler', icon: BookText },
+  { href: '/admin/how-it-works', label: 'Nasıl Çalışır', icon: HelpCircle },
+  { href: '/admin/contact', label: 'İletişim', icon: MessageSquare },
 ];
 
 function templateIcon(projectType: string) {
@@ -153,9 +155,9 @@ export function AppSidebar() {
         </Link>
 
         {/* Primary nav */}
-        <nav className={cn('flex-1 py-3 overflow-y-auto overflow-x-hidden', collapsed ? 'px-2' : 'px-3 space-y-0.5')}>
+        <nav className={cn('flex-1 py-2 overflow-y-auto overflow-x-hidden', collapsed ? 'px-2' : 'px-2.5')}>
           {!collapsed && (
-            <div className="px-2 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            <div className="px-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
               Ana Menü
             </div>
           )}
@@ -173,8 +175,8 @@ export function AppSidebar() {
             type="button"
             onClick={toggleTemplates}
             className={cn(
-              'w-full flex items-center rounded-md text-sm transition-colors',
-              collapsed ? 'justify-center px-0 py-2.5 my-0.5' : 'gap-3 px-3 py-2.5',
+              'w-full flex items-center rounded-md text-[13px] transition-colors',
+              collapsed ? 'justify-center px-0 py-2' : 'gap-2.5 px-2.5 py-1.5',
               isTemplatesActive
                 ? 'bg-primary/10 text-primary font-semibold'
                 : 'text-foreground/70 hover:bg-secondary hover:text-foreground'
@@ -198,11 +200,11 @@ export function AppSidebar() {
 
           {/* Şablon listesi — daraltıldığında daima gizli; geniş + açıkken görünür */}
           {!collapsed && templatesOpen && (
-            <div className="mt-0.5 mb-1 ml-2 pl-3 border-l border-border/60 space-y-0.5">
+            <div className="mt-0.5 mb-1 ml-2 pl-2.5 border-l border-border/60">
               <Link
                 href="/templates"
                 className={cn(
-                  'flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-colors',
+                  'flex items-center gap-2 px-2 py-1 rounded-md text-[10.5px] font-bold uppercase tracking-wider transition-colors',
                   pathname === '/templates'
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground'
@@ -217,36 +219,36 @@ export function AppSidebar() {
                   <Link
                     key={t.id}
                     href={`/templates#${t.id}`}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-foreground/70 hover:bg-secondary hover:text-foreground transition-colors"
+                    className="flex items-center gap-2 px-2 py-1 rounded-md text-[11.5px] text-foreground/70 hover:bg-secondary hover:text-foreground transition-colors"
                     title={t.name}
                   >
-                    <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                    <Icon className="h-3 w-3 flex-shrink-0" />
                     <span className="truncate flex-1">{shortLabel(t.name)}</span>
-                    {hasBattery && <BatteryIcon className="h-3 w-3 flex-shrink-0 text-eco-dark" />}
+                    {hasBattery && <BatteryIcon className="h-2.5 w-2.5 flex-shrink-0 text-eco-dark" />}
                   </Link>
                 );
               })}
             </div>
           )}
 
-          {/* Eğitim */}
+          {/* Destek */}
           {!collapsed && (
-            <div className="px-2 pt-6 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-              Eğitim
+            <div className="px-2 pt-4 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Destek
             </div>
           )}
-          {collapsed && <div className="my-3 border-t border-border/40 mx-1" />}
-          {TRAINING_NAV.map((item) => (
+          {collapsed && <div className="my-2 border-t border-border/40 mx-1" />}
+          {SUPPORT_NAV.map((item) => (
             <SidebarLink key={item.href} item={item} pathname={pathname} collapsed={collapsed} />
           ))}
 
           {/* Yönetim */}
           {!collapsed && (
-            <div className="px-2 pt-6 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            <div className="px-2 pt-4 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
               Yönetim
             </div>
           )}
-          {collapsed && <div className="my-3 border-t border-border/40 mx-1" />}
+          {collapsed && <div className="my-2 border-t border-border/40 mx-1" />}
           {ADMIN_NAV.map((item) => (
             <SidebarLink key={item.href} item={item} pathname={pathname} collapsed={collapsed} />
           ))}
@@ -296,8 +298,8 @@ function SidebarLink({
     <Link
       href={item.href}
       className={cn(
-        'group relative flex items-center rounded-md text-sm transition-colors',
-        collapsed ? 'justify-center px-0 py-2.5 my-0.5' : 'gap-3 px-3 py-2.5',
+        'group relative flex items-center rounded-md text-[13px] transition-colors',
+        collapsed ? 'justify-center px-0 py-2' : 'gap-2.5 px-2.5 py-1.5',
         active
           ? 'bg-primary/10 text-primary font-semibold'
           : 'text-foreground/70 hover:bg-secondary hover:text-foreground',
@@ -305,7 +307,7 @@ function SidebarLink({
       )}
       title={collapsed ? item.label : undefined}
     >
-      <Icon className={cn('h-4 w-4 flex-shrink-0', active && 'text-primary')} />
+      <Icon className={cn('h-3.5 w-3.5 flex-shrink-0', active && 'text-primary')} />
       {!collapsed && (
         <>
           <span className="flex-1 truncate">{item.label}</span>
