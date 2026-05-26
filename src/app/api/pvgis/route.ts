@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
   try {
     const result = await fetchPVGIS({ location, pv });
     return NextResponse.json({
+      hourly: result.hourly,
       annualKwh: result.annualKwh,
       specificYieldKwhPerKwp: result.specificYieldKwhPerKwp,
       source: result.source,

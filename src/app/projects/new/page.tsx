@@ -19,25 +19,28 @@ import { OptimalAngleFinder } from '@/components/wizard/OptimalAngleFinder';
 import { ModuleInverterSizer } from '@/components/wizard/ModuleInverterSizer';
 import { PtfLoader } from '@/components/wizard/PtfLoader';
 import { PvSystemDesign } from '@/components/wizard/PvSystemDesign';
+import { MapPicker } from '@/components/wizard/MapPicker';
+import { PvProductionPreview } from '@/components/wizard/PvProductionPreview';
 import { DEFAULT_LOSSES } from '@/lib/pv-losses';
 import { buildDefaultConfig, buildDefaultCapex } from '@/lib/defaults';
 import { DEFAULT_DAILY_OFFICE, DEFAULT_MONTHLY_EQUAL } from '@/lib/consumption-builder';
 import type { ProjectConfig, ProjectType, ModuleTech, Mounting, FinancingType } from '@/lib/types';
 import { formatTl, formatKwh } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, MapPin, Sun, Activity, Receipt, Battery, Banknote, FlaskConical, Play, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, MapPin, Sun, Activity, Receipt, Battery, Banknote, FlaskConical, Play, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
 const STEPS = [
   { id: 1, title: 'Proje & Lokasyon', icon: MapPin },
   { id: 2, title: 'PV Sistem', icon: Sun },
-  { id: 3, title: 'Tüketim', icon: Activity },
-  { id: 4, title: 'Tarife', icon: Receipt },
-  { id: 5, title: 'Batarya', icon: Battery },
-  { id: 6, title: 'CAPEX/OPEX', icon: Wallet },
-  { id: 7, title: 'Enflasyon/FX', icon: Banknote },
-  { id: 8, title: 'Finansman & MC', icon: FlaskConical },
-  { id: 9, title: 'Çalıştır', icon: Play },
+  { id: 3, title: 'Üretim Önizleme', icon: Zap },
+  { id: 4, title: 'Tüketim', icon: Activity },
+  { id: 5, title: 'Tarife', icon: Receipt },
+  { id: 6, title: 'Batarya', icon: Battery },
+  { id: 7, title: 'CAPEX/OPEX', icon: Wallet },
+  { id: 8, title: 'Enflasyon/FX', icon: Banknote },
+  { id: 9, title: 'Finansman & MC', icon: FlaskConical },
+  { id: 10, title: 'Çalıştır', icon: Play },
 ];
 
 const CITY_PRESETS: Record<string, { lat: number; lon: number }> = {
@@ -207,27 +210,25 @@ function NewProjectPageInner() {
           <CardContent className="space-y-4">
             <Field label="Proje Adı"><Input value={config.name} onChange={(e) => updateConfig('name', e.target.value)} /></Field>
             <Field label="Açıklama"><Input value={config.description ?? ''} onChange={(e) => updateConfig('description', e.target.value)} placeholder="Kısa not (opsiyonel)" /></Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Proje Türü">
-                <Select value={config.projectType} onValueChange={(v) => updateConfig('projectType', v as ProjectType)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rooftop_ci">Çatı C&I (Ticari/Sanayi)</SelectItem>
-                    <SelectItem value="ground_mount">Arazi GES (≤5 MW)</SelectItem>
-                    <SelectItem value="hybrid_bess">GES + BESS Hibrit</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Şehir (preset)">
-                <Select value={config.location.city ?? ''} onValueChange={(v) => { const p = CITY_PRESETS[v]; if (p) updateConfig('location', { lat: p.lat, lon: p.lon, city: v }); }}>
-                  <SelectTrigger><SelectValue placeholder="Şehir seç" /></SelectTrigger>
-                  <SelectContent>{Object.keys(CITY_PRESETS).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
-              </Field>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Enlem (°)"><Input type="number" step="0.0001" value={config.location.lat} onChange={(e) => updateConfig('location', { ...config.location, lat: parseFloat(e.target.value) })} /></Field>
-              <Field label="Boylam (°)"><Input type="number" step="0.0001" value={config.location.lon} onChange={(e) => updateConfig('location', { ...config.location, lon: parseFloat(e.target.value) })} /></Field>
+            <Field label="Proje Türü">
+              <Select value={config.projectType} onValueChange={(v) => updateConfig('projectType', v as ProjectType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rooftop_ci">Çatı C&I (Ticari/Sanayi)</SelectItem>
+                  <SelectItem value="ground_mount">Arazi GES (≤5 MW)</SelectItem>
+                  <SelectItem value="hybrid_bess">GES + BESS Hibrit</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <div>
+              <Label className="block mb-2">Lokasyon — Haritadan Seç</Label>
+              <MapPicker
+                lat={config.location.lat}
+                lon={config.location.lon}
+                city={config.location.city ?? undefined}
+                onChange={(next) => updateConfig('location', { ...config.location, ...next })}
+              />
             </div>
           </CardContent>
         </Card>
@@ -305,8 +306,31 @@ function NewProjectPageInner() {
         </Card>
       )}
 
-      {/* STEP 3 — Tüketim (ConsumptionBuilder) */}
+      {/* STEP 3 — Üretim Önizleme (PVGIS + Loss Waterfall, PVsyst tarzı) */}
       {step === 3 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-amber-500" />
+              PVGIS Üretim Önizleme
+            </CardTitle>
+            <CardDescription>
+              PV konfigürasyonun PVGIS-SARAH3 ile çekilen 8760 saatlik üretim profili.
+              Aylık dağılım + PVsyst tarzı loss diagram. Tüketim girmeden önce sayıları gör.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PvProductionPreview
+              location={config.location}
+              pv={config.pv}
+              losses={config.pv.losses ?? DEFAULT_LOSSES}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STEP 4 — Tüketim (ConsumptionBuilder) */}
+      {step === 4 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -336,8 +360,8 @@ function NewProjectPageInner() {
         </Card>
       )}
 
-      {/* STEP 4 — Tarife */}
-      {step === 4 && (
+      {/* STEP 5 — Tarife */}
+      {step === 5 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -352,8 +376,8 @@ function NewProjectPageInner() {
         </Card>
       )}
 
-      {/* STEP 5 — Batarya */}
-      {step === 5 && (
+      {/* STEP 6 — Batarya */}
+      {step === 6 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -398,8 +422,8 @@ function NewProjectPageInner() {
         </Card>
       )}
 
-      {/* STEP 6 — CAPEX/OPEX */}
-      {step === 6 && (
+      {/* STEP 7 — CAPEX/OPEX */}
+      {step === 7 && (
         <CapexOpexCockpit
           capex={config.capex}
           opex={config.opex}
@@ -413,8 +437,8 @@ function NewProjectPageInner() {
         />
       )}
 
-      {/* STEP 7 — Enflasyon & FX */}
-      {step === 7 && (
+      {/* STEP 8 — Enflasyon & FX */}
+      {step === 8 && (
         <InflationFxCockpit
           fx={config.fx}
           tariff={config.tariff}
@@ -424,8 +448,8 @@ function NewProjectPageInner() {
         />
       )}
 
-      {/* STEP 8 — Finansman & Monte Carlo */}
-      {step === 8 && (
+      {/* STEP 9 — Finansman & Monte Carlo */}
+      {step === 9 && (
         <Card>
           <CardHeader>
             <CardTitle>Finansman ve Risk Analizi</CardTitle>
@@ -579,8 +603,8 @@ function NewProjectPageInner() {
         </Card>
       )}
 
-      {/* STEP 9 — Run */}
-      {step === 9 && (
+      {/* STEP 10 — Run */}
+      {step === 10 && (
         <Card>
           <CardHeader>
             <CardTitle>Özet ve Çalıştır</CardTitle>
