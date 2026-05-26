@@ -16,7 +16,7 @@ import { TariffPicker } from '@/components/wizard/TariffPicker';
 import { CapexOpexCockpit } from '@/components/wizard/CapexOpexCockpit';
 import { InflationFxCockpit } from '@/components/wizard/InflationFxCockpit';
 import { OptimalAngleFinder } from '@/components/wizard/OptimalAngleFinder';
-import { ModuleInverterSizer } from '@/components/wizard/ModuleInverterSizer';
+import { PvSystemSizer } from '@/components/wizard/PvSystemSizer';
 import { PtfLoader } from '@/components/wizard/PtfLoader';
 import { PvSystemDesign } from '@/components/wizard/PvSystemDesign';
 import { MapPicker } from '@/components/wizard/MapPicker';
@@ -266,7 +266,7 @@ function NewProjectPageInner() {
               }}
             />
 
-            <ModuleInverterSizer peakPowerKwp={config.pv.peakPowerKwp} />
+            <PvSystemSizer peakPowerKwp={config.pv.peakPowerKwp} />
 
             <PvSystemDesign
               pv={config.pv}
