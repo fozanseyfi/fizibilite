@@ -9,6 +9,8 @@ import { useStore } from '@/lib/admin-store';
 
 interface PvSystemSizerProps {
   peakPowerKwp: number;
+  /** Eğer verilirse kWp inputu kütüphane header'ında görünür (PVsyst tarzı tek blok) */
+  onPeakPowerChange?: (kwp: number) => void;
 }
 
 /**
@@ -23,7 +25,7 @@ interface PvSystemSizerProps {
  *      - DC/AC oranı
  *      - Uyumluluk verdict (✓/⚠/✗)
  */
-export function PvSystemSizer({ peakPowerKwp }: PvSystemSizerProps) {
+export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizerProps) {
   // ---------- Kütüphane state ----------
   const customModules = useStore((s) => s.customModules);
   const customInverters = useStore((s) => s.customInverters);
@@ -192,6 +194,34 @@ export function PvSystemSizer({ peakPowerKwp }: PvSystemSizerProps) {
   return (
     <>
       <div className="space-y-4">
+        {/* ---------- Target capacity input (PVsyst tarzı header) ---------- */}
+        {onPeakPowerChange && (
+          <div className="border border-border rounded-md bg-secondary/30 px-4 py-3 flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Sigma className="h-4 w-4 text-primary" />
+              <div>
+                <div className="text-[10px] uppercase tracking-[1.4px] font-bold text-muted-foreground">Hedef Kurulu Güç</div>
+                <div className="text-[11px] text-muted-foreground">Toplam DC nominal kapasite</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <input
+                type="number"
+                step="100"
+                value={peakPowerKwp}
+                onChange={(e) => onPeakPowerChange(parseFloat(e.target.value) || 0)}
+                className="w-32 px-3 h-10 rounded-md border border-border bg-card text-base font-bold tabular-nums text-right focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              <span className="text-sm font-semibold text-muted-foreground">kWp</span>
+              {peakPowerKwp >= 1000 && (
+                <span className="text-[11px] text-muted-foreground font-mono tabular-nums ml-1">
+                  ({(peakPowerKwp / 1000).toFixed(2)} MWp)
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ---------- Module + Inverter library cards ---------- */}
         <div className="grid lg:grid-cols-2 gap-4">
           <LibraryColumn

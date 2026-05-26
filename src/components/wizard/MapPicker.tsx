@@ -7,7 +7,6 @@ import { MapPin, Crosshair, Search } from 'lucide-react';
 const MapContainer = dynamic(() => import('react-leaflet').then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((m) => m.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then((m) => m.Marker), { ssr: false });
-const useMapEvents = (cb: (e: { latlng: { lat: number; lon: number } }) => void) => cb; // type stub
 
 /** Tıklanınca marker'ı taşıyan iç komponent — react-leaflet hooks SSR-safe değil, dynamic gerek */
 const ClickLayer = dynamic(
@@ -22,6 +21,29 @@ const ClickLayer = dynamic(
         return null;
       };
       return ClickHandler;
+    }),
+  { ssr: false }
+);
+
+/** Programatik (preset/search) lat/lon degisikliginde haritayi mevcut zoom'da kaydirir.
+    Tikla -> setView aynisi oldugundan hicbir sey bozulmaz. */
+const ProgrammaticPan = dynamic(
+  () =>
+    import('react-leaflet').then((mod) => {
+      const Pan = ({ lat, lon }: { lat: number; lon: number }) => {
+        const map = mod.useMap();
+        useEffect(() => {
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+          const cur = map.getCenter();
+          // Sadece dis kaynakli (city preset / geocode) cok farkliysa pan et — tikla'da zaten dogru yerde
+          if (Math.abs(cur.lat - lat) > 0.0005 || Math.abs(cur.lng - lon) > 0.0005) {
+            map.setView([lat, lon], map.getZoom(), { animate: true });
+          }
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [lat, lon]);
+        return null;
+      };
+      return Pan;
     }),
   { ssr: false }
 );
@@ -148,7 +170,6 @@ export function MapPicker({ lat, lon, city, onChange }: MapPickerProps) {
       <div className="relative h-[340px] rounded-md overflow-hidden border border-border bg-secondary/30">
         {mounted && icon ? (
           <MapContainer
-            key={`${center[0].toFixed(4)}_${center[1].toFixed(4)}`}
             center={center}
             zoom={8}
             scrollWheelZoom={true}
@@ -160,6 +181,7 @@ export function MapPicker({ lat, lon, city, onChange }: MapPickerProps) {
             />
             <Marker position={[lat, lon]} icon={icon as unknown as undefined} />
             <ClickLayer onPick={(nlat: number, nlon: number) => onChange({ lat: nlat, lon: nlon, city: undefined })} />
+            <ProgrammaticPan lat={lat} lon={lon} />
           </MapContainer>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">

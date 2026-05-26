@@ -103,11 +103,26 @@ export interface ModuleSpec {
 }
 
 export const MODULE_LIBRARY: ModuleSpec[] = [
+  // --------- JinkoSolar (Tier-1 Çin) ---------
+  { brand: 'JinkoSolar', model: 'JKM-625N-78HL4-BDV (Tiger Neo)', wp: 625, efficiency: 0.224, vmp: 35.6, imp: 17.56, voc: 42.6, isc: 18.32, tempCoeffPmaxPctPerC: -0.29, bifacial: true },
   { brand: 'JinkoSolar', model: 'Tiger Neo N-type 580W', wp: 580, efficiency: 0.224, vmp: 43.5, imp: 13.34, voc: 51.7, isc: 14.04, tempCoeffPmaxPctPerC: -0.29, bifacial: true },
+  { brand: 'JinkoSolar', model: 'Tiger Neo 78HL4M 605W', wp: 605, efficiency: 0.228, vmp: 44.5, imp: 13.60, voc: 52.6, isc: 14.30, tempCoeffPmaxPctPerC: -0.29, bifacial: true },
+  // --------- LONGi (Tier-1 Çin) ---------
   { brand: 'LONGi', model: 'Hi-MO 7 LR5-72HTH-580M', wp: 580, efficiency: 0.225, vmp: 43.8, imp: 13.24, voc: 52.1, isc: 13.96, tempCoeffPmaxPctPerC: -0.28, bifacial: true },
+  { brand: 'LONGi', model: 'Hi-MO X6 LR5-66HTH-560M', wp: 560, efficiency: 0.222, vmp: 41.3, imp: 13.57, voc: 49.1, isc: 14.27, tempCoeffPmaxPctPerC: -0.29, bifacial: true },
+  { brand: 'LONGi', model: 'Hi-MO 9 LR8-66HGD-625M', wp: 625, efficiency: 0.234, vmp: 44.2, imp: 14.15, voc: 53.0, isc: 14.95, tempCoeffPmaxPctPerC: -0.26, bifacial: true },
+  // --------- Trina Solar ---------
   { brand: 'Trina Solar', model: 'Vertex N TSM-NEG21C.20 620W', wp: 620, efficiency: 0.230, vmp: 45.2, imp: 13.71, voc: 53.8, isc: 14.30, tempCoeffPmaxPctPerC: -0.30, bifacial: true },
-  { brand: 'Canadian Solar', model: 'TOPHiKu7 595W', wp: 595, efficiency: 0.226, vmp: 44.0, imp: 13.52, voc: 52.4, isc: 14.18, tempCoeffPmaxPctPerC: -0.29, bifacial: false },
-  { brand: 'JA Solar', model: 'DeepBlue 4.0 Pro 575W', wp: 575, efficiency: 0.223, vmp: 43.1, imp: 13.34, voc: 51.3, isc: 13.95, tempCoeffPmaxPctPerC: -0.30, bifacial: false },
+  { brand: 'Trina Solar', model: 'Vertex S+ NEG9R.28 450W', wp: 450, efficiency: 0.224, vmp: 34.0, imp: 13.24, voc: 41.2, isc: 13.98, tempCoeffPmaxPctPerC: -0.30, bifacial: false },
+  // --------- Canadian Solar ---------
+  { brand: 'Canadian Solar', model: 'TOPHiKu7 CS7N-660TB-AG (660 W)', wp: 660, efficiency: 0.213, vmp: 38.6, imp: 17.10, voc: 46.4, isc: 18.05, tempCoeffPmaxPctPerC: -0.29, bifacial: true },
+  { brand: 'Canadian Solar', model: 'BiHiKu6 CS6W-555MB-AG 555W', wp: 555, efficiency: 0.216, vmp: 41.8, imp: 13.28, voc: 50.1, isc: 14.04, tempCoeffPmaxPctPerC: -0.30, bifacial: true },
+  // --------- JA Solar ---------
+  { brand: 'JA Solar', model: 'DeepBlue 4.0 Pro JAM72D40 580W', wp: 580, efficiency: 0.224, vmp: 43.3, imp: 13.40, voc: 51.6, isc: 14.05, tempCoeffPmaxPctPerC: -0.30, bifacial: true },
+  { brand: 'JA Solar', model: 'DeepBlue 4.0 JAM78D40 615W', wp: 615, efficiency: 0.221, vmp: 46.6, imp: 13.20, voc: 55.4, isc: 13.87, tempCoeffPmaxPctPerC: -0.30, bifacial: true },
+  // --------- Risen / GCL / DAS Solar (yedek tier-1) ---------
+  { brand: 'Risen Energy', model: 'RSM144-9 580W', wp: 580, efficiency: 0.223, vmp: 43.0, imp: 13.49, voc: 51.5, isc: 14.18, tempCoeffPmaxPctPerC: -0.30, bifacial: false },
+  { brand: 'DAS Solar', model: 'DAS-DH144NA 580W', wp: 580, efficiency: 0.224, vmp: 43.5, imp: 13.34, voc: 51.7, isc: 14.04, tempCoeffPmaxPctPerC: -0.29, bifacial: true },
 ];
 
 export interface InverterSpec {
@@ -122,9 +137,37 @@ export interface InverterSpec {
 }
 
 export const INVERTER_LIBRARY: InverterSpec[] = [
-  { brand: 'Huawei', model: 'SUN2000-100KTL-M2', acKw: 100, maxDcKw: 130, efficiencyEur: 0.985, mpptCount: 10, maxInputVdc: 1100, type: 'string' },
-  { brand: 'Sungrow', model: 'SG125HV', acKw: 125, maxDcKw: 162, efficiencyEur: 0.988, mpptCount: 10, maxInputVdc: 1500, type: 'string' },
+  // --------- Sungrow String (1100V) ---------
+  { brand: 'Sungrow', model: 'SG33CX (33 kW, 1100V)', acKw: 33, maxDcKw: 50, efficiencyEur: 0.985, mpptCount: 3, maxInputVdc: 1100, type: 'string' },
+  { brand: 'Sungrow', model: 'SG110CX (110 kW, 1100V)', acKw: 110, maxDcKw: 165, efficiencyEur: 0.988, mpptCount: 9, maxInputVdc: 1100, type: 'string' },
+  // --------- Sungrow String (1500V) ---------
+  { brand: 'Sungrow', model: 'SG125HV (125 kW, 1500V)', acKw: 125, maxDcKw: 187, efficiencyEur: 0.988, mpptCount: 10, maxInputVdc: 1500, type: 'string' },
+  { brand: 'Sungrow', model: 'SG250HX (250 kW, 1500V)', acKw: 250, maxDcKw: 375, efficiencyEur: 0.989, mpptCount: 12, maxInputVdc: 1500, type: 'string' },
+  { brand: 'Sungrow', model: 'SG320HX (320 kW, 1500V)', acKw: 320, maxDcKw: 480, efficiencyEur: 0.990, mpptCount: 12, maxInputVdc: 1500, type: 'string' },
+  { brand: 'Sungrow', model: 'SG350HX (350 kW, 1500V)', acKw: 350, maxDcKw: 525, efficiencyEur: 0.990, mpptCount: 12, maxInputVdc: 1500, type: 'string' },
+  // --------- Sungrow Central (MW seviyesi) ---------
+  { brand: 'Sungrow', model: 'SG3125HV-MV (3125 kW)', acKw: 3125, maxDcKw: 4062, efficiencyEur: 0.990, mpptCount: 1, maxInputVdc: 1500, type: 'central' },
+  { brand: 'Sungrow', model: 'SG4400UD (4400 kW, 1500V)', acKw: 4400, maxDcKw: 5060, efficiencyEur: 0.989, mpptCount: 1, maxInputVdc: 1500, type: 'central' },
+  { brand: 'Sungrow', model: 'SG6800HV-MV (6800 kW)', acKw: 6800, maxDcKw: 9200, efficiencyEur: 0.990, mpptCount: 1, maxInputVdc: 1500, type: 'central' },
+
+  // --------- Huawei String (1100V) ---------
+  { brand: 'Huawei', model: 'SUN2000-30KTL-M3 (30 kW)', acKw: 30, maxDcKw: 45, efficiencyEur: 0.984, mpptCount: 4, maxInputVdc: 1100, type: 'string' },
+  { brand: 'Huawei', model: 'SUN2000-50KTL-M3 (50 kW)', acKw: 50, maxDcKw: 75, efficiencyEur: 0.985, mpptCount: 6, maxInputVdc: 1100, type: 'string' },
+  { brand: 'Huawei', model: 'SUN2000-100KTL-M2 (100 kW)', acKw: 100, maxDcKw: 150, efficiencyEur: 0.986, mpptCount: 10, maxInputVdc: 1100, type: 'string' },
+  // --------- Huawei String (1500V) ---------
+  { brand: 'Huawei', model: 'SUN2000-185KTL-INH1 (185 kW)', acKw: 185, maxDcKw: 278, efficiencyEur: 0.989, mpptCount: 9, maxInputVdc: 1500, type: 'string' },
+  { brand: 'Huawei', model: 'SUN2000-215KTL-H3 (215 kW)', acKw: 215, maxDcKw: 280, efficiencyEur: 0.989, mpptCount: 16, maxInputVdc: 1500, type: 'string' },
+  { brand: 'Huawei', model: 'SUN2000-330KTL-H1 (330 kW)', acKw: 330, maxDcKw: 470, efficiencyEur: 0.990, mpptCount: 12, maxInputVdc: 1500, type: 'string' },
+  // --------- Huawei Central ---------
+  { brand: 'Huawei', model: 'SUN2000-2000-CG2 (2 MW central)', acKw: 2000, maxDcKw: 2600, efficiencyEur: 0.990, mpptCount: 1, maxInputVdc: 1500, type: 'central' },
+
+  // --------- SMA String + Central ---------
   { brand: 'SMA', model: 'Sunny Tripower CORE2 110-US', acKw: 110, maxDcKw: 143, efficiencyEur: 0.983, mpptCount: 12, maxInputVdc: 1100, type: 'string' },
-  { brand: 'Huawei', model: 'SUN2000-215KTL-H3', acKw: 215, maxDcKw: 280, efficiencyEur: 0.988, mpptCount: 16, maxInputVdc: 1500, type: 'string' },
-  { brand: 'Sungrow', model: 'SG3125HV-MV (central)', acKw: 3125, maxDcKw: 4062, efficiencyEur: 0.990, mpptCount: 1, maxInputVdc: 1500, type: 'central' },
+  { brand: 'SMA', model: 'Sunny Highpower PEAK3 (150 kW)', acKw: 150, maxDcKw: 225, efficiencyEur: 0.989, mpptCount: 12, maxInputVdc: 1500, type: 'string' },
+  { brand: 'SMA', model: 'Sunny Central UP-S 4400 (4.4 MW)', acKw: 4400, maxDcKw: 5700, efficiencyEur: 0.989, mpptCount: 1, maxInputVdc: 1500, type: 'central' },
+
+  // --------- Fronius + Power Electronics + GoodWe ---------
+  { brand: 'Fronius', model: 'Tauro ECO 100-3-D (100 kW)', acKw: 100, maxDcKw: 153, efficiencyEur: 0.984, mpptCount: 3, maxInputVdc: 1000, type: 'string' },
+  { brand: 'Power Electronics', model: 'FS3850K (3.85 MW central)', acKw: 3850, maxDcKw: 5005, efficiencyEur: 0.990, mpptCount: 1, maxInputVdc: 1500, type: 'central' },
+  { brand: 'GoodWe', model: 'GW250K-HT (250 kW)', acKw: 250, maxDcKw: 375, efficiencyEur: 0.989, mpptCount: 12, maxInputVdc: 1500, type: 'string' },
 ];
