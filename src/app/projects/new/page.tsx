@@ -117,6 +117,16 @@ function NewProjectPageInner() {
     setSubmitting(true);
     setError(null);
     try {
+      // ---------- Submit-time validation ----------
+      const missing: string[] = [];
+      if (!config.name.trim()) missing.push('Proje Adı (Adım 1)');
+      if (!config.pv.peakPowerKwp || config.pv.peakPowerKwp <= 0) missing.push('Kurulu Güç kWp (Adım 2)');
+      if (!config.consumption.annualKwh || config.consumption.annualKwh <= 0) missing.push('Yıllık Tüketim kWh (Adım 4)');
+      if (!config.location.lat || !config.location.lon) missing.push('Lokasyon (Adım 1)');
+      if (missing.length > 0) {
+        throw new Error('Lütfen önce şu zorunlu alanları doldurun: ' + missing.join(' · '));
+      }
+
       // Recompute CAPEX battery component if changed
       const finalCapex = { ...config.capex };
       if (config.battery.enabled) {
@@ -153,7 +163,13 @@ function NewProjectPageInner() {
         projectId = data.id;
       }
 
-      const simRes = await fetch(`/api/simulate/${projectId}`, { method: 'POST' });
+      // config body olarak gönderilir → serverless cold-start'ta proje bulunamazsa
+      // simulate endpoint config'ten yeniden upsert eder (recovery fallback)
+      const simRes = await fetch(`/api/simulate/${projectId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ config: finalConfig }),
+      });
       if (!simRes.ok) {
         const data = await simRes.json().catch(() => ({}));
         throw new Error(data.detail || data.error || 'Simülasyon hatası');
@@ -208,7 +224,7 @@ function NewProjectPageInner() {
             <CardDescription>Projenin adı, türü ve coğrafi konumu.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Field label="Proje Adı"><Input value={config.name} onChange={(e) => updateConfig('name', e.target.value)} /></Field>
+            <Field label="Proje Adı"><Input value={config.name} onChange={(e) => updateConfig('name', e.target.value)} placeholder="örn. Akfen Edremit GES" /></Field>
             <Field label="Açıklama"><Input value={config.description ?? ''} onChange={(e) => updateConfig('description', e.target.value)} placeholder="Kısa not (opsiyonel)" /></Field>
             <Field label="Proje Türü">
               <Select value={config.projectType} onValueChange={(v) => updateConfig('projectType', v as ProjectType)}>

@@ -11,24 +11,27 @@ import {
 } from './types';
 
 export function buildDefaultConfig(overrides: Partial<ProjectConfig> = {}): ProjectConfig {
-  const peakPowerKwp = overrides.pv?.peakPowerKwp ?? 500;
+  // Kullanıcı girdisi olan sayılar 0 ile başlar (boş input gösterilir).
+  // Domain-spesifik teknik defaults (loss %, degradation, tariff, fx) doludur.
+  const peakPowerKwp = overrides.pv?.peakPowerKwp ?? 0;
   const usdTry = overrides.fx?.usdTry ?? 45.5; // TCMB Mayıs 2026 ortalaması
-  const capex = overrides.capex ?? buildDefaultCapex(peakPowerKwp, 'rooftop_ci', usdTry, false);
+  const capex = overrides.capex ?? buildDefaultCapex(peakPowerKwp || 1, 'rooftop_ci', usdTry, false);
 
   return {
-    name: 'Yeni Proje',
+    name: '',
     description: '',
     projectType: 'rooftop_ci',
-    location: { lat: 36.8969, lon: 30.7133, city: 'Antalya' },
+    // Türkiye coğrafi merkezi — kullanıcı haritadan veya şehir preset'ten seçer
+    location: { lat: 39.0, lon: 35.0, city: '' },
     pv: {
-      peakPowerKwp,
-      loss: 14,
-      angle: 30,
-      aspect: 0,
+      peakPowerKwp,        // 0 → input boş gösterir
+      loss: 14,             // teknik default, breakdown'dan auto-update edilir
+      angle: 30,            // PV optimum eğim default (kullanıcı isterse değiştirir)
+      aspect: 0,            // güney
       moduleTech: 'crystSi',
       mounting: 'building',
       tracking: 0,
-      lidPct: 0.02,
+      lidPct: 0.02,         // teknik default
       annualDegradationPct: 0.005,
       losses: {
         soilingPct: 2.0, iamPct: 2.0, spectralPct: 0.5, temperaturePct: 5.0,
@@ -37,10 +40,10 @@ export function buildDefaultConfig(overrides: Partial<ProjectConfig> = {}): Proj
       },
     },
     consumption: {
-      profileId: 'office_5x10',
-      annualKwh: 800_000,
+      profileId: 'custom_builder',
+      annualKwh: 0,         // 0 → input boş
       growthRatePct: 0,
-      prevYearKwh: 800_000,
+      prevYearKwh: 0,       // 0 → input boş
       sameMeteringPoint: false,
       builder: {
         daily: { slot_00_06: 5, slot_06_10: 20, slot_10_14: 30, slot_14_18: 30, slot_18_24: 15 },

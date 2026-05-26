@@ -37,8 +37,12 @@ function ensureDir(): void {
   }
 }
 
-// In-memory cache (serverless için)
-const memoryStore: Record<string, unknown> = {};
+// In-memory cache (serverless için).
+// globalThis'e pin'lenir → aynı warm Lambda container'da farklı invocation'lar arasında paylaşılır.
+// Cold start'ta sıfırlanır (demo modda bilinen kısıt — gerçek persistence için Vercel KV / Postgres gerek).
+const globalForMemory = globalThis as unknown as { __gesFizMemoryStore?: Record<string, unknown> };
+const memoryStore: Record<string, unknown> = globalForMemory.__gesFizMemoryStore ?? {};
+if (!globalForMemory.__gesFizMemoryStore) globalForMemory.__gesFizMemoryStore = memoryStore;
 
 function fileStore<T>(filename: string, initial: T): BaseStore<T> {
   const filePath = path.join(DATA_DIR, filename);

@@ -94,8 +94,9 @@ export function ConsumptionBuilder({
           <Input
             type="number"
             step="1000"
-            value={value.annualKwh}
+            value={value.annualKwh > 0 ? value.annualKwh : ''}
             onChange={(e) => onChange({ ...value, annualKwh: parseFloat(e.target.value) || 0 })}
+            placeholder="örn. 800000"
           />
         </div>
         <div className="space-y-1.5">
@@ -106,8 +107,9 @@ export function ConsumptionBuilder({
           <Input
             type="number"
             step="1000"
-            value={value.prevYearKwh}
+            value={value.prevYearKwh > 0 ? value.prevYearKwh : ''}
             onChange={(e) => onChange({ ...value, prevYearKwh: parseFloat(e.target.value) || 0 })}
+            placeholder="örn. 800000"
           />
         </div>
       </div>

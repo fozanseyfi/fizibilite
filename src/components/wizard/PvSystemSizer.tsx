@@ -369,8 +369,9 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
                 <input
                   type="number"
                   step="100"
-                  value={peakPowerKwp}
+                  value={peakPowerKwp > 0 ? peakPowerKwp : ''}
                   onChange={(e) => onPeakPowerChange(parseFloat(e.target.value) || 0)}
+                  placeholder="örn. 80500"
                   className="w-full px-3 h-10 rounded-md border border-border bg-card text-base font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <span className="text-sm font-semibold text-muted-foreground">kWp</span>
@@ -389,8 +390,9 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
                 <input
                   type="number"
                   step="100"
-                  value={targetKwe}
+                  value={targetKwe > 0 ? targetKwe : ''}
                   onChange={(e) => setTargetKwe(parseFloat(e.target.value) || 0)}
+                  placeholder="örn. 66000"
                   className="w-full px-3 h-10 rounded-md border border-border bg-card text-base font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <span className="text-sm font-semibold text-muted-foreground">kWac</span>
