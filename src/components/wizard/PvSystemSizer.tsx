@@ -38,8 +38,8 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
   const [selModule, setSelModule] = useState(0);
   const [selInverter, setSelInverter] = useState(0);
 
-  // Hedef AC kapasite (kWe). Default: kWp/1.22 (typical DC/AC oranı)
-  const [targetKwe, setTargetKwe] = useState<number>(() => Math.round(peakPowerKwp / 1.22));
+  // Hedef AC kapasite (kWe). Boş başlar — user girer veya Otomatik Boyutlandır otomatik doldurur.
+  const [targetKwe, setTargetKwe] = useState<number>(0);
 
   // Sıcaklık aralığı
   const [tMin, setTMin] = useState(-10);
@@ -48,6 +48,9 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
   // Kullanıcı override değerleri
   const [userPanelsPerString, setUserPanelsPerString] = useState<number | null>(null);
   const [userInverterCount, setUserInverterCount] = useState<number | null>(null);
+
+  // Otomatik Boyutlandır butonuna basıldı mı? Card 5 ve 6 sadece bundan sonra görünür.
+  const [sizingTriggered, setSizingTriggered] = useState(false);
 
   // Modal state
   const [editModuleIdx, setEditModuleIdx] = useState<number | null>(null);
@@ -174,11 +177,17 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
 
   // ---------- Auto-size button (kWp/kWe'den itibaren recommend uygula) ----------
   function applyAutoSize() {
+    // Card 5 ve 6'yı aç
+    setSizingTriggered(true);
+    // Önceki user override'ları temizle (öneriye dön)
     setUserPanelsPerString(null);
     setUserInverterCount(null);
-    // kWe'yi otomatik öneriye eşitle
+    // kWe'yi otomatik öneriye eşitle (eğer user girmediyse veya hesaplama yapılabilirse)
     if (autoSizing) setTargetKwe(Math.round(autoSizing.totalAcKw));
   }
+
+  // Buton aktif mi? kWp > 0 olmalı (panel + invertör zaten library'den seçili)
+  const canAutoSize = peakPowerKwp > 0 && !!mod && !!inv;
 
   // ---------- Modal callbacks ----------
   function handleSaveModule(spec: ModuleSpec, idx: number | null) {
@@ -339,7 +348,9 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
             <button
               type="button"
               onClick={applyAutoSize}
-              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+              disabled={!canAutoSize}
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              title={!canAutoSize ? 'Önce kWp girin ve panel + invertör seçin' : 'String sizing\'i hesapla ve aşağıdaki ekranları aç'}
             >
               <Wand2 className="h-4 w-4" />
               Otomatik Boyutlandır
@@ -349,13 +360,26 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
           <div className="mt-3 text-[11px] text-muted-foreground">
             <strong>Tipik DC/AC aralığı:</strong> 1.15-1.30 optimal · 1.30-1.40 arazi GES için OK ·
             1.40+ sık clipping. Otomatik boyutlandırma 1.22 hedefler.
+            {!sizingTriggered && (
+              <span className="block mt-1.5 text-amber-700 font-medium">
+                💡 Önce hedef kWp girin, sonra <strong>Otomatik Boyutlandır</strong> butonuna basın —
+                aşağıdaki <strong>String Sizing</strong> ve <strong>Kullanıcı Konfigürasyonu</strong> ekranları açılacaktır.
+              </span>
+            )}
+            {sizingTriggered && (
+              <span className="block mt-1.5 text-eco-dark font-medium">
+                ✓ Boyutlandırma yapıldı — aşağıda Öneri ve Kullanıcı Konfigürasyonu açıldı.
+                Panel/invertör veya kWp değiştirirseniz tekrar &quot;Otomatik Boyutlandır&quot;a basın.
+              </span>
+            )}
           </div>
         </SubCard>
 
         {/* ============================================================
             CARD 5/7 — Otomatik String Sizing (Öneri)
+            Sadece "Otomatik Boyutlandır" butonuna basıldıktan sonra görünür.
            ============================================================ */}
-        {autoSizing && mod && inv && (
+        {sizingTriggered && autoSizing && mod && inv && (
           <SubCard
             step="5 / 7"
             eyebrow="Auto String Sizing (Recommendation)"
@@ -388,8 +412,9 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
 
         {/* ============================================================
             CARD 6/7 — Kullanıcı Konfigürasyonu (Override + Validation)
+            Sadece "Otomatik Boyutlandır" butonuna basıldıktan sonra görünür.
            ============================================================ */}
-        {autoSizing && userConfig && mod && inv && (
+        {sizingTriggered && autoSizing && userConfig && mod && inv && (
           <SubCard
             step="6 / 7"
             eyebrow="User Configuration (Final Design)"
