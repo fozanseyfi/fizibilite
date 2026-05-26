@@ -24,7 +24,7 @@ import { PvProductionPreview } from '@/components/wizard/PvProductionPreview';
 import { DEFAULT_LOSSES } from '@/lib/pv-losses';
 import { buildDefaultConfig, buildDefaultCapex } from '@/lib/defaults';
 import { DEFAULT_DAILY_OFFICE, DEFAULT_MONTHLY_EQUAL } from '@/lib/consumption-builder';
-import type { ProjectConfig, ProjectType, ModuleTech, Mounting, FinancingType } from '@/lib/types';
+import type { ProjectConfig, ProjectType, FinancingType } from '@/lib/types';
 import { formatTl, formatKwh } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, MapPin, Sun, Activity, Receipt, Battery, Banknote, FlaskConical, Play, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
@@ -234,36 +234,14 @@ function NewProjectPageInner() {
         </Card>
       )}
 
-      {/* STEP 2 — PV Sistem (PVsyst-style: panel/inverter -> orientation -> design -> module params) */}
+      {/* STEP 2 — PV Sistem (PVsyst-style: 7 alt kart) */}
       {step === 2 && (
         <div className="space-y-4">
-          {/* ============ 1. PANEL & İNVERTÖR (en üstte, PVsyst gibi) ============ */}
+          {/* ============ 1/7 YÖNELIM & EĞIM ============ */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1.4px] font-bold text-muted-foreground">
-                <span className="font-mono">1 / 4</span> · PV Array Characteristics
-              </div>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                Panel &amp; İnvertör Seçimi
-              </CardTitle>
-              <CardDescription>
-                Modül ve invertör kütüphaneden seç, hedef kWp gir — sistem otomatik string boyutlandırma yapar
-                ve uyumluluğu kontrol eder (Voc, Vmp, DC/AC oranı).
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PvSystemSizer
-                peakPowerKwp={config.pv.peakPowerKwp}
-                onPeakPowerChange={(kwp) => updateNested('pv', 'peakPowerKwp', kwp)}
-              />
-            </CardContent>
-          </Card>
-
-          {/* ============ 2. YÖNELIM & EĞIM ============ */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1.4px] font-bold text-muted-foreground">
-                <span className="font-mono">2 / 4</span> · Orientation &amp; Tilt
+                <span className="font-mono">1 / 7</span> · Orientation &amp; Tilt
               </div>
               <CardTitle className="text-lg">Yönelim ve Eğim Açıları</CardTitle>
               <CardDescription>
@@ -288,73 +266,38 @@ function NewProjectPageInner() {
             </CardContent>
           </Card>
 
-          {/* ============ 3. SİSTEM TASARIMI + KAYIPLAR ============ */}
+          {/* ============ 2-6 PANEL + INVERTER + TARGET POWER + AUTO SIZING + USER CONFIG ============ */}
+          <PvSystemSizer
+            peakPowerKwp={config.pv.peakPowerKwp}
+            onPeakPowerChange={(kwp) => updateNested('pv', 'peakPowerKwp', kwp)}
+          />
+
+          {/* ============ 7/7 SİSTEM KAYIP KIRILIMI + Degradation + LID ============ */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1.4px] font-bold text-muted-foreground">
-                <span className="font-mono">3 / 4</span> · System Losses
+                <span className="font-mono">7 / 7</span> · System Losses
               </div>
-              <CardTitle className="text-lg">Sistem Tasarımı &amp; Kayıp Dağılımı</CardTitle>
+              <CardTitle className="text-lg">Sistem Kayıp Kırılımı</CardTitle>
               <CardDescription>
-                Kayıp bileşenleri (soiling, IAM, sıcaklık, mismatch, DC/AC kablo, inverter, trafo, availability)
-                — PVGIS &apos;loss&apos; parametresine etki eder.
+                Her kayıp bileşenini ayrı ayrı belirleyin (soiling, IAM, sıcaklık, mismatch, kablo, inverter, trafo, availability).
+                Toplam sistem kaybı bu bileşenlerden otomatik hesaplanır. Uzun-vade performans (LID + yıllık degradasyon) burada.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Field label="Toplam Sistem Kaybı (%)" hint="Tipik 12-16% — aşağıda detaylı dağılım girersen otomatik hesaplanır">
-                <Input
-                  type="number"
-                  step="0.5"
-                  value={config.pv.loss}
-                  onChange={(e) => updateNested('pv', 'loss', parseFloat(e.target.value))}
-                />
-              </Field>
+            <CardContent className="space-y-5">
               <PvSystemDesign
                 pv={config.pv}
                 onPvChange={(next) => updateConfig('pv', next)}
                 losses={config.pv.losses ?? DEFAULT_LOSSES}
                 onLossesChange={(losses) => updateConfig('pv', { ...config.pv, losses })}
               />
-            </CardContent>
-          </Card>
 
-          {/* ============ 4. MODÜL KARAKTERİSTİKLERİ (degradation, LID, tech, mounting) ============ */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1.4px] font-bold text-muted-foreground">
-                <span className="font-mono">4 / 4</span> · Module &amp; Mounting
-              </div>
-              <CardTitle className="text-lg">Modül Karakteristikleri &amp; Montaj</CardTitle>
-              <CardDescription>
-                PVGIS-SARAH3 hesabı için modül teknolojisi, montaj tipi ve uzun-vade performans (LID + yıllık degradasyon).
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Modül Teknolojisi">
-                  <Select value={config.pv.moduleTech} onValueChange={(v) => updateNested('pv', 'moduleTech', v as ModuleTech)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="crystSi">Kristal Si (mono/poli)</SelectItem>
-                      <SelectItem value="CIS">CIS</SelectItem>
-                      <SelectItem value="CdTe">CdTe</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Montaj Tipi">
-                  <Select value={config.pv.mounting} onValueChange={(v) => updateNested('pv', 'mounting', v as Mounting)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="building">Çatı (building)</SelectItem>
-                      <SelectItem value="free">Arazi (free)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label={<span className="flex items-center gap-1.5">Yıllık Degradasyon (%) <InfoTooltip {...TOOLTIPS.degradation} /></span>}>
-                  <Input type="number" step="0.05" value={config.pv.annualDegradationPct * 100} onChange={(e) => updateNested('pv', 'annualDegradationPct', parseFloat(e.target.value) / 100)} />
-                </Field>
-                <Field label={<span className="flex items-center gap-1.5">İlk Yıl LID (%) <InfoTooltip {...TOOLTIPS.lid} /></span>}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
+                <Field label={<span className="flex items-center gap-1.5">İlk Yıl LID (%) <InfoTooltip {...TOOLTIPS.lid} /></span>} hint="Tipik %1-3 — modül kataloğundan">
                   <Input type="number" step="0.1" value={config.pv.lidPct * 100} onChange={(e) => updateNested('pv', 'lidPct', parseFloat(e.target.value) / 100)} />
+                </Field>
+                <Field label={<span className="flex items-center gap-1.5">Yıllık Degradasyon (%/yıl) <InfoTooltip {...TOOLTIPS.degradation} /></span>} hint="Tier-1 N-type %0.4-0.5/yıl">
+                  <Input type="number" step="0.05" value={config.pv.annualDegradationPct * 100} onChange={(e) => updateNested('pv', 'annualDegradationPct', parseFloat(e.target.value) / 100)} />
                 </Field>
               </div>
             </CardContent>
