@@ -82,6 +82,7 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
   const inv = inverters[selInverter]?.spec;
 
   // ---------- Otomatik String Sizing (PVsyst hesabı) ----------
+  // Kullanıcının kWp + kWe girdilerine göre öneri üretir.
   const autoSizing = useMemo(() => {
     if (!mod || !inv) return null;
     const STC_TEMP = 25;
@@ -96,24 +97,40 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
       minPanelsPerString,
       Math.min(maxPanelsPerString, Math.floor(maxPanelsPerString * 0.92))
     );
+
+    // Panel sayısı kWp'den
     const totalModules = Math.round((peakPowerKwp * 1000) / mod.wp);
     const totalStrings = Math.max(1, Math.ceil(totalModules / recommendedPanels));
     const maxStringsPerInverter = inv.mpptCount * 2;
-    const totalInverters = Math.max(1, Math.ceil(totalStrings / maxStringsPerInverter));
+
+    // İnvertör sayısı: kullanıcı kWe girdiyse ondan hesapla; girmediyse string kapasitesinden
+    const totalInvertersFromKwe = targetKwe > 0 ? Math.max(1, Math.ceil(targetKwe / inv.acKw)) : 0;
+    const totalInvertersFromStrings = Math.max(1, Math.ceil(totalStrings / maxStringsPerInverter));
+    const totalInverters = totalInvertersFromKwe > 0 ? totalInvertersFromKwe : totalInvertersFromStrings;
+
+    // String/MPPT dağılımı (gerçek, user'ın kWe'sinden çıkan invertör sayısına göre)
+    const stringsPerInverter = totalInverters > 0 ? Math.ceil(totalStrings / totalInverters) : 0;
+
     const actualDcKw = (totalModules * mod.wp) / 1000;
     const totalAcKw = totalInverters * inv.acKw;
     const dcAcRatio = totalAcKw > 0 ? actualDcKw / totalAcKw : 0;
     const stringVocCold = vocTmin * recommendedPanels;
     const stringVmpHot = vmpTmax * recommendedPanels;
 
+    // String/invertör kapasiteyi aşıyor mu? (user'ın kWe'si invertör için çok az olabilir)
+    const stringCapacityShortage = stringsPerInverter > maxStringsPerInverter;
+    const stringShortageMinInverters = totalInvertersFromStrings;
+
     return {
       vocTmin, vmpTmax, mpptVMin,
       maxPanelsPerString, minPanelsPerString, recommendedPanels,
-      totalModules, totalStrings, totalInverters, maxStringsPerInverter,
+      totalModules, totalStrings, totalInverters, stringsPerInverter, maxStringsPerInverter,
       actualDcKw, totalAcKw, dcAcRatio,
       stringVocCold, stringVmpHot,
+      stringCapacityShortage, stringShortageMinInverters,
+      usedKweTarget: totalInvertersFromKwe > 0,
     };
-  }, [mod, inv, peakPowerKwp, tMin, tMax]);
+  }, [mod, inv, peakPowerKwp, tMin, tMax, targetKwe]);
 
   // ---------- Kullanıcı override hesabı + validation ----------
   const userConfig = useMemo(() => {
@@ -175,18 +192,16 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
     };
   }, [mod, inv, autoSizing, userPanelsPerString, userInverterCount, tMin, tMax]);
 
-  // ---------- Auto-size button (kWp/kWe'den itibaren recommend uygula) ----------
+  // ---------- Auto-size button — yalnızca öneri ekranını tetikler ----------
+  // kWp ve kWe kullanıcının girdiği değerlerdir; buton onları DEĞİŞTİRMEZ.
   function applyAutoSize() {
-    // Card 5 ve 6'yı aç
     setSizingTriggered(true);
-    // Önceki user override'ları temizle (öneriye dön)
+    // Önceki user override'ları temizle (Card 6'da yeniden öneriye dön)
     setUserPanelsPerString(null);
     setUserInverterCount(null);
-    // kWe'yi otomatik öneriye eşitle (eğer user girmediyse veya hesaplama yapılabilirse)
-    if (autoSizing) setTargetKwe(Math.round(autoSizing.totalAcKw));
   }
 
-  // Buton aktif mi? kWp > 0 olmalı (panel + invertör zaten library'den seçili)
+  // Buton aktif mi? kWp > 0 olmalı (kWe opsiyonel — girilmezse string kapasitesinden hesaplanır)
   const canAutoSize = peakPowerKwp > 0 && !!mod && !!inv;
 
   // ---------- Modal callbacks ----------
@@ -362,14 +377,16 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
             1.40+ sık clipping. Otomatik boyutlandırma 1.22 hedefler.
             {!sizingTriggered && (
               <span className="block mt-1.5 text-amber-700 font-medium">
-                💡 Önce hedef kWp girin, sonra <strong>Otomatik Boyutlandır</strong> butonuna basın —
-                aşağıdaki <strong>String Sizing</strong> ve <strong>Kullanıcı Konfigürasyonu</strong> ekranları açılacaktır.
+                💡 Önce <strong>kWp</strong> ve isteğe bağlı <strong>kWe</strong> girin,
+                sonra <strong>Otomatik Boyutlandır</strong> butonuna basın —
+                aşağıdaki <strong>String Sizing Öneri</strong> ekranı açılacaktır.
+                Buton kWp/kWe değerlerinizi değiştirmez; bu girdilere göre öneri üretir.
               </span>
             )}
             {sizingTriggered && (
               <span className="block mt-1.5 text-eco-dark font-medium">
-                ✓ Boyutlandırma yapıldı — aşağıda Öneri ve Kullanıcı Konfigürasyonu açıldı.
-                Panel/invertör veya kWp değiştirirseniz tekrar &quot;Otomatik Boyutlandır&quot;a basın.
+                ✓ Öneri ekranı açıldı (kWp = {peakPowerKwp.toLocaleString('tr-TR')}{targetKwe > 0 ? `, kWe = ${targetKwe.toLocaleString('tr-TR')}` : ' · kWe girilmedi'}).
+                Değer değiştirirseniz öneri anında güncellenir.
               </span>
             )}
           </div>
@@ -393,19 +410,93 @@ export function PvSystemSizer({ peakPowerKwp, onPeakPowerChange }: PvSystemSizer
               <NumField label="Max Sıcaklık (°C)" hint="Vmp Tmax için" value={tMax} onChange={setTMax} step={1} />
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Voltaj limitleri */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
               <ResultTile label="Voc @ Tmin" value={`${autoSizing.vocTmin.toFixed(1)} V`} sub={`${tMin}°C'de Voc artar`} />
               <ResultTile label="Vmp @ Tmax" value={`${autoSizing.vmpTmax.toFixed(1)} V`} sub={`${tMax}°C'de Vmp düşer`} />
               <ResultTile label="Max Panel/String" value={String(autoSizing.maxPanelsPerString)} sub={`Voc × N < ${inv.maxInputVdc}V`} />
               <ResultTile label="Min Panel/String" value={String(autoSizing.minPanelsPerString)} sub={`Vmp × N > ${autoSizing.mpptVMin}V`} />
-              <ResultTile label="Önerilen Panel/String" value={String(autoSizing.recommendedPanels)} sub="92% headroom" highlight />
-              <ResultTile label="Önerilen Toplam Modül" value={autoSizing.totalModules.toLocaleString('tr-TR')} sub={`${mod.wp}Wp × ${autoSizing.totalModules}`} />
-              <ResultTile label="Önerilen Toplam String" value={autoSizing.totalStrings.toLocaleString('tr-TR')} sub={`max ${autoSizing.maxStringsPerInverter}/inv`} />
-              <ResultTile label="Önerilen Toplam İnvertör" value={autoSizing.totalInverters.toLocaleString('tr-TR')} sub={`${inv.acKw} kWac × ${autoSizing.totalInverters}`} highlight />
             </div>
 
+            {/* Önerilen donanım dağılımı */}
+            <div className="text-[10px] uppercase tracking-[1.4px] font-bold text-muted-foreground mb-2 mt-4">
+              Önerilen Donanım Dağılımı
+              <span className="ml-2 normal-case tracking-normal text-[10.5px] text-muted-foreground/80">
+                ({peakPowerKwp.toLocaleString('tr-TR')} kWp{targetKwe > 0 ? ` · ${targetKwe.toLocaleString('tr-TR')} kWac` : ''})
+              </span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <ResultTile
+                label="Panel / String"
+                value={String(autoSizing.recommendedPanels)}
+                sub="92% headroom"
+                highlight
+              />
+              <ResultTile
+                label="Toplam Panel"
+                value={autoSizing.totalModules.toLocaleString('tr-TR')}
+                sub={`${mod.wp}Wp × ${autoSizing.totalModules.toLocaleString('tr-TR')}`}
+              />
+              <ResultTile
+                label="Toplam String"
+                value={autoSizing.totalStrings.toLocaleString('tr-TR')}
+                sub={`${autoSizing.recommendedPanels} panel/string × ${autoSizing.totalStrings.toLocaleString('tr-TR')}`}
+              />
+              <ResultTile
+                label="Toplam İnvertör"
+                value={autoSizing.totalInverters.toLocaleString('tr-TR')}
+                sub={autoSizing.usedKweTarget
+                  ? `${targetKwe.toLocaleString('tr-TR')} kWe / ${inv.acKw} kWac`
+                  : `${autoSizing.totalAcKw.toLocaleString('tr-TR')} kWac toplam`}
+                highlight
+              />
+              <ResultTile
+                label="String / İnvertör"
+                value={autoSizing.stringsPerInverter.toLocaleString('tr-TR')}
+                sub={`Max ${autoSizing.maxStringsPerInverter} (${inv.mpptCount} MPPT × 2)`}
+                warning={autoSizing.stringCapacityShortage}
+              />
+              <ResultTile
+                label="DC Kapasite"
+                value={`${autoSizing.actualDcKw.toFixed(0)} kW`}
+                sub={`Hedef ${peakPowerKwp.toLocaleString('tr-TR')} kWp`}
+              />
+              <ResultTile
+                label="AC Kapasite"
+                value={`${autoSizing.totalAcKw.toLocaleString('tr-TR')} kW`}
+                sub={targetKwe > 0 ? `Hedef ${targetKwe.toLocaleString('tr-TR')} kWac` : 'Hedef kWe girilmemiş'}
+              />
+              <ResultTile
+                label="DC/AC Oranı"
+                value={autoSizing.dcAcRatio.toFixed(2)}
+                sub={
+                  autoSizing.dcAcRatio > 1.4 ? 'Yüksek clipping' :
+                  autoSizing.dcAcRatio >= 1.15 ? 'Optimal aralık' :
+                  'Düşük (invertör atıl)'
+                }
+                highlight={autoSizing.dcAcRatio >= 1.15 && autoSizing.dcAcRatio <= 1.30}
+                warning={autoSizing.dcAcRatio > 1.4 || autoSizing.dcAcRatio < 1.0}
+              />
+            </div>
+
+            {/* String kapasite uyarısı */}
+            {autoSizing.stringCapacityShortage && (
+              <div className="mt-3 flex items-start gap-2 px-3 py-2 rounded-md text-xs bg-amber-50 border border-amber-300 text-amber-900">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong>İnvertör kapasitesi yetersiz:</strong>{' '}
+                  Girdiğiniz <strong className="tabular-nums">{targetKwe.toLocaleString('tr-TR')} kWe</strong> ile{' '}
+                  <strong className="tabular-nums">{autoSizing.totalInverters}</strong> invertör çıkıyor,
+                  ama her birine <strong className="tabular-nums">{autoSizing.stringsPerInverter}</strong> string düşüyor
+                  (limit max <strong className="tabular-nums">{autoSizing.maxStringsPerInverter}</strong>).
+                  Önerilen min invertör: <strong className="tabular-nums">{autoSizing.stringShortageMinInverters}</strong> →
+                  AC kapasite <strong className="tabular-nums">{(autoSizing.stringShortageMinInverters * inv.acKw).toLocaleString('tr-TR')} kWac</strong>.
+                </div>
+              </div>
+            )}
+
             <div className="mt-3 text-[11px] text-muted-foreground italic">
-              💡 Bu bir <strong>öneri</strong>. Aşağıdaki Kullanıcı Konfigürasyonu kartından isterseniz değiştirebilirsiniz.
+              💡 Bu bir <strong>öneri</strong>. Aşağıdaki Kullanıcı Konfigürasyonu kartından isterseniz panel/string ve invertör sayısını değiştirebilirsiniz.
             </div>
           </SubCard>
         )}
