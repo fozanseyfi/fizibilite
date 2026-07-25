@@ -8,7 +8,6 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ModuleSpec, InverterSpec } from "./pv-losses";
 
 export interface AdminUser {
   id: string;
@@ -34,34 +33,20 @@ interface AdminState {
   // ---------- UI state ----------
   /** Masaüstü sidebar daraltma durumu (true = 60px ikon rail) */
   sidebarCollapsed: boolean;
-  /** Sol sidebar'da "Şablonlar" alt menüsü açık mı? */
-  templatesOpen: boolean;
   /** Proje detay sub-sidebar'ında her grup için açık/kapalı durum */
   projectGroupOpen: Record<string, boolean>;
   /** Mobil drawer açık mı? (persist edilmez) */
   mobileDrawerOpen: boolean;
-
-  /** Kullanıcının kendi eklediği modül kütüphanesi */
-  customModules: ModuleSpec[];
-  /** Kullanıcının kendi eklediği invertör kütüphanesi */
-  customInverters: InverterSpec[];
 
   setPanelName: (name: string) => void;
   updateCurrentUser: (patch: Partial<AdminUser>) => void;
   setShareLink: (link: ShareLink | null) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (v: boolean) => void;
-  toggleTemplates: () => void;
   toggleProjectGroup: (groupId: string) => void;
   setProjectGroupOpen: (groupId: string, open: boolean) => void;
   openMobileDrawer: () => void;
   closeMobileDrawer: () => void;
-  addCustomModule: (m: ModuleSpec) => void;
-  updateCustomModule: (index: number, m: ModuleSpec) => void;
-  removeCustomModule: (index: number) => void;
-  addCustomInverter: (i: InverterSpec) => void;
-  updateCustomInverter: (index: number, i: InverterSpec) => void;
-  removeCustomInverter: (index: number) => void;
 }
 
 const DEFAULT_USER: AdminUser = {
@@ -81,11 +66,8 @@ export const useStore = create<AdminState>()(
       panelName: "GES-Fizibilite Pro",
       shareLink: null,
       sidebarCollapsed: false,
-      templatesOpen: false,
       projectGroupOpen: { analytics: true, financial: true, risk: true, reports: true },
       mobileDrawerOpen: false,
-      customModules: [],
-      customInverters: [],
 
       setPanelName: (name) => set({ panelName: name }),
       updateCurrentUser: (patch) =>
@@ -93,7 +75,6 @@ export const useStore = create<AdminState>()(
       setShareLink: (link) => set({ shareLink: link }),
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
-      toggleTemplates: () => set((s) => ({ templatesOpen: !s.templatesOpen })),
       toggleProjectGroup: (groupId) =>
         set((s) => ({
           projectGroupOpen: { ...s.projectGroupOpen, [groupId]: !s.projectGroupOpen[groupId] },
@@ -104,16 +85,6 @@ export const useStore = create<AdminState>()(
         })),
       openMobileDrawer: () => set({ mobileDrawerOpen: true }),
       closeMobileDrawer: () => set({ mobileDrawerOpen: false }),
-      addCustomModule: (m) => set((s) => ({ customModules: [...s.customModules, m] })),
-      updateCustomModule: (index, m) =>
-        set((s) => ({ customModules: s.customModules.map((x, i) => (i === index ? m : x)) })),
-      removeCustomModule: (index) =>
-        set((s) => ({ customModules: s.customModules.filter((_, i) => i !== index) })),
-      addCustomInverter: (i) => set((s) => ({ customInverters: [...s.customInverters, i] })),
-      updateCustomInverter: (index, i) =>
-        set((s) => ({ customInverters: s.customInverters.map((x, idx) => (idx === index ? i : x)) })),
-      removeCustomInverter: (index) =>
-        set((s) => ({ customInverters: s.customInverters.filter((_, i) => i !== index) })),
     }),
     {
       name: "ges-admin-store",

@@ -106,3 +106,13 @@ details > summary::-webkit-details-marker { display: none; }
 .recharts-tooltip-wrapper {
   outline: none !important;
 }
+
+/* ============ PRINT (PDF export) ============ */
+@media print {
+  aside, footer, .no-print { display: none !important; }
+  main { max-width: none !important; padding: 0 !important; }
+  /* Aktif sekme içeriği yazdırılır; grafikler ve tablolar sığdırılır */
+  [role="tablist"] { display: none !important; }
+  .break-avoid { break-inside: avoid; }
+  body { background: #fff; }
+}

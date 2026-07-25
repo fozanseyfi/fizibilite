@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listProjects, upsertProject, nowIso, ProjectRow } from '@/lib/db';
+import { listProjects, getProject, upsertProject, nowIso, ProjectRow } from '@/lib/db';
 import { uid } from '@/lib/utils';
-import { ProjectConfig } from '@/lib/types';
-import { ensureCapexComputed } from '@/lib/defaults';
+import type { AnyProjectConfig } from '@/lib/models/types';
+import { computeSummary, projectName } from '@/lib/models/compute';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,9 +12,9 @@ export async function GET() {
     projects: rows.map((r) => ({
       id: r.id,
       name: r.name,
-      description: r.description,
-      projectType: r.projectType,
+      kind: r.projectType,
       status: r.status,
+      summary: r.resultsJson ? JSON.parse(r.resultsJson) : null,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     })),
@@ -23,17 +23,21 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const config = ensureCapexComputed(body.config as ProjectConfig);
+  const config = body.config as AnyProjectConfig;
+  if (!config || (config.kind !== 'utility' && config.kind !== 'ci')) {
+    return NextResponse.json({ error: 'Geçersiz model konfigürasyonu' }, { status: 400 });
+  }
   const id = body.id || uid('proj');
   const now = nowIso();
+  const summary = computeSummary(config);
   const row: ProjectRow = {
     id,
-    name: config.name,
-    description: config.description,
-    projectType: config.projectType,
-    status: 'draft',
+    name: projectName(config),
+    projectType: config.kind,
+    status: 'completed',
     configJson: JSON.stringify(config),
-    createdAt: now,
+    resultsJson: JSON.stringify(summary),
+    createdAt: getProject(id)?.createdAt ?? now,
     updatedAt: now,
   };
   upsertProject(row);

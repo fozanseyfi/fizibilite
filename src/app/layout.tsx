@@ -9,9 +9,9 @@ import { ConfirmRoot } from '@/components/admin/confirm';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'GES-Fizibilite Pro — EPDK Saatlik Mahsuplaşma Fizibilitesi',
+  title: 'Fizibilite Platformu — Utility & C&I Saatlik Mahsuplaşma',
   description:
-    'EPDK Karar 14531 saatlik mahsuplaşma rejimi altında C&I çatı, arazi ve GES+BESS hibrit projeler için profesyonel finansal fizibilite.',
+    'Utility (GES + BESS proje finansmanı) ve C&I / Mesken (EPDK 14531 saatlik mahsuplaşma) fizibilite modelleri.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,10 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <footer className="border-t border-border/60 mt-12 py-5">
               <div className="px-4 lg:px-8 max-w-[1600px] mx-auto text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  © 2026 GES-Fizibilite Pro · EPDK Karar No: 14531 (30.04.2026) ·{' '}
+                  © 2026 Fizibilite Platformu · EPDK Karar No: 14531 (30.04.2026) ·{' '}
                   <span className="text-foreground/60">Bu rapor öneri niteliğindedir, yatırım kararı için yetkili uzman görüşü alınız.</span>
                 </div>
-                <div className="text-foreground/60">v0.2.0</div>
+                <div className="text-foreground/60">v0.3.0</div>
               </div>
             </footer>
           </div>

@@ -4,12 +4,10 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Sun, LayoutDashboard, FolderPlus, GitCompareArrows, BookOpen, FlaskConical,
-  ChevronRight, ChevronDown, ChevronsLeft, ChevronsRight,
-  LayoutTemplate, Building2, Mountain, Battery as BatteryIcon,
+  Sun, LayoutDashboard, FolderPlus, BookOpen, FlaskConical,
+  ChevronRight, ChevronsLeft, ChevronsRight,
   User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu, Plus, BookText,
 } from 'lucide-react';
-import { DEMO_PROJECTS } from '@/lib/defaults';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LocaleToggle } from '@/components/LocaleToggle';
 import { cn } from '@/lib/utils';
@@ -24,10 +22,8 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, match: (p) => p === '/' },
-  { href: '/projects', label: 'Projeler', icon: FolderPlus, match: (p) => p === '/projects' || (p.startsWith('/projects/') && !p.startsWith('/projects/new') && !p.startsWith('/projects/compare')) },
+  { href: '/projects', label: 'Projeler', icon: FolderPlus, match: (p) => p === '/projects' || (p.startsWith('/projects/') && !p.startsWith('/projects/new')) },
   { href: '/projects/new', label: 'Yeni Proje', icon: Plus, match: (p) => p === '/projects/new' },
-  { href: '/projects/compare', label: 'Karşılaştır', icon: GitCompareArrows, match: (p) => p.startsWith('/projects/compare') },
-  { href: '/about', label: 'EPDK & Metodoloji', icon: BookOpen, match: (p) => p === '/about' || (p.startsWith('/about/') && !p.startsWith('/about/netting')) },
 ];
 
 const ADMIN_NAV: NavItem[] = [
@@ -38,7 +34,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: '/admin/platforms', label: 'Diğer Platformlar', icon: Boxes },
 ];
 
-// Destek grubu (eski "Eğitim" + Nasıl Çalışır + İletişim + Finansal Terimler)
+// Destek grubu (Mahsuplaşma 101 + Saatlik vs Aylık + Finansal Terimler + Nasıl Çalışır + İletişim)
 const SUPPORT_NAV: NavItem[] = [
   { href: '/about/netting-methodology', label: 'Mahsuplaşma 101', icon: BookOpen },
   { href: '/about/netting-comparison', label: 'Saatlik vs Aylık', icon: FlaskConical },
@@ -47,23 +43,11 @@ const SUPPORT_NAV: NavItem[] = [
   { href: '/admin/contact', label: 'İletişim', icon: MessageSquare },
 ];
 
-function templateIcon(projectType: string) {
-  if (projectType === 'ground_mount') return Mountain;
-  if (projectType === 'hybrid_bess') return BatteryIcon;
-  return Building2;
-}
-
-function shortLabel(name: string): string {
-  return name.split(/[(]/)[0].trim().replace(/\s+GES.*$/, '').replace(/Utility-Scale\s*/, '');
-}
-
 /** Sol sidebar — masaüstü (geniş/daraltılmış) + mobil drawer hepsi tek komponentte. */
 export function AppSidebar() {
   const pathname = usePathname();
   const collapsed = useStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useStore((s) => s.toggleSidebar);
-  const templatesOpen = useStore((s) => s.templatesOpen);
-  const toggleTemplates = useStore((s) => s.toggleTemplates);
   const mobileOpen = useStore((s) => s.mobileDrawerOpen);
   const closeMobileDrawer = useStore((s) => s.closeMobileDrawer);
 
@@ -85,17 +69,6 @@ export function AppSidebar() {
     };
   }, [mobileOpen, closeMobileDrawer]);
 
-  // Aktif sekme `/templates`te ise alt menüyü otomatik aç
-  useEffect(() => {
-    if (pathname.startsWith('/templates') && !templatesOpen) {
-      // Sadece kapalıysa toggle et — kullanıcı manuel kapattıysa zorla açma (mantığı: ilk girişte yardımcı ol)
-      toggleTemplates();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
-
-  const isTemplatesActive = pathname.startsWith('/templates');
-
   return (
     <>
       {/* ---------- MOBİL DRAWER + BACKDROP ---------- */}
@@ -111,10 +84,8 @@ export function AppSidebar() {
       <aside
         className={cn(
           'bg-card border-r border-border/60 flex flex-col z-50 transition-[width,transform] duration-200 ease-out',
-          // Desktop davranışı
           'lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:flex',
           collapsed ? 'lg:w-[60px]' : 'lg:w-60',
-          // Mobil davranışı: drawer
           'fixed inset-y-0 left-0 w-60 h-screen',
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
@@ -137,7 +108,7 @@ export function AppSidebar() {
             'flex items-center border-b border-border/40 hover:bg-secondary/40 transition-colors flex-shrink-0',
             collapsed ? 'justify-center px-2 py-4' : 'gap-3 px-5 py-5'
           )}
-          title={collapsed ? 'GES-Fizibilite Pro' : undefined}
+          title={collapsed ? 'Fizibilite Platformu' : undefined}
         >
           <div className="h-10 w-10 rounded-xl gradient-solar flex items-center justify-center shadow-sm flex-shrink-0">
             <Sun className="h-5 w-5 text-white" />
@@ -145,7 +116,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="min-w-0">
               <div className="font-bold text-sm leading-tight whitespace-nowrap">
-                GES-Fizibilite <span className="text-solar">Pro</span>
+                Fizibilite <span className="text-solar">Platformu</span>
               </div>
               <div className="text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                 EPDK 14531
@@ -162,74 +133,8 @@ export function AppSidebar() {
             </div>
           )}
           {NAV.map((item) => (
-            <SidebarLink
-              key={item.href}
-              item={item}
-              pathname={pathname}
-              collapsed={collapsed}
-            />
+            <SidebarLink key={item.href} item={item} pathname={pathname} collapsed={collapsed} />
           ))}
-
-          {/* Şablonlar — tıklanır expand/collapse */}
-          <button
-            type="button"
-            onClick={toggleTemplates}
-            className={cn(
-              'w-full flex items-center rounded-md text-[13px] transition-colors',
-              collapsed ? 'justify-center px-0 py-2' : 'gap-2.5 px-2.5 py-1.5',
-              isTemplatesActive
-                ? 'bg-primary/10 text-primary font-semibold'
-                : 'text-foreground/70 hover:bg-secondary hover:text-foreground'
-            )}
-            title={collapsed ? 'Şablonlar' : undefined}
-            aria-expanded={templatesOpen}
-          >
-            <LayoutTemplate className={cn('h-4 w-4 flex-shrink-0', isTemplatesActive && 'text-primary')} />
-            {!collapsed && (
-              <>
-                <span className="flex-1 text-left">Şablonlar</span>
-                <ChevronDown
-                  className={cn(
-                    'h-3.5 w-3.5 text-foreground/40 transition-transform',
-                    templatesOpen ? 'rotate-0' : '-rotate-90'
-                  )}
-                />
-              </>
-            )}
-          </button>
-
-          {/* Şablon listesi — daraltıldığında daima gizli; geniş + açıkken görünür */}
-          {!collapsed && templatesOpen && (
-            <div className="mt-0.5 mb-1 ml-2 pl-2.5 border-l border-border/60">
-              <Link
-                href="/templates"
-                className={cn(
-                  'flex items-center gap-2 px-2 py-1 rounded-md text-[10.5px] font-bold uppercase tracking-wider transition-colors',
-                  pathname === '/templates'
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Tümünü Görüntüle
-              </Link>
-              {DEMO_PROJECTS.map((t) => {
-                const Icon = templateIcon(t.config.projectType);
-                const hasBattery = t.config.battery.enabled;
-                return (
-                  <Link
-                    key={t.id}
-                    href={`/templates#${t.id}`}
-                    className="flex items-center gap-2 px-2 py-1 rounded-md text-[11.5px] text-foreground/70 hover:bg-secondary hover:text-foreground transition-colors"
-                    title={t.name}
-                  >
-                    <Icon className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate flex-1">{shortLabel(t.name)}</span>
-                    {hasBattery && <BatteryIcon className="h-2.5 w-2.5 flex-shrink-0 text-eco-dark" />}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
 
           {/* Destek */}
           {!collapsed && (
@@ -262,12 +167,12 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="text-[10px] text-muted-foreground px-2">
-              v0.2.0 · Karar 14531
+              v0.3.0 · Karar 14531
             </div>
           )}
         </div>
 
-        {/* Desktop daralt/genişlet toggle — sidebar'ın sağ kenarında yüzen buton */}
+        {/* Desktop daralt/genişlet toggle */}
         <button
           type="button"
           onClick={toggleSidebar}
@@ -314,11 +219,8 @@ function SidebarLink({
           {active && <ChevronRight className="h-3 w-3 flex-shrink-0" />}
         </>
       )}
-      {/* Daraltılmış modda tooltip — pure CSS */}
       {collapsed && (
-        <span
-          className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 rounded-md bg-foreground text-background text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg"
-        >
+        <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 rounded-md bg-foreground text-background text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg">
           {item.label}
         </span>
       )}
@@ -345,7 +247,7 @@ export function MobileTopNav() {
             <Sun className="h-4 w-4 text-white" />
           </div>
           <span className="font-bold text-sm truncate">
-            GES-Fizibilite <span className="text-solar">Pro</span>
+            Fizibilite <span className="text-solar">Platformu</span>
           </span>
         </Link>
       </div>
