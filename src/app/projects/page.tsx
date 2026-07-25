@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { listProjects, IS_DEMO_MODE } from '@/lib/db';
-import { autoSeedIfEmpty } from '@/lib/seed';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Plus, Info, FolderOpen, Building2, Home } from 'lucide-react';
@@ -12,7 +11,6 @@ export const dynamic = 'force-dynamic';
 interface Row { id: string; name: string; kind: string; summary: ProjectSummary; updatedAt: string; }
 
 export default function ProjectsPage() {
-  if (IS_DEMO_MODE) autoSeedIfEmpty();
   const rows: Row[] = listProjects()
     .filter((p) => p.resultsJson)
     .map((p) => ({ id: p.id, name: p.name, kind: p.projectType, summary: JSON.parse(p.resultsJson!) as ProjectSummary, updatedAt: p.updatedAt }));

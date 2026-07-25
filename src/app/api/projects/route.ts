@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listProjects, getProject, upsertProject, nowIso, ProjectRow } from '@/lib/db';
 import { uid } from '@/lib/utils';
-import type { AnyProjectConfig } from '@/lib/models/types';
-import { computeSummary, projectName } from '@/lib/models/compute';
 
 export const dynamic = 'force-dynamic';
+
+interface StoredConfig {
+  kind: 'utility' | 'ci';
+  name: string;
+  snapshot?: Record<string, string | number | boolean>;
+}
 
 export async function GET() {
   const rows = listProjects();
@@ -23,20 +27,19 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const config = body.config as AnyProjectConfig;
+  const config = body.config as StoredConfig;
   if (!config || (config.kind !== 'utility' && config.kind !== 'ci')) {
     return NextResponse.json({ error: 'Geçersiz model konfigürasyonu' }, { status: 400 });
   }
   const id = body.id || uid('proj');
   const now = nowIso();
-  const summary = computeSummary(config);
   const row: ProjectRow = {
     id,
-    name: projectName(config),
+    name: config.name || 'Adsız Proje',
     projectType: config.kind,
     status: 'completed',
     configJson: JSON.stringify(config),
-    resultsJson: JSON.stringify(summary),
+    resultsJson: body.summary ? JSON.stringify(body.summary) : undefined,
     createdAt: getProject(id)?.createdAt ?? now,
     updatedAt: now,
   };

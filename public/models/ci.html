@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<!-- saved from url=(0074)file:///Users/furkanozanseyfi/Downloads/ci-mahsuplasma-kokpiti%20(18).html -->
+<html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C&amp;I Saatlik Mahsuplaşma Fizibilite Kokpiti — EPDK 14531</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7FA; --surface:#FFFFFF; --ink:#16213A; --ink-soft:#5A6478; --line:#E2E7EF;
+  --navy:#18428F; --navy-deep:#0E2A5E; --gold:#E8A020; --gold-soft:#FDF4E3;
+  --green:#1E7F4F; --green-soft:#E7F5EE; --red:#C7000B; --red-soft:#FCEBEC;
+  --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --disp:'Archivo',var(--sans); --radius:12px; 
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+
+to{opacity:1;transform:none}}
+
+
+
+
+
+
+.toolbar{display:flex;gap:14px;align-items:flex-end;flex-wrap:nowrap;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin-bottom:20px}
+.toolbar .field{flex:1;min-width:150px}
+.btn-pdf{flex:0 0 auto}
+@media(max-width:640px){.toolbar{flex-wrap:wrap}.toolbar .field{min-width:130px}}
+.btn-pdf{appearance:none;border:none;cursor:pointer;font-family:var(--sans);font-weight:600;font-size:14px;
+  background:var(--navy);color:#fff;padding:11px 18px;border-radius:9px;white-space:nowrap}
+.btn-pdf:hover{background:var(--navy-deep)}
+#modal{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center}
+#modal[hidden]{display:none}
+#modal .m-ov{position:absolute;inset:0;background:rgba(14,42,94,.5)}
+#modal .m-card{position:relative;background:#fff;border-radius:14px;max-width:960px;width:calc(100vw - 36px);
+  max-height:84vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(14,42,94,.35);overflow:hidden}
+#modal .m-h{display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid var(--line)}
+#modal .m-h h3{font-family:var(--disp);font-size:16px;font-weight:700;margin-right:auto}
+#modal .m-x{appearance:none;border:none;background:var(--bg);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px;color:var(--ink-soft)}
+#modal .m-x:hover{background:var(--red-soft);color:var(--red)}
+#modal .m-b{overflow:auto;padding:16px 20px}
+#modal .m-b table{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+#modal .m-b .mnote{font-size:13px;color:var(--ink-soft);margin:10px 0}
+@media print{#modal{display:none !important}}
+.btn-mini{appearance:none;border:1.5px solid var(--navy);background:#fff;color:var(--navy);
+  font-family:var(--sans);font-weight:600;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer}
+.btn-mini:hover{background:var(--navy);color:#fff}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px}
+.card h3{font-family:var(--disp);font-size:16px;font-weight:700;margin-bottom:12px}
+.card h3 small{font-family:var(--sans);font-weight:400;font-size:12.5px;color:var(--ink-soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:4px}
+.field .unit{font-weight:400;color:#98A2B6}
+.field input,.field select{width:100%;font-family:var(--mono);font-size:14px;padding:9px 11px;
+  border:1px solid var(--line);border-radius:8px;background:#FBFCFE;color:var(--ink)}
+.field input[type=text]{font-family:var(--sans)}
+.field input:focus-visible,.field select:focus-visible{outline:2px solid var(--navy);border-color:var(--navy)}
+.field input:disabled,.field select:disabled{opacity:.45}
+.check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);font-weight:600}
+.check input{width:16px;height:16px;accent-color:var(--navy)}
+
+.note{font-size:13.5px;color:var(--ink-soft);background:var(--gold-soft);border-left:3px solid var(--gold);
+  padding:10px 14px;border-radius:0 8px 8px 0;margin-top:12px}
+.formula{background:#F2F5FB;border:1px solid #DCE4F2;border-radius:10px;padding:14px 16px;margin-top:12px;overflow-x:auto}
+.formula .fl{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--navy);margin-bottom:8px}
+.formula .ml{display:block;font-family:var(--mono);font-size:13px;margin:5px 0;line-height:1.9}
+.formula .ml .lbl{color:var(--ink-soft);font-size:11px;margin-right:6px}
+.subst{margin-top:10px;padding-top:10px;border-top:1px dashed #C6D2E6;font-family:var(--mono);font-size:12.5px;color:var(--navy-deep);line-height:1.9;overflow-x:auto}
+.subst b{color:var(--gold)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px 15px}
+.kpi .kl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.kpi .kv{font-family:var(--mono);font-weight:600;font-size:20px;margin-top:5px}
+.kpi .kh{font-size:11.5px;color:var(--ink-soft);margin-top:3px}
+.kpi.good .kv{color:var(--green)} .kpi.bad .kv{color:var(--red)} .kpi.navy .kv{color:var(--navy)}
+.verdict{border-radius:var(--radius);padding:13px 17px;font-weight:600;margin-bottom:18px}
+.verdict.good{background:var(--green-soft);color:var(--green)}
+.verdict.bad{background:var(--red-soft);color:var(--red)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:11.5px;white-space:nowrap}
+th{background:#F2F5FB;color:var(--navy-deep);font-weight:600;text-align:right;padding:7px 9px}
+th:first-child,td:first-child{text-align:left}
+td{padding:5px 9px;text-align:right;border-top:1px solid var(--line)}
+tr.tot td{background:var(--gold-soft);font-weight:600;border-top:1.5px solid var(--gold)}
+.tsub{font-size:12.5px;color:var(--ink-soft);margin:8px 2px 0}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+@media(max-width:760px){.duo{grid-template-columns:1fr}}
+.duo .dcard{border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:13.5px}
+.duo .dcard.g{background:var(--green-soft);border-color:#BFE3CF}
+.duo .dcard.r{background:var(--red-soft);border-color:#F2C4C7}
+.duo .dcard h4{font-size:14px;margin-bottom:8px}
+.duo .dcard.g h4{color:var(--green)} .duo .dcard.r h4{color:var(--red)}
+.duo .dcard ul{margin:6px 0 0 18px} .duo .dcard li{margin:4px 0}
+.codechip{display:block;font-family:var(--mono);font-size:12.5px;background:#F2F5FB;border-radius:7px;padding:7px 10px;margin:6px 0}
+.slist{margin:6px 0 0 20px} .slist li{margin:7px 0;font-size:14px}
+
+.hgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.hgrid input{width:100%;font-family:var(--mono);font-size:11px;padding:5px 4px;text-align:center;
+  border:1px solid var(--line);border-radius:6px;background:#FBFCFE}
+.hgrid input.rem{background:var(--gold-soft);border-color:var(--gold);font-weight:600}
+input.remz{background:var(--gold-soft) !important;border-color:var(--gold) !important;font-weight:600}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chips button{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink-soft);
+  font-family:var(--sans);font-weight:600;font-size:12.5px;padding:7px 12px;border-radius:99px;cursor:pointer}
+.chips button:hover{border-color:var(--navy);color:var(--navy)}
+.chips button.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.hlbl{font-family:var(--mono);font-size:9.5px;color:#98A2B6;text-align:center}
+
+svg text{font-family:var(--mono);font-size:9.5px;fill:var(--ink-soft)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+.gterm{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:9px;overflow:hidden}
+.gterm summary{cursor:pointer;padding:13px 17px;font-weight:600;font-size:14.5px;list-style:none;display:flex;gap:10px}
+.gterm summary::-webkit-details-marker{display:none}
+.gterm summary .en{font-family:var(--mono);font-weight:400;font-size:11.5px;color:var(--ink-soft)}
+.gterm summary::after{content:"+";margin-left:auto;font-family:var(--mono);color:var(--navy)}
+.gterm[open] summary::after{content:"–"}
+.gterm .gb{padding:0 17px 15px;font-size:13.5px;color:#33405C}
+.gterm .gb .gf{font-family:var(--mono);font-size:12.5px;background:#F2F5FB;border-radius:8px;padding:7px 11px;margin:7px 0}
+
+footer{margin-top:34px;font-size:12.5px;color:#98A2B6}
+.brandbar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;border-top:1px solid var(--line);
+  margin-top:14px;padding-top:14px;font-size:13.5px;color:var(--ink-soft)}
+.brandbar b{color:var(--ink)}
+.brandbar .icons{margin-left:auto;display:flex;gap:16px}
+.brandbar .icons a{color:var(--ink-soft);display:inline-flex}
+.brandbar .icons a:hover{color:var(--navy)}
+.brandbar .icons svg{width:19px;height:19px}
+
+#report{display:none}
+@media print{
+  @page{size:A4;margin:16mm 14mm 18mm}
+  body.printing .app{display:none !important}
+  body.printing #report{display:block}
+  body{background:#fff;font-size:10.5px;color:#1A2436}
+  #report{font-family:var(--sans);line-height:1.5}
+  /* cover header band */
+  #report .r-cover{background:var(--navy-deep);color:#fff;padding:22px 22px 18px;border-radius:12px;margin-bottom:18px}
+  #report .r-cover .r-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+  #report .r-cover h1{font-family:var(--disp);font-weight:800;font-size:23px;letter-spacing:-.01em;line-height:1.15;color:#fff}
+  #report .r-cover .r-facts{display:flex;flex-wrap:wrap;gap:6px 26px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2)}
+  #report .r-cover .r-fact{font-size:9.5px}
+  #report .r-cover .r-fact b{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#9FB0D0;font-weight:400;margin-bottom:2px}
+  #report .r-cover .r-fact span{color:#fff;font-weight:600}
+  /* section headers */
+  #report h2{font-family:var(--disp);font-weight:700;font-size:13px;color:var(--navy-deep);margin:18px 0 9px;padding-bottom:5px;border-bottom:2px solid var(--gold);page-break-after:avoid}
+  #report h2 .rn{font-family:var(--mono);font-size:10px;color:var(--gold);margin-right:8px}
+  #report .r-block{page-break-inside:avoid}
+  /* KPI cards */
+  #report .r-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0 6px}
+  #report .r-kpi{border:1px solid #D9E0EC;border-left:3px solid var(--navy);border-radius:7px;padding:8px 10px;background:#FAFBFD}
+  #report .r-kpi.good{border-left-color:var(--green)} #report .r-kpi.bad{border-left-color:var(--red)}
+  #report .r-kpi .l{font-family:var(--mono);font-size:7px;letter-spacing:.08em;text-transform:uppercase;color:#6A7488;margin-bottom:3px}
+  #report .r-kpi .v{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--navy-deep)}
+  #report .r-kpi.good .v{color:var(--green)} #report .r-kpi.bad .v{color:var(--red)}
+  /* tables */
+  #report table{width:100%;font-size:8.4px;margin:4px 0 8px;border-collapse:collapse;border:1px solid #D9E0EC;border-radius:6px;overflow:hidden}
+  #report thead th{background:var(--navy-deep);color:#fff;font-weight:600;padding:5px 7px;text-align:right;font-family:var(--sans)}
+  #report thead th:first-child{text-align:left}
+  #report tbody td{padding:4px 7px;text-align:right;border-top:1px solid #EAEEF4}
+  #report tbody td:first-child{text-align:left}
+  #report tbody tr:nth-child(even){background:#F7F9FC}
+  #report tbody tr.tot td{background:var(--gold-soft);font-weight:700;border-top:1.5px solid var(--gold)}
+  #report .r-assume td:first-child{font-weight:600;color:var(--navy-deep);width:26%}
+  /* charts */
+  #report .r-chart{border:1px solid #D9E0EC;border-radius:8px;padding:10px 12px 4px;margin:4px 0 8px;background:#fff}
+  #report .r-chart .r-cap{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#6A7488;margin-bottom:4px}
+  #report svg{max-width:100%;height:auto;display:block}
+  #report .r-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:8px;color:#6A7488;margin-top:5px}
+  #report .r-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px;vertical-align:middle}
+  /* notes + footer */
+  #report .r-note{font-size:8.4px;color:#556;line-height:1.55;background:#F7F9FC;border-left:3px solid #C6D2E6;padding:8px 11px;border-radius:0 6px 6px 0}
+  #report .r-foot{margin-top:16px;padding-top:9px;border-top:1px solid #D9E0EC;font-size:8px;color:#8892A4;display:flex;justify-content:space-between}
+  #report .r-foot b{color:var(--navy-deep)}
+}
+@media(max-width:820px){
+  
+  .app:not(.collapsed) 
+  .app.collapsed 
+  
+}
+
+/* ============ HEADER & TABS (utility style) ============ */
+header{background:var(--navy-deep);color:#fff;padding:26px 20px 0}
+.hwrap{max-width:1180px;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+header h1{font-family:var(--disp);font-weight:800;font-size:clamp(21px,3.2vw,31px);letter-spacing:-.01em}
+.sub{color:#B7C4DE;font-size:14px;margin-top:4px;max-width:820px}
+nav{display:flex;gap:4px;margin-top:22px;flex-wrap:wrap}
+nav button{appearance:none;border:none;cursor:pointer;font-family:var(--sans);font-weight:600;font-size:14px;
+  padding:11px 18px;border-radius:10px 10px 0 0;background:transparent;color:#9FB0D0}
+nav button:hover{color:#fff}
+nav button.active{background:var(--bg);color:var(--navy-deep)}
+nav button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+main{max-width:1180px;margin:0 auto;padding:26px 20px 70px}
+.tab{display:none}
+.tab.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+footer{max-width:1180px;margin:0 auto;padding:0 20px 40px}
+
+/* ============ STEPS (utility style) ============ */
+.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:22px;overflow:hidden}
+.step-head{display:flex;align-items:baseline;gap:14px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.step-no{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--gold);background:var(--gold-soft);padding:3px 9px;border-radius:6px;white-space:nowrap}
+.step-head h2{font-family:var(--disp);font-weight:700;font-size:18px}
+.step-head .why{font-size:13px;color:var(--ink-soft);margin-left:auto;text-align:right;max-width:44%}
+.step-body{padding:20px 22px}
+@media(max-width:860px){.step-head .why{display:none}}
+.step-body .card{margin-bottom:16px}
+.step-body .card:last-child{margin-bottom:0}
+.tipq{border-bottom:1px dotted #8FA1C4;cursor:help;outline:none}
+#tipbox{position:fixed;display:none;background:var(--navy-deep);color:#fff;font-family:var(--sans);
+  font-size:12.5px;font-weight:400;line-height:1.55;letter-spacing:0;text-transform:none;
+  padding:10px 13px;border-radius:9px;z-index:200;pointer-events:none;
+  box-shadow:0 10px 28px rgba(14,42,94,.35)}
+@media print{.tipq{border-bottom:none}#tipbox{display:none !important}}
+</style>
+</head>
+<body class="">
+
+<header>
+  <div class="hwrap">
+    <div class="eyebrow">C&amp;I Solar · EPDK Karar 14531 · Saatlik Mahsuplaşma</div>
+    <h1>C&amp;I Saatlik Mahsuplaşma Fizibilite Kokpiti</h1>
+    <p class="sub">Saatlik min(üretim, tüketim) eşleşmesi, bedelli üretim limiti, BESS kaydırma ve USD bazlı yatırım analizi (TL tarife → kur projeksiyonu) — her işletme yılı, 12 ay × hafta içi/sonu temsili günlerle saatlik simüle edilir. Her formül, girilen değerlerle dolu halde gösterilir.</p>
+    <nav role="tablist">
+      <button class="active" data-tab="tab-fiz" role="tab">1 · Fizibilite Modeli</button>
+      <button data-tab="tab-hours" role="tab">2 · Saatlik Veri</button>
+      <button data-tab="tab-bill" role="tab">3 · Fatura Analizi</button>
+      <button data-tab="tab-cmp" role="tab" class="">4 · Saatlik vs Aylık</button>
+      <button data-tab="tab-gloss" role="tab">5 · Sözlük</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= TAB 1: FIZIBILITE ================= -->
+<section id="tab-fiz" class="tab active" role="tabpanel">
+
+  <div class="toolbar">
+    <div class="field"><label>Proje adı <span class="unit">(raporda görünür)</span></label><input type="text" id="i_pname" value="C&amp;I Çatı GES — Saatlik Mahsuplaşma"></div>
+    <div class="field"><label>Hazırlayan</label><input type="text" id="i_prep" value=""></div>
+    <button class="btn-pdf" id="b_report">⤓ PDF Fizibilite Raporu</button>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">ADIM 1</span><h2>Tesis ve Tüketim Profili</h2><span class="why">Saatlik rejimde fizibilitenin kalbi tüketim profilidir: aynı üretimle net fayda %30+ değişir.</span></div>
+    <div class="step-body">
+
+  <div class="card">
+    <div class="grid3">
+      <div class="field"><label><span class="tipq" data-tip="Rejimi belirler: Ticarethane/Sanayi (C&amp;I) 01.05.2026 itibarıyla SAATLİK mahsuplaşmaya tabidir; Mesken aylık rejimde kalır ve bedelli üretim limiti uygulanmaz. Seçim, motorun tüm hesap mantığını değiştirir.">Abone grubu </span></label>
+        <select id="i_abone">
+          <option value="ci">Ticarethane / Sanayi (C&amp;I — saatlik rejim)</option>
+          <option value="mesken">Mesken (aylık rejim, limitsiz)</option>
+        </select></div>
+      <div class="field"><label><span class="tipq" data-tip="Tesisin yıllık toplam elektrik tüketimi. 24 saatlik profil şekilleri ve mevsimsellik bu toplama ölçeklenir — faturalarından son 12 ayın toplamını gir.">Yıllık tüketim </span><span class="unit">(kWh)</span></label><input type="number" id="i_cons" value="1200000" min="1" step="10000"></div>
+      <div class="field"><label><span class="tipq" data-tip="Bedelli üretim limitinin bazı: limit = bu değer × 2. Yeni tesislerde/devirde şebeke işletmecisinin LÜM&#39;e kaydettiği değer esas alınır — teyit et. Mesken için anlamsızdır (limitsiz).">Önceki yıl tüketimi </span><span class="unit">(kWh, limit bazı)</span></label><input type="number" id="i_consPrev" value="1200000" min="1" step="10000"></div>
+      <div class="field"><label><span class="tipq" data-tip="Hazır arketip seçince aşağıdaki 24 saatlik şekiller dolar; her hücre elle düzenlenebilir. Ofis: gündüz pik, GES ile iyi uyum. Fabrika 3 vardiya: düz yük. Otel: akşam pik, saatlik rejimde en zor profil.">Tüketim profili (hazır) </span></label>
+        <select id="i_profile">
+          <optgroup label="C&amp;I">
+            <option value="ofis">Ofis 5×8 — klasik kötü uyum</option>
+            <option value="tekvardiya" selected="">Sanayi tek vardiya (08–18)</option>
+            <option value="fabrika">Fabrika 3 vardiya — 24/7</option>
+            <option value="otel">Otel — akşam pik</option>
+            <option value="soguk">Soğuk hava deposu — düz yük</option>
+          </optgroup>
+          <optgroup label="Mesken">
+            <option value="m_aksam">Mesken — gündüz sınırlı, akşam pik</option>
+            <option value="m_gece">Mesken — gece yoğun (EV/ısı pompası)</option>
+            <option value="m_gunduz">Mesken — gündüz yoğun (evden çalışma)</option>
+            <option value="m_hs">Mesken — hafta sonu yoğun</option>
+          </optgroup>
+        </select></div>
+      <div class="field"><label>Hafta sonu günlük tüketim <span class="unit">(hafta içinin %'si)</span></label><input type="number" id="i_weratio" value="30" min="0" max="200" step="5"></div>
+      <div class="field"><label><span class="tipq" data-tip="Aylık tüketim ağırlıkları. Yaz pik (klima/soğutma) GES üretim tepesiyle örtüştüğü için öz tüketimi yükseltir; kış pik tersine çalışır.">Aylık dağılım ön ayarı </span><span class="unit">(→ aşağıyı doldurur)</span></label>
+        <select id="i_season">
+          <option value="flat">Düz (yıl boyu eşit)</option>
+          <option value="yaz" selected="">Yaz pik (klima/soğutma)</option>
+          <option value="kis">Kış pik (ısıtma)</option>
+        </select></div>
+    </div>
+    <div class="note">Tüm dağılımlar <b>yüzdedir</b> ve her grid tam <b>%100</b>'e kapanır: son hücre (saatlerde 23:00, aylarda Aralık) otomatik "kalan" olarak hesaplanır ve elle girilen değerlerin toplamının 100'ü aşmasına izin verilmez. Hazır profil seçmek gridleri doldurur; sonra her hücreyi elle inceltebilirsin. En doğru sonuç için tesisin gerçek saatlik sayaç verisinden yüzdeleri türet.</div>
+  </div>
+
+  <div class="card">
+    <h3>Aylık tüketim dağılımı <small>· yılın %'si · Aralık otomatik kalan</small></h3>
+    <div class="hgrid" id="g_m" style="grid-template-columns:repeat(12,1fr)"><div class="hlbl">Oca</div><div class="hlbl">Şub</div><div class="hlbl">Mar</div><div class="hlbl">Nis</div><div class="hlbl">May</div><div class="hlbl">Haz</div><div class="hlbl">Tem</div><div class="hlbl">Ağu</div><div class="hlbl">Eyl</div><div class="hlbl">Eki</div><div class="hlbl">Kas</div><div class="hlbl">Ara</div><input type="number" data-h="0" value="7.3" min="0" max="100" step="0.5"><input type="number" data-h="1" value="7.3" min="0" max="100" step="0.5"><input type="number" data-h="2" value="7.7" min="0" max="100" step="0.5"><input type="number" data-h="3" value="8.1" min="0" max="100" step="0.5"><input type="number" data-h="4" value="8.7" min="0" max="100" step="0.5"><input type="number" data-h="5" value="9.5" min="0" max="100" step="0.5"><input type="number" data-h="6" value="10.1" min="0" max="100" step="0.5"><input type="number" data-h="7" value="10.1" min="0" max="100" step="0.5"><input type="number" data-h="8" value="8.9" min="0" max="100" step="0.5"><input type="number" data-h="9" value="7.9" min="0" max="100" step="0.5"><input type="number" data-h="10" value="7.4" min="0" max="100" step="0.5"><input type="number" data-h="11" value="7" min="0" max="100" step="0.5" readonly="" class="rem" title="Otomatik kalan: 100 − diğer hücreler"></div>
+  </div>
+  <div class="note" id="mesken_note" style="display:none;border-left-color:var(--green);background:var(--green-soft)">
+    <b>Mesken abonesi = aylık mahsuplaşma.</b> EPDK Karar 14531 mesken abonelerini saatlik rejimin dışında bıraktı; bu modda üretim ile tüketim <b>ay toplamı</b> üzerinden nettleşir ve saat uyumu aranmaz. Bu yüzden gün içi dağılım (puant dilimleri / 24 saatlik profil) sonucu etkilemez ve gizlendi — yalnızca <b>aylık dağılım</b> yüzdeleri anlamlıdır. Bedelli üretim limiti de mesken için uygulanmaz.
+  </div>
+  <div class="card" id="zone_card">
+    <h3>Gün içi dağılım — puant dilimleri <small>· günün %'si · Gece otomatik kalan</small></h3>
+    <div class="grid3" style="align-items:end">
+      <div class="field"><label>Hafta içi · Gündüz <span class="unit">06–17 (%)</span></label><input type="number" id="z_wd_g" min="0" max="100" step="1"></div>
+      <div class="field"><label>Hafta içi · Puant <span class="unit">17–22 (%)</span></label><input type="number" id="z_wd_p" min="0" max="100" step="1"></div>
+      <div class="field"><label>Hafta içi · Gece <span class="unit">22–06 (otomatik)</span></label><input type="number" id="z_wd_n" readonly="" class="remz"></div>
+      <div class="field"><label>Hafta sonu · Gündüz <span class="unit">06–17 (%)</span></label><input type="number" id="z_we_g" min="0" max="100" step="1"></div>
+      <div class="field"><label>Hafta sonu · Puant <span class="unit">17–22 (%)</span></label><input type="number" id="z_we_p" min="0" max="100" step="1"></div>
+      <div class="field"><label>Hafta sonu · Gece <span class="unit">22–06 (otomatik)</span></label><input type="number" id="z_we_n" readonly="" class="remz"></div>
+    </div>
+    <p class="tsub">Dilim yüzdesi değişince, seçili profilin dilim içi saat şekli korunarak yeniden ölçeklenir — düz dağıtım yapılmaz. Gündüz + Puant toplamı 100'ü aşamaz; Gece kalanı otomatik alır.</p>
+    <button type="button" class="btn-mini" id="b_adv">🕐 Gün içi saatlik ayarla (detay — 24 hücre)</button>
+  </div>
+  <div id="adv_hours" style="display:none">
+    <div class="card">
+      <h3>Hafta içi saatlik dağılım <small>· günün %'si · 23:00 otomatik kalan</small></h3>
+      <div class="hgrid" id="g_wd"><div class="hlbl">0:00</div><div class="hlbl">1:00</div><div class="hlbl">2:00</div><div class="hlbl">3:00</div><div class="hlbl">4:00</div><div class="hlbl">5:00</div><div class="hlbl">6:00</div><div class="hlbl">7:00</div><div class="hlbl">8:00</div><div class="hlbl">9:00</div><div class="hlbl">10:00</div><div class="hlbl">11:00</div><input type="number" data-h="0" value="1.2" min="0" max="100" step="0.5"><input type="number" data-h="1" value="1.2" min="0" max="100" step="0.5"><input type="number" data-h="2" value="1.2" min="0" max="100" step="0.5"><input type="number" data-h="3" value="1.2" min="0" max="100" step="0.5"><input type="number" data-h="4" value="1.2" min="0" max="100" step="0.5"><input type="number" data-h="5" value="1.6" min="0" max="100" step="0.5"><input type="number" data-h="6" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="7" value="6.2" min="0" max="100" step="0.5"><input type="number" data-h="8" value="7.8" min="0" max="100" step="0.5"><input type="number" data-h="9" value="7.8" min="0" max="100" step="0.5"><input type="number" data-h="10" value="7.8" min="0" max="100" step="0.5"><input type="number" data-h="11" value="7.4" min="0" max="100" step="0.5"><div class="hlbl">12:00</div><div class="hlbl">13:00</div><div class="hlbl">14:00</div><div class="hlbl">15:00</div><div class="hlbl">16:00</div><div class="hlbl">17:00</div><div class="hlbl">18:00</div><div class="hlbl">19:00</div><div class="hlbl">20:00</div><div class="hlbl">21:00</div><div class="hlbl">22:00</div><div class="hlbl">23:00</div><input type="number" data-h="12" value="7" min="0" max="100" step="0.5"><input type="number" data-h="13" value="7.8" min="0" max="100" step="0.5"><input type="number" data-h="14" value="7.8" min="0" max="100" step="0.5"><input type="number" data-h="15" value="7.8" min="0" max="100" step="0.5"><input type="number" data-h="16" value="7.4" min="0" max="100" step="0.5"><input type="number" data-h="17" value="5.5" min="0" max="100" step="0.5"><input type="number" data-h="18" value="2.7" min="0" max="100" step="0.5"><input type="number" data-h="19" value="1.6" min="0" max="100" step="0.5"><input type="number" data-h="20" value="1.4" min="0" max="100" step="0.5"><input type="number" data-h="21" value="1.2" min="0" max="100" step="0.5"><input type="number" data-h="22" value="1.2" min="0" max="100" step="0.5"><input type="number" data-h="23" value="0.9" min="0" max="100" step="0.5" readonly="" class="rem" title="Otomatik kalan: 100 − diğer hücreler"></div>
+    </div>
+    <div class="card">
+      <h3>Hafta sonu saatlik dağılım <small>· günün %'si · 23:00 otomatik kalan</small></h3>
+      <div class="hgrid" id="g_we"><div class="hlbl">0:00</div><div class="hlbl">1:00</div><div class="hlbl">2:00</div><div class="hlbl">3:00</div><div class="hlbl">4:00</div><div class="hlbl">5:00</div><div class="hlbl">6:00</div><div class="hlbl">7:00</div><div class="hlbl">8:00</div><div class="hlbl">9:00</div><div class="hlbl">10:00</div><div class="hlbl">11:00</div><input type="number" data-h="0" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="1" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="2" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="3" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="4" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="5" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="6" value="3.8" min="0" max="100" step="0.5"><input type="number" data-h="7" value="5.2" min="0" max="100" step="0.5"><input type="number" data-h="8" value="6.3" min="0" max="100" step="0.5"><input type="number" data-h="9" value="6.3" min="0" max="100" step="0.5"><input type="number" data-h="10" value="6.3" min="0" max="100" step="0.5"><input type="number" data-h="11" value="5.9" min="0" max="100" step="0.5"><div class="hlbl">12:00</div><div class="hlbl">13:00</div><div class="hlbl">14:00</div><div class="hlbl">15:00</div><div class="hlbl">16:00</div><div class="hlbl">17:00</div><div class="hlbl">18:00</div><div class="hlbl">19:00</div><div class="hlbl">20:00</div><div class="hlbl">21:00</div><div class="hlbl">22:00</div><div class="hlbl">23:00</div><input type="number" data-h="12" value="5.2" min="0" max="100" step="0.5"><input type="number" data-h="13" value="5.2" min="0" max="100" step="0.5"><input type="number" data-h="14" value="5.2" min="0" max="100" step="0.5"><input type="number" data-h="15" value="4.6" min="0" max="100" step="0.5"><input type="number" data-h="16" value="4.2" min="0" max="100" step="0.5"><input type="number" data-h="17" value="3.8" min="0" max="100" step="0.5"><input type="number" data-h="18" value="3.4" min="0" max="100" step="0.5"><input type="number" data-h="19" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="20" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="21" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="22" value="3.1" min="0" max="100" step="0.5"><input type="number" data-h="23" value="3.6" min="0" max="100" step="0.5" readonly="" class="rem" title="Otomatik kalan: 100 − diğer hücreler"></div>
+    </div>
+  </div>
+  <div class="formula">
+    <div class="fl">Formül · saatlik tüketimin kuruluşu</div>
+    <span class="ml"><span class="lbl">Ay:</span>Ay tüketimi = Yıllık tüketim × Ay yüzdesi</span>
+    <span class="ml"><span class="lbl">Gün:</span>Hafta içi günlük = Ay tüketimi ÷ ( Hİ gün + HS gün × HS oranı ) · Hafta sonu günlük = Hİ günlük × HS oranı</span>
+    <span class="ml"><span class="lbl">Saat:</span>Saat tüketimi = Günlük toplam × Saat yüzdesi</span>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Tüketim Grafiği <small>· çubuklara tıklayarak in: yıl → ay → gün</small></h3>
+    <div class="chips" id="cg_crumb"><button data-l="y" class="active">Yıllık</button></div>
+    <svg id="ch_cons" viewBox="0 0 900 260" width="100%"><line x1="64" y1="230" x2="888" y2="230" stroke="#E2E7EF"></line><text x="58" y="233" text-anchor="end">0,0</text><line x1="64" y1="176.5" x2="888" y2="176.5" stroke="#E2E7EF"></line><text x="58" y="179.5" text-anchor="end">30,3</text><line x1="64" y1="123" x2="888" y2="123" stroke="#E2E7EF"></line><text x="58" y="126" text-anchor="end">60,6</text><line x1="64" y1="69.5" x2="888" y2="69.5" stroke="#E2E7EF"></line><text x="58" y="72.5" text-anchor="end">90,9</text><line x1="64" y1="16" x2="888" y2="16" stroke="#E2E7EF"></line><text x="58" y="19" text-anchor="end">121,2</text><rect data-i="0" x="77.04666666666668" y="75.32673267326733" width="42.57333333333334" height="154.67326732673268" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="98.33333333333334" y="251" text-anchor="middle">Oca</text><rect data-i="1" x="145.71333333333334" y="75.32673267326733" width="42.57333333333334" height="154.67326732673268" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="167" y="251" text-anchor="middle">Şub</text><rect data-i="2" x="214.38" y="66.85148514851485" width="42.57333333333334" height="163.14851485148515" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="235.66666666666666" y="251" text-anchor="middle">Mar</text><rect data-i="3" x="283.0466666666667" y="58.376237623762364" width="42.57333333333334" height="171.62376237623764" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="304.33333333333337" y="251" text-anchor="middle">Nis</text><rect data-i="4" x="351.7133333333333" y="45.663366336633665" width="42.57333333333334" height="184.33663366336634" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="373" y="251" text-anchor="middle">May</text><rect data-i="5" x="420.38" y="28.712871287128724" width="42.57333333333334" height="201.28712871287127" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="441.6666666666667" y="251" text-anchor="middle">Haz</text><rect data-i="6" x="489.0466666666666" y="16" width="42.57333333333334" height="214" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="510.3333333333333" y="251" text-anchor="middle">Tem</text><rect data-i="7" x="557.7133333333334" y="16" width="42.57333333333334" height="214" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="579" y="251" text-anchor="middle">Ağu</text><rect data-i="8" x="626.38" y="41.42574257425743" width="42.57333333333334" height="188.5742574257426" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="647.6666666666666" y="251" text-anchor="middle">Eyl</text><rect data-i="9" x="695.0466666666667" y="62.61386138613863" width="42.57333333333334" height="167.38613861386136" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="716.3333333333334" y="251" text-anchor="middle">Eki</text><rect data-i="10" x="763.7133333333334" y="73.20792079207922" width="42.57333333333334" height="156.79207920792078" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="785" y="251" text-anchor="middle">Kas</text><rect data-i="11" x="832.38" y="81.6831683168317" width="42.57333333333334" height="148.3168316831683" fill="#18428F" rx="2" style="cursor:pointer"></rect><text x="853.6666666666666" y="251" text-anchor="middle">Ara</text></svg>
+    <p class="tsub" id="cg_hint">Birim: MWh/ay. Bir ayın çubuğuna tıklayınca o ayın gün gün dağılımı açılır.</p>
+  </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">ADIM 2</span><h2>GES ve Üretim</h2><span class="why">Üretim, aylık güneş dağılımı × gün eğrisiyle saatlere yayılır; doğu-batı yerleşim eğriyi yayar.</span></div>
+    <div class="step-body">
+  <div class="card">
+    <div class="grid3">
+      <div class="field"><label><span class="tipq" data-tip="Panel tarafının DC kurulu gücü. Saatlik rejimde &#39;çatıyı doldur&#39; yerine &#39;profiline boyutlan&#39; geçerlidir — fazla kapasite bedelsize kaçar.">Kurulu güç </span><span class="unit">(kWp, DC)</span></label><input type="number" id="i_kwp" value="1000" min="1" step="10"></div>
+      <div class="field"><label><span class="tipq" data-tip="Yıllık birim üretim (kWh/kWp). Türkiye çatılarında tipik 1.400–1.650; sahaya, eğime ve gölgelenmeye bağlıdır. PVsyst/PVGIS değerini gir.">Spesifik üretim </span><span class="unit">(kWh/kWp/yıl)</span></label><input type="number" id="i_spec" value="1550" min="500" step="10"></div>
+      <div class="field"><label><span class="tipq" data-tip="Güney: öğle tepeli klasik eğri, toplam üretim en yüksek. Doğu-Batı: sabah-akşam yayvan eğri, toplam ~%2-4 düşük ama tüketim profiliyle örtüşme (öz tüketim) genelde daha iyi.">Panel yerleşimi </span></label>
+        <select id="i_orient"><option value="s">Güney (öğle tepeli)</option><option value="ew">Doğu-Batı (yayvan)</option></select></div>
+      <div class="field"><label><span class="tipq" data-tip="Panel performansının yıllık azalması. Modern modüllerde %0,4–0,6 tipiktir; motor her yılı bu katsayıyla ayrıca simüle eder.">Degradasyon </span><span class="unit">(%/yıl)</span></label><input type="number" id="i_degr" value="0.5" min="0" step="0.1"></div>
+      <div class="field"><label><span class="tipq" data-tip="Ekonomik analiz süresi. Çatı GES için 25 yıl standart; inverter yenilemesi OPEX içinde kabul edilir.">Analiz süresi </span><span class="unit">(yıl)</span></label><input type="number" id="i_life" value="25" min="5" max="30" step="1"></div>
+    </div>
+    <div class="formula">
+      <div class="fl">Formül · üretimin saate dağılımı</div>
+      <span class="ml"><span class="lbl">Aylık:</span>Üretim<sub>ay</sub> = kWp × spesifik üretim × ay payı (%)</span>
+      <span class="ml"><span class="lbl">Saatlik:</span>Üretim<sub>ay,saat</sub> = Üretim<sub>ay,gün</sub> × gün şekli[saat]</span>
+      <div class="subst" id="s_prod">Yıllık üretim = 1.000 kWp × 1.550 = <b>1.550,0 MWh</b> · Haziran payı %11.6 → günlük 5.993 kWh · yerleşim: güney (öğle tepeli)</div>
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">ADIM 3</span><h2>Saatlik Mahsuplaşma Motoru</h2><span class="why">Her saat: mahsup = min(üretim, tüketim). Yıllık fazla, bedelli limitle sınanır.</span></div>
+    <div class="step-body">
+
+  <div class="card">
+    <h3>Mahsuplaşma görünümü <small>· dönem ve gün tipini tıkla</small></h3>
+    <div class="chips" id="nv_period"><button data-mi="y">Yıllık</button><button data-mi="0">Oca</button><button data-mi="1">Şub</button><button data-mi="2">Mar</button><button data-mi="3">Nis</button><button data-mi="4">May</button><button data-mi="5" class="active">Haz</button><button data-mi="6">Tem</button><button data-mi="7">Ağu</button><button data-mi="8">Eyl</button><button data-mi="9">Eki</button><button data-mi="10">Kas</button><button data-mi="11">Ara</button></div>
+    <div class="chips" id="nv_view" style="margin-top: -4px; display: flex;">
+      <button data-v="m">Ay görünümü (günler)</button>
+      <button data-v="d" class="active">Gün görünümü (saatler)</button>
+    </div>
+    <div class="chips" id="nv_dtype" style="margin-top:-4px">
+      <button data-dt="wd" class="active">Hafta içi</button>
+      <button data-dt="we" class="active">Hafta sonu</button>
+    </div>
+    <svg id="ch_day" viewBox="0 0 900 300" width="100%"><line x1="64" y1="266" x2="888" y2="266" stroke="#E2E7EF"></line><text x="58" y="269" text-anchor="end">0</text><line x1="64" y1="203.5" x2="888" y2="203.5" stroke="#E2E7EF"></line><text x="58" y="206.5" text-anchor="end">193</text><line x1="64" y1="141" x2="888" y2="141" stroke="#E2E7EF"></line><text x="58" y="144" text-anchor="end">385</text><line x1="64" y1="78.5" x2="888" y2="78.5" stroke="#E2E7EF"></line><text x="58" y="81.5" text-anchor="end">578</text><line x1="64" y1="16" x2="888" y2="16" stroke="#E2E7EF"></line><text x="58" y="19" text-anchor="end">771</text><rect x="73.61333333333333" y="247.81039041558017" width="4.12" height="18.189609584419827" fill="#9E3A3F"></rect><text x="72.58333333333333" y="291" text-anchor="middle">0:00</text><text x="261.41666666666663" y="14" text-anchor="middle" style="font-weight:600;fill:#00A651">Hafta içi</text><rect x="90.78" y="247.81039041558017" width="4.12" height="18.189609584419827" fill="#9E3A3F"></rect><rect x="107.94666666666666" y="247.81039041558017" width="4.12" height="18.189609584419827" fill="#9E3A3F"></rect><rect x="125.11333333333334" y="247.81039041558017" width="4.12" height="18.189609584419827" fill="#9E3A3F"></rect><rect x="142.28" y="247.81039041558017" width="4.12" height="18.189609584419827" fill="#9E3A3F"></rect><text x="141.25" y="291" text-anchor="middle">4:00</text><rect x="153.26666666666668" y="262.031746031746" width="5.665000000000001" height="3.9682539682539755" fill="#2F6B4F"></rect><rect x="159.4466666666667" y="245.7154411890275" width="4.12" height="20.2845588109725" fill="#9E3A3F"></rect><rect x="170.4333333333333" y="236.23809523809524" width="5.665000000000001" height="29.76190476190476" fill="#2F6B4F"></rect><rect x="176.61333333333332" y="248.7720800021535" width="4.12" height="17.2279199978465" fill="#9E3A3F"></rect><rect x="187.6" y="176.7142857142857" width="5.665000000000001" height="89.2857142857143" fill="#2F6B4F"></rect><rect x="193.78" y="261.30606476621176" width="4.12" height="4.693935233788238" fill="#9E3A3F"></rect><rect x="204.76666666666665" y="147.76753770127098" width="5.665000000000001" height="118.23246229872902" fill="#2F6B4F"></rect><rect x="204.76666666666665" y="117.19047619047619" width="5.665000000000001" height="30.577061510794792" fill="#C9922A"></rect><text x="209.91666666666666" y="291" text-anchor="middle">8:00</text><rect x="221.93333333333334" y="147.76753770127098" width="5.665000000000001" height="118.23246229872902" fill="#2F6B4F"></rect><rect x="221.93333333333334" y="67.58730158730157" width="5.665000000000001" height="80.18023611396941" fill="#C9922A"></rect><rect x="239.1" y="147.76753770127098" width="5.665000000000001" height="118.23246229872902" fill="#2F6B4F"></rect><rect x="239.1" y="31.873015873015845" width="5.665000000000001" height="115.89452182825514" fill="#C9922A"></rect><rect x="256.26666666666665" y="153.83074089607757" width="5.665000000000001" height="112.16925910392243" fill="#2F6B4F"></rect><rect x="256.26666666666665" y="16" width="5.665000000000001" height="137.83074089607757" fill="#C9922A"></rect><rect x="273.4333333333334" y="159.8939440908842" width="5.665000000000001" height="106.10605590911581" fill="#2F6B4F"></rect><rect x="273.4333333333334" y="16" width="5.665000000000001" height="143.8939440908842" fill="#C9922A"></rect><text x="278.58333333333337" y="291" text-anchor="middle">12:00</text><rect x="290.6" y="147.76753770127098" width="5.665000000000001" height="118.23246229872902" fill="#2F6B4F"></rect><rect x="290.6" y="31.873015873015845" width="5.665000000000001" height="115.89452182825514" fill="#C9922A"></rect><rect x="307.76666666666665" y="147.76753770127098" width="5.665000000000001" height="118.23246229872902" fill="#2F6B4F"></rect><rect x="307.76666666666665" y="67.58730158730157" width="5.665000000000001" height="80.18023611396941" fill="#C9922A"></rect><rect x="324.93333333333334" y="147.76753770127098" width="5.665000000000001" height="118.23246229872902" fill="#2F6B4F"></rect><rect x="324.93333333333334" y="117.19047619047619" width="5.665000000000001" height="30.577061510794792" fill="#C9922A"></rect><rect x="342.1" y="170.76190476190476" width="5.665000000000001" height="95.23809523809524" fill="#2F6B4F"></rect><rect x="348.28000000000003" y="249.06883613417284" width="4.12" height="16.93116386582716" fill="#9E3A3F"></rect><text x="347.25" y="291" text-anchor="middle">16:00</text><rect x="359.2666666666667" y="218.38095238095238" width="5.665000000000001" height="47.61904761904762" fill="#2F6B4F"></rect><rect x="365.4466666666667" y="230.25000369045662" width="4.12" height="35.74999630954338" fill="#9E3A3F"></rect><rect x="376.43333333333334" y="250.12698412698413" width="5.665000000000001" height="15.873015873015873" fill="#2F6B4F"></rect><rect x="382.61333333333334" y="240.9463943080712" width="4.12" height="25.053605691928794" fill="#9E3A3F"></rect><rect x="399.78000000000003" y="241.74718722077353" width="4.12" height="24.252812779226474" fill="#9E3A3F"></rect><rect x="416.9466666666667" y="244.77878881817685" width="4.12" height="21.22121118182315" fill="#9E3A3F"></rect><text x="415.9166666666667" y="291" text-anchor="middle">20:00</text><rect x="434.11333333333334" y="247.81039041558017" width="4.12" height="18.189609584419827" fill="#9E3A3F"></rect><rect x="451.28000000000003" y="247.81039041558017" width="4.12" height="18.189609584419827" fill="#9E3A3F"></rect><rect x="468.4466666666667" y="252.35779281168513" width="4.12" height="13.64220718831487" fill="#9E3A3F"></rect><line x1="476" y1="16" x2="476" y2="266" stroke="#98A2B6" stroke-dasharray="4 3"></line><rect x="485.61333333333334" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><text x="484.5833333333333" y="291" text-anchor="middle">0:00</text><text x="673.4166666666666" y="14" text-anchor="middle" style="font-weight:600;fill:#00A651">Hafta sonu</text><rect x="502.78000000000003" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><rect x="519.9466666666667" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><rect x="537.1133333333332" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><rect x="554.28" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><text x="553.25" y="291" text-anchor="middle">4:00</text><rect x="565.2666666666668" y="262.031746031746" width="5.665000000000001" height="3.9682539682539755" fill="#2F6B4F"></rect><rect x="571.4466666666667" y="255.8713065403286" width="4.12" height="10.12869345967141" fill="#9E3A3F"></rect><rect x="582.4333333333334" y="248.71987089480115" width="5.665000000000001" height="17.280129105198853" fill="#2F6B4F"></rect><rect x="582.4333333333334" y="236.23809523809524" width="5.665000000000001" height="12.481775656705906" fill="#C9922A"></rect><rect x="599.6" y="242.35350754025418" width="5.665000000000001" height="23.646492459745815" fill="#2F6B4F"></rect><rect x="599.6" y="176.7142857142857" width="5.665000000000001" height="65.63922182596849" fill="#C9922A"></rect><rect x="616.7666666666667" y="237.35136490453874" width="5.665000000000001" height="28.64863509546126" fill="#2F6B4F"></rect><rect x="616.7666666666667" y="117.19047619047619" width="5.665000000000001" height="120.16088871406255" fill="#C9922A"></rect><text x="621.9166666666666" y="291" text-anchor="middle">8:00</text><rect x="633.9333333333334" y="237.35136490453874" width="5.665000000000001" height="28.64863509546126" fill="#2F6B4F"></rect><rect x="633.9333333333334" y="67.58730158730151" width="5.665000000000001" height="169.76406331723723" fill="#C9922A"></rect><rect x="651.1" y="237.35136490453874" width="5.665000000000001" height="28.64863509546126" fill="#2F6B4F"></rect><rect x="651.1" y="31.873015873015817" width="5.665000000000001" height="205.47834903152292" fill="#C9922A"></rect><rect x="668.2666666666667" y="239.17032586298072" width="5.665000000000001" height="26.829674137019282" fill="#2F6B4F"></rect><rect x="668.2666666666667" y="16" width="5.665000000000001" height="223.17032586298072" fill="#C9922A"></rect><rect x="685.4333333333334" y="242.35350754025418" width="5.665000000000001" height="23.646492459745815" fill="#2F6B4F"></rect><rect x="685.4333333333334" y="16" width="5.665000000000001" height="226.35350754025418" fill="#C9922A"></rect><text x="690.5833333333334" y="291" text-anchor="middle">12:00</text><rect x="702.6" y="242.35350754025418" width="5.665000000000001" height="23.646492459745815" fill="#2F6B4F"></rect><rect x="702.6" y="31.873015873015845" width="5.665000000000001" height="210.48049166723834" fill="#C9922A"></rect><rect x="719.7666666666667" y="242.35350754025418" width="5.665000000000001" height="23.646492459745815" fill="#2F6B4F"></rect><rect x="719.7666666666667" y="67.58730158730157" width="5.665000000000001" height="174.76620595295262" fill="#C9922A"></rect><rect x="736.9333333333334" y="245.08194897791716" width="5.665000000000001" height="20.918051022082835" fill="#2F6B4F"></rect><rect x="736.9333333333334" y="117.19047619047619" width="5.665000000000001" height="127.89147278744097" fill="#C9922A"></rect><rect x="754.1" y="246.90090993635914" width="5.665000000000001" height="19.09909006364086" fill="#2F6B4F"></rect><rect x="754.1" y="170.76190476190476" width="5.665000000000001" height="76.13900517445438" fill="#C9922A"></rect><text x="759.25" y="291" text-anchor="middle">16:00</text><rect x="771.2666666666667" y="248.71987089480115" width="5.665000000000001" height="17.280129105198853" fill="#2F6B4F"></rect><rect x="771.2666666666667" y="218.38095238095238" width="5.665000000000001" height="30.338918513848768" fill="#C9922A"></rect><rect x="788.4333333333334" y="250.53883185324312" width="5.665000000000001" height="15.461168146756876" fill="#2F6B4F"></rect><rect x="788.4333333333334" y="250.12698412698413" width="5.665000000000001" height="0.4118477262589977" fill="#C9922A"></rect><rect x="811.78" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><rect x="828.9466666666666" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><text x="827.9166666666666" y="291" text-anchor="middle">20:00</text><rect x="846.1133333333333" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><rect x="863.28" y="251.9030525720746" width="4.12" height="14.096947427925386" fill="#9E3A3F"></rect><rect x="880.4466666666666" y="249.62935137402212" width="4.12" height="16.37064862597788" fill="#9E3A3F"></rect><polyline fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linejoin="round" stroke-linecap="round" points="72.58333333333333,266 89.75,266 106.91666666666666,266 124.08333333333334,266 141.25,266 158.41666666666669,262.031746031746 175.58333333333331,236.23809523809524 192.75,176.7142857142857 209.91666666666666,117.19047619047619 227.08333333333334,67.58730158730157 244.25,31.873015873015845 261.41666666666663,16 278.58333333333337,16 295.75,31.873015873015845 312.91666666666663,67.58730158730157 330.0833333333333,117.19047619047619 347.25,170.76190476190476 364.4166666666667,218.38095238095238 381.5833333333333,250.12698412698413 398.75,266 415.9166666666667,266 433.0833333333333,266 450.25,266 467.4166666666667,266 484.5833333333333,266 501.75,266 518.9166666666667,266 536.0833333333333,266 553.25,266 570.4166666666667,262.031746031746 587.5833333333334,236.23809523809524 604.75,176.7142857142857 621.9166666666666,117.19047619047619 639.0833333333334,67.58730158730157 656.25,31.873015873015845 673.4166666666666,16 690.5833333333334,16 707.75,31.873015873015845 724.9166666666666,67.58730158730157 742.0833333333334,117.19047619047619 759.25,170.76190476190476 776.4166666666666,218.38095238095238 793.5833333333334,250.12698412698413 810.75,266 827.9166666666666,266 845.0833333333334,266 862.25,266 879.4166666666666,266"></polyline><polyline fill="none" stroke="#00A651" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="72.58333333333333,266 89.75,266 106.91666666666666,266 124.08333333333334,266 141.25,266 158.41666666666669,262.031746031746 175.58333333333331,236.23809523809524 192.75,176.7142857142857 209.91666666666666,117.19047619047619 227.08333333333334,67.58730158730157 244.25,31.873015873015845 261.41666666666663,16 278.58333333333337,16 295.75,31.873015873015845 312.91666666666663,67.58730158730157 330.0833333333333,117.19047619047619 347.25,170.76190476190476 364.4166666666667,218.38095238095238 381.5833333333333,250.12698412698413 398.75,266 415.9166666666667,266 433.0833333333333,266 450.25,266 467.4166666666667,266 484.5833333333333,266 501.75,266 518.9166666666667,266 536.0833333333333,266 553.25,266 570.4166666666667,262.031746031746 587.5833333333334,236.23809523809524 604.75,176.7142857142857 621.9166666666666,117.19047619047619 639.0833333333334,67.58730158730157 656.25,31.873015873015845 673.4166666666666,16 690.5833333333334,16 707.75,31.873015873015845 724.9166666666666,67.58730158730157 742.0833333333334,117.19047619047619 759.25,170.76190476190476 776.4166666666666,218.38095238095238 793.5833333333334,250.12698412698413 810.75,266 827.9166666666666,266 845.0833333333334,266 862.25,266 879.4166666666666,266"></polyline><polyline fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linejoin="round" stroke-linecap="round" points="72.58333333333333,247.81039041558017 89.75,247.81039041558017 106.91666666666666,247.81039041558017 124.08333333333334,247.81039041558017 141.25,247.81039041558017 158.41666666666669,241.74718722077353 175.58333333333331,219.0101752402487 192.75,172.02035048049746 209.91666666666666,147.76753770127098 227.08333333333334,147.76753770127098 244.25,147.76753770127098 261.41666666666663,153.83074089607757 278.58333333333337,159.8939440908842 295.75,147.76753770127098 312.91666666666663,147.76753770127098 330.0833333333333,147.76753770127098 347.25,153.83074089607757 364.4166666666667,182.63095607140897 381.5833333333333,225.07337843505533 398.75,241.74718722077353 415.9166666666667,244.77878881817685 433.0833333333333,247.81039041558017 450.25,247.81039041558017 467.4166666666667,252.35779281168513 484.5833333333333,251.9030525720746 501.75,251.9030525720746 518.9166666666667,251.9030525720746 536.0833333333333,251.9030525720746 553.25,251.9030525720746 570.4166666666667,251.9030525720746 587.5833333333334,248.71987089480115 604.75,242.35350754025418 621.9166666666666,237.35136490453874 639.0833333333334,237.35136490453874 656.25,237.35136490453874 673.4166666666666,239.17032586298072 690.5833333333334,242.35350754025418 707.75,242.35350754025418 724.9166666666666,242.35350754025418 742.0833333333334,245.08194897791716 759.25,246.90090993635914 776.4166666666666,248.71987089480115 793.5833333333334,250.53883185324312 810.75,251.9030525720746 827.9166666666666,251.9030525720746 845.0833333333334,251.9030525720746 862.25,251.9030525720746 879.4166666666666,249.62935137402212"></polyline><polyline fill="none" stroke="#0E2A5E" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="72.58333333333333,247.81039041558017 89.75,247.81039041558017 106.91666666666666,247.81039041558017 124.08333333333334,247.81039041558017 141.25,247.81039041558017 158.41666666666669,241.74718722077353 175.58333333333331,219.0101752402487 192.75,172.02035048049746 209.91666666666666,147.76753770127098 227.08333333333334,147.76753770127098 244.25,147.76753770127098 261.41666666666663,153.83074089607757 278.58333333333337,159.8939440908842 295.75,147.76753770127098 312.91666666666663,147.76753770127098 330.0833333333333,147.76753770127098 347.25,153.83074089607757 364.4166666666667,182.63095607140897 381.5833333333333,225.07337843505533 398.75,241.74718722077353 415.9166666666667,244.77878881817685 433.0833333333333,247.81039041558017 450.25,247.81039041558017 467.4166666666667,252.35779281168513 484.5833333333333,251.9030525720746 501.75,251.9030525720746 518.9166666666667,251.9030525720746 536.0833333333333,251.9030525720746 553.25,251.9030525720746 570.4166666666667,251.9030525720746 587.5833333333334,248.71987089480115 604.75,242.35350754025418 621.9166666666666,237.35136490453874 639.0833333333334,237.35136490453874 656.25,237.35136490453874 673.4166666666666,239.17032586298072 690.5833333333334,242.35350754025418 707.75,242.35350754025418 724.9166666666666,242.35350754025418 742.0833333333334,245.08194897791716 759.25,246.90090993635914 776.4166666666666,248.71987089480115 793.5833333333334,250.53883185324312 810.75,251.9030525720746 827.9166666666666,251.9030525720746 845.0833333333334,251.9030525720746 862.25,251.9030525720746 879.4166666666666,249.62935137402212"></polyline></svg>
+    <div class="legend">
+      <span><i style="background:#2F6B4F"></i>Mahsuplaşan</span>
+      <span><i style="background:#C9922A"></i>Fazla üretim</span>
+      <span><i style="background:#9E3A3F"></i>Şebekeden çekiş</span>
+      <span><i style="background:#5D7FA3"></i>BESS kaydırma</span>
+      <span style="color:#00A651;font-weight:700">— Üretim</span><span style="color:#0E2A5E;font-weight:700">— Tüketim</span>
+    </div>
+    <p class="tsub" id="nv_hint">Haz ay-ortalaması temsili günü, saat saat. Sol blok hafta içi, sağ blok hafta sonu. Birim: kWh/saat. Eksen: kWh.</p>
+  </div>
+
+  <div class="card" id="bess_expl" style="display:none">
+    <h3>Batarya (BESS) mahsuplaşmada nasıl çalışıyor? <small>· self-consumption kaydırma · arbitraj yok</small></h3>
+    <p style="font-size:14px;color:var(--ink-soft);margin-bottom:6px">Batarya <b>şebekeden ucuza alıp pahalıya satmaz</b> (arbitraj yok). Yalnızca kendi gündüz güneş fazlanı, kendi akşam çekişine kaydırır. Kaydırılan her kWh, ucuz satış fiyatı yerine pahalı alış fiyatından değerlenir — bataryanın bu rejimdeki tek değer kaynağı budur.</p>
+    <div class="formula">
+      <div class="fl">Motorun günlük döngüsü · her temsili gün</div>
+      <span class="ml"><span class="lbl">0)</span>Bataryasız net: her saat mahsup = min(üretim, tüketim) → fazla<sub>saat</sub> ve açık<sub>saat</sub> ayrışır</span>
+      <span class="ml"><span class="lbl">1)</span>Deşarj kapasitesi = Σ min(açık<sub>saat</sub>, güç) · Şarj kapasitesi = Σ min(fazla<sub>saat</sub>, güç)</span>
+      <span class="ml"><span class="lbl">2)</span>Şarj hedefi = min( kapasite , Şarj kapasitesi , Deşarj kapasitesi ÷ RTE )</span>
+      <span class="ml"><span class="lbl">3)</span>Şarj turu: fazla üretim saatlerinden hedefe kadar doldur (saat başına güç sınırı)</span>
+      <span class="ml"><span class="lbl">4)</span>Deşarj turu: açık saatlere ver = min( açık , güç , depo × RTE ) — iki tur (akşam + döngüsel sabah)</span>
+      <span class="ml"><span class="lbl">5)</span>Değer: kaydırılan × (alış − satış); limit üstü fazlayı kurtarırsa terfi 0 TL → alış fiyatı</span>
+      <div class="subst" id="s_bess2"></div>
+    </div>
+    <p class="tsub">Şarj hedefi neden baştan sınırlanıyor? Gün sonunda boşaltılamayan enerji ertesi güne devretmediğinden modelde kaybolur ve enerji korunumu bozulurdu. Hedefi "o gün geri verilebilecek açık ÷ RTE" ile kısarak bunu önlüyoruz — bu yüzden <b>Üretim = Mahsup + Fazla + Şarj</b> ve <b>Tüketim = Mahsup + Deşarj + Çekiş</b> özdeşlikleri her gün birebir kapanır (RTE kaybı şarj ile deşarj farkında görünür). "Saat saat" tablosunda mavi şarj/deşarj sütunlarında bu döngüyü satır satır görebilirsin.</p>
+  </div>
+
+  <div class="card">
+    <h3>Bedelli üretim limiti</h3>
+    <div class="formula">
+      <div class="fl">Formül · EPDK yıllık limit zinciri</div>
+      <span class="ml"><span class="lbl">1)</span>Bedelli limit = Önceki yıl tüketimi × 2</span>
+      <span class="ml"><span class="lbl">2)</span>Saatlik mahsup toplamı = Σ min(üretim<sub>saat</sub>, tüketim<sub>saat</sub>)</span>
+      <span class="ml"><span class="lbl">3)</span>Bedelli satış = min( Yıllık fazla , max(0, Limit − Mahsup) )</span>
+      <span class="ml"><span class="lbl">4)</span>Bedelsiz (YEKDEM) = Yıllık fazla − Bedelli satış <span class="lbl">→ 0 TL gelir</span></span>
+      <div class="subst" id="s_limit">1) Limit = 1.200 MWh × 2 = <b>2.400 MWh</b><br>2) Mahsup = <b>882,6 MWh</b> · Yıllık fazla = <b>667,4 MWh</b><br>3) Bedelli satış = min(667,4, 1.517,4) = <b>667,4 MWh</b><br>4) Bedelsiz = <b>0,0 MWh</b></div>
+    </div>
+    <button type="button" class="btn-mini" id="b_hourly">🕐 Saat saat mahsuplaşma tablosu</button>
+    <button type="button" class="btn-mini" id="b_csv" style="margin-left:8px">⤓ CSV indir — tüm yıl (8.760 saat)</button>
+    <div class="grid3" style="margin-top:12px">
+      <div class="field"><label><span class="tipq" data-tip="MADDE 7(5): limit üstü ihtiyaç fazlası &#39;sistem kullanım bedeli ödemeli&#39; miktardır — gelir getirmediği gibi SKB maliyeti doğabilir. Dağıtım bölgenin birim SKB&#39;sini gir; 0 bırakılırsa yalnız gelir kaybı olarak modellenir.">Limit üstü SKB </span><span class="unit">(TL/kWh, ops. maliyet)</span></label><input type="number" id="i_skb" value="0" min="0" step="0.05"></div>
+    </div>
+    <div class="note">Usul ve Esaslar MADDE 7(5): limit üstü ihtiyaç fazlası "sistem kullanım bedeli ödemeli" miktardır — gelir yaratmaz, üstelik SKB doğabilir. Muhafazakâr analizde buraya birim SKB gir; 0 bırakılırsa yalnız gelir kaybı olarak modellenir. Mesken abonelerinde limit uygulanmaz.</div>
+  </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">ADIM 4</span><h2>Tarife ve Fiyatlar</h2><span class="why">Mahsup ve çekiş alış fiyatından; bedelli fazla satış fiyatından; limit üstü 0 TL.</span></div>
+    <div class="step-body">
+  <div class="card">
+    <div class="grid3">
+      <div class="field"><label><span class="tipq" data-tip="Ticarethane AG (4,28/3,95) yalnız referanstır. Kendi faturandaki aktif enerji tek zamanlı birim fiyatını &#39;Elle gir&#39; ile kullan — tarife sınıfına göre fark büyüktür.">Tarife ön ayarı </span></label>
+        <select id="i_tarpre">
+          <option value="tic">Ticarethane AG (4,28 / 3,95)</option>
+          <option value="mesken">Mesken AG (3,10 / 2,85 — temsilî)</option>
+        </select></div>
+      <div class="field"><label><span class="tipq" data-tip="Aktif enerji tek zamanlı ALIŞ fiyatı (vergisiz-fonsuz enerji bedeli). Mahsuplaşan her kWh ve BESS kaydırması bu fiyattan değerlenir; şebekeden çekiş de bu fiyattan ödenir.">Alış fiyatı </span><span class="unit">(TL/kWh, aktif enerji)</span></label><input type="number" id="i_pBuy" value="4.28" min="0.1" step="0.01"></div>
+      <div class="field"><label><span class="tipq" data-tip="Bedelli fazla üretimin SATIŞ fiyatı — mevzuatta gruptaki en düşük ilgili tarife fiyatı. Alıştan düşük olması, öz tüketimin satıştan daha değerli olmasının sebebidir.">Satış fiyatı </span><span class="unit">(TL/kWh, bedelli fazla)</span></label><input type="number" id="i_pSell" value="3.95" min="0.1" step="0.01"></div>
+      <div class="field"><label><span class="tipq" data-tip="İlk 5 yılın yıllık tarife zam varsayımı. Tarife zamları uzun vadede TÜFE&#39;yi izler; TCMB beklenti patikasına paralel %20–25 makul başlangıçtır.">TL enflasyonu, ilk 5 yıl </span><span class="unit">(%/yıl → tarife &amp; OPEX zammı)</span></label><input type="number" id="i_esc1" value="25" min="0" step="1"></div>
+      <div class="field"><label><span class="tipq" data-tip="5. yıldan sonraki kalıcı zam varsayımı — enflasyonun hedefe yakınsadığı dönem: %10–15 bandı savunulabilir.">TL enflasyonu, sonrası </span><span class="unit">(%/yıl)</span></label><input type="number" id="i_esc2" value="12" min="0" step="1"></div>
+      <div class="field"><label>Tarife reel artışı <span class="unit">(%/yıl, enflasyon üstü)</span></label><input type="number" id="i_preal" value="0" min="-10" step="0.5"></div>
+      <div class="field"><label>Başlangıç kuru <span class="unit">(TL/USD)</span></label><input type="number" id="i_fx0" value="47" min="1" step="0.5"></div>
+      <div class="field"><label>USD enflasyonu <span class="unit">(%/yıl)</span></label><input type="number" id="i_pius" value="2.5" min="0" step="0.5"></div>
+      <div class="field"><label>Kur artışı</label><select id="i_fxmode"><option value="ppp">SAGP: enflasyon farkı kadar</option><option value="man">Manuel oran</option></select></div>
+      <div class="field"><label>Manuel kur artışı <span class="unit">(%/yıl)</span></label><input type="number" id="i_fxman" value="15" min="-10" step="1" disabled=""></div>
+    </div>
+    <div class="formula">
+      <div class="fl">Formül · yıllık fayda</div>
+      <span class="ml"><span class="lbl">Tasarruf:</span>Mahsup (+BESS kaydırma) × Alış fiyatı<sub>yıl</sub></span>
+      <span class="ml"><span class="lbl">Gelir:</span>Bedelli satış × Satış fiyatı<sub>yıl</sub></span>
+      <span class="ml"><span class="lbl">Maliyet:</span>− OPEX<sub>yıl</sub> − Bedelsiz × SKB <span class="lbl">(hepsi TL)</span></span>
+      <span class="ml"><span class="lbl">Kur:</span>Kur<sub>t</sub> = Kur<sub>0</sub> × Π (1+π<sub>TL</sub>) ÷ (1+π<sub>USD</sub>) <span class="lbl">(SAGP) veya manuel oran</span></span>
+      <span class="ml"><span class="lbl">USD:</span>CF<sub>USD,t</sub> = TL net fayda<sub>t</sub> ÷ Kur<sub>t</sub></span>
+      <div class="subst" id="s_tar">Yıl-1: tasarruf 882,6 MWh × 4,28 ₺ = <b>3.777.514 TL</b> ÷ kur 47,0 = <b>80.373 $</b><br>Yıl-10: alış fiyatı 18,42 ₺ · kur 161,9 → USD fiyat 11,37 ¢/kWh (yıl-1: 9,11 ¢) — SAGP altında USD fiyat yalnız USD enflasyonu kadar büyür</div>
+    </div>
+    <div class="note">Alış &gt; satış olduğundan öz tüketilen her kWh, satılandan daha değerlidir. Tarife TL ve mevzuat gereği TL kalır; CAPEX ve yatırım kararı USD olduğundan model TL faydayı her yıl o yılın kuruna bölerek USD'ye çevirir. SAGP altında kritik sonuç: tarifenin enflasyonla zamlanması USD getiriyi büyütmez — USD fayda yalnız USD enflasyonu (+reel artış) kadar büyür. Ön ayar seçmek alanları doldurur; ikisi de her zaman elle düzeltilebilir. Ticarethane değerleri platform referansıdır; Mesken değerleri temsilîdir — güncel EPDK faaliyet bazlı tarife tablosundan teyit ederek gir.</div>
+  </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">ADIM 5</span><h2>Batarya (BESS)</h2><span class="why">Gündüz fazlası akşama kayar: satış fiyatı alış fiyatına terfi eder.</span></div>
+    <div class="step-body">
+  <div class="card">
+    <label class="check" style="margin-bottom:12px"><input type="checkbox" id="b_on"><span class="tipq" data-tip="Bataryayı modele dahil eder: gündüz fazlası depolanır, akşam çekişi karşılanır. CAPEX/OPEX ve degradasyon dahil tüm etkiler yıllık simülasyona girer."> BESS'i modele dahil et</span></label>
+    <div class="grid3">
+      <div class="field"><label><span class="tipq" data-tip="Enerji kapasitesi. Kaba boyutlama: tipik günün akşam çekişi kadar (fazla üretim × RTE sınırında).">Kapasite </span><span class="unit">(kWh)</span></label><input type="number" id="b_kwh" value="1000" min="0" step="50" disabled=""></div>
+      <div class="field"><label><span class="tipq" data-tip="Güç (şarj/deşarj hızı). Kapasite/güç oranı 2 saat civarı C&amp;I için dengelidir.">Güç </span><span class="unit">(kW)</span></label><input type="number" id="b_kw" value="500" min="0" step="10" disabled=""></div>
+      <div class="field"><label><span class="tipq" data-tip="Round-trip verim: depolanan enerjinin geri alınabilen payı. LFP sistemlerde %86–90 tipik; kayıp, deşarjda düşülür.">Round-trip verim </span><span class="unit">(%)</span></label><input type="number" id="b_rte" value="88" min="50" max="100" step="1" disabled=""></div>
+      <div class="field"><label><span class="tipq" data-tip="Kullanılabilir kapasitenin yıllık azalması. Günlük tek döngüde %1,5–2,5 tipik; motor her yıl kapasiteyi küçülterek simüle eder.">Kapasite degradasyonu </span><span class="unit">(%/yıl)</span></label><input type="number" id="b_degr" value="2" min="0" step="0.5" disabled=""></div>
+      <div class="field"><label><span class="tipq" data-tip="Batarya sistemi anahtar teslim birim maliyeti (PCS + BMS + montaj dahil). 2026 itibarıyla ~10.000–14.000 TL/kWh bandı.">BESS CAPEX </span><span class="unit">($/kWh)</span></label><input type="number" id="b_capex" value="250" min="0" step="10" disabled=""></div>
+      <div class="field"><label><span class="tipq" data-tip="Yıllık bakım/garanti bedeli; OPEX artış oranıyla eskale edilir.">BESS OPEX </span><span class="unit">(TL/kWh-yıl, TL enfl. ile artar)</span></label><input type="number" id="b_opex" value="180" min="0" step="10" disabled=""></div>
+    </div>
+    <div class="formula">
+      <div class="fl">Formül · günlük döngü (greedy)</div>
+      <span class="ml"><span class="lbl">Şarj:</span>Saatlik fazla üretimden → min(fazla, güç, boş kapasite)</span>
+      <span class="ml"><span class="lbl">Deşarj:</span>Akşam çekişine → depolanan × RTE, min(çekiş, güç) sınırıyla</span>
+      <span class="ml"><span class="lbl">Değer:</span>Kaydırılan her kWh: satış fiyatı yerine alış fiyatından değerlenir</span>
+      <div class="subst" id="s_bess">BESS kapalı — kutuyu işaretleyerek dahil et.</div>
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">ADIM 6</span><h2>Yatırım ve Finansman</h2><span class="why">CAPEX ve sonuçlar USD; TL gelirler kur projeksiyonuyla çevrilir. OPEX TL girilir, TL enflasyonuyla büyür.</span></div>
+    <div class="step-body">
+  <div class="card">
+    <div class="grid3">
+      <div class="field"><label><span class="tipq" data-tip="GES anahtar teslim birim maliyeti (panel, inverter, konstrüksiyon, AG/OG bağlantı, proje-izin dahil). 2026 çatı bandı ~25.000–32.000 TL/kWp.">GES CAPEX </span><span class="unit">($/kWp, anahtar teslim)</span></label><input type="number" id="i_capex" value="600" min="0" step="10"></div>
+      <div class="field"><label><span class="tipq" data-tip="Yıllık işletme-bakım: temizlik, izleme, sigorta, küçük onarımlar. İnverter yenileme karşılığını da içerecek şekilde seçilebilir.">GES OPEX </span><span class="unit">(TL/kWp-yıl, TL enfl. ile artar)</span></label><input type="number" id="i_opex" value="350" min="0" step="10"></div>
+      <div class="field"><label><span class="tipq" data-tip="TL nominal iskonto oranı: bu paranın alternatif getirisi (mevduat, para piyasası, iç verim beklentin). Tarife zamları nominal olduğundan iskonto da nominal olmalı — reel oranla karıştırma.">İskonto oranı </span><span class="unit">(%/yıl, USD)</span></label><input type="number" id="i_r" value="10" min="0" step="0.5"></div>
+    </div>
+    <label class="check" style="margin:14px 0 10px"><input type="checkbox" id="l_on"><span class="tipq" data-tip="Yatırımın bir kısmının TL krediyle finanse edilmesi. Equity IRR ve özkaynak geri dönüşü buna göre hesaplanır."> Kredi kullan</span></label>
+    <div class="grid3">
+      <div class="field"><label><span class="tipq" data-tip="Kredinin toplam CAPEX içindeki payı. C&amp;I çatı projelerinde %50–70 tipik.">Kredi oranı </span><span class="unit">(% CAPEX)</span></label><input type="number" id="l_ratio" value="70" min="0" max="100" step="5" disabled=""></div>
+      <div class="field"><label><span class="tipq" data-tip="TL ticari kredi faizi (yıllık). Temmuz 2026 ortamında %35–45 bandı; leasing alternatifi ayrıca değerlendirilebilir.">USD faiz </span><span class="unit">(%/yıl)</span></label><input type="number" id="l_rate" value="8" min="0" step="0.5" disabled=""></div>
+      <div class="field"><label><span class="tipq" data-tip="Anüite vadesi. Kısa vade taksiti büyütür, ilk yıllarda equity nakit akışını bastırır — payback ile birlikte oku.">Vade </span><span class="unit">(yıl, anüite)</span></label><input type="number" id="l_term" value="5" min="1" max="15" step="1" disabled=""></div>
+    </div>
+    <div class="formula">
+      <div class="fl">Formül · nakit akışı ve karar</div>
+      <span class="ml"><span class="lbl">CAPEX:</span>Toplam ($) = kWp × $/kWp + BESS kWh × $/kWh</span>
+      <span class="ml"><span class="lbl">CF<sub>yıl</sub>:</span>( Tasarruf + Bedelli gelir − OPEX − SKB )<sub>TL</sub> ÷ Kur<sub>yıl</sub> → USD</span>
+      <span class="ml"><span class="lbl">NPV:</span>−CAPEX + Σ CF<sub>t</sub> ÷ (1+r)<sup>t</sup> · IRR: NPV=0</span>
+      <span class="ml"><span class="lbl">Equity:</span>−Özkaynak; yıllık CF − kredi taksiti → equity IRR</span>
+      <div class="subst" id="s_fin">CAPEX = 1.000 kWp × 600 $ = <b>600.000 $</b><br>Yıl-1 net TL fayda 6.063.757 ₺ ÷ kur 47,0 = <b>129.016 $</b> USD nakit akışı<br>NPV = −600.000 $ + Σ CF<sub>USD</sub>/(1+%10,0)<sup>t</sup> = <b>765.662 $</b> · IRR = <b>%23,3</b> (USD)</div>
+    </div>
+    <div class="note">Vergi etkisi bu sürümde modellenmez: mahsuplaşma "tasarrufu" muhasebede gider azaltımıdır ve KV etkisi işletmenin kârlılığına bağlıdır — mali müşavirle netleştirilmelidir. Detaylı BoQ, CAPEX-OPEX hesabı için <a href="https://teklif.fozanseyfi.com/" target="_blank" rel="noopener" style="color:var(--navy);font-weight:600">buraya tıklayın</a>.</div>
+  </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">SONUÇ</span><h2>Fizibilite Özeti</h2><span class="why">Motor: her işletme yılı için 12 ay × hafta içi/sonu saatlik simülasyon. Tüm sonuçlar TL, nominal.</span></div>
+    <div class="step-body">
+  <div class="kpis">
+    <div class="kpi good" id="k_npv_c"><div class="kl">NPV</div><div class="kv" id="k_npv">765.662 $</div><div class="kh" id="k_npv_h">r=%10 · 25 yıl</div></div>
+    <div class="kpi navy"><div class="kl">Proje IRR</div><div class="kv" id="k_irr">%23,3</div><div class="kh">TL, nominal</div></div>
+    <div class="kpi navy"><div class="kl">Payback</div><div class="kv" id="k_pb">4,49 yıl</div><div class="kh" id="k_pb_h">basit · iskontolu 6,17 yıl (grafik)</div></div>
+    <div class="kpi navy"><div class="kl">Equity IRR</div><div class="kv" id="k_eirr">—</div><div class="kh" id="k_eirr_h">kredi kapalı</div></div>
+    <div class="kpi good"><div class="kl">1. Yıl Net Fayda</div><div class="kv" id="k_ben1">129.016 $</div><div class="kh">tasarruf + satış − OPEX</div></div>
+    <div class="kpi navy"><div class="kl">Öz Tüketim Oranı</div><div class="kv" id="k_self">%56,9</div><div class="kh">mahsup ÷ üretim</div></div>
+    <div class="kpi navy"><div class="kl">Otonomi</div><div class="kv" id="k_auto">%73,5</div><div class="kh">karşılanan tüketim payı</div></div>
+    <div class="kpi bad"><div class="kl">Bedelsiz Kayıp (Y1)</div><div class="kv" id="k_free">0,0 MWh</div><div class="kh" id="k_free_h">limit içinde ✓</div></div>
+  </div>
+  <div class="verdict good" id="verdict">✓ Yatırım USD bazında değer yaratıyor: IRR %23,3 &gt; iskonto %10,0, geri ödeme 4,49 yıl. Öz tüketim oranı %57.</div>
+
+  <div class="card">
+    <h3>Yıl-1 Enerji Dengesi <small>· saatlik motor çıktısı</small></h3>
+    <div class="tablewrap"><table id="t_bal"><thead><tr><th>Kalem</th><th>MWh</th><th>TL fiyat</th><th>TL/yıl</th><th>USD/yıl</th></tr></thead><tbody>
+    <tr><td>Üretim (yıl-1)</td><td>1.550,0</td><td>–</td><td>–</td><td>–</td></tr>
+    <tr><td>Tüketim</td><td>1.200,0</td><td>–</td><td>–</td><td>–</td></tr>
+    <tr><td>Mahsuplaşan</td><td>882,6</td><td>4,28 ₺ alış</td><td>+3.777.514</td><td>+80.373</td></tr>
+    <tr><td>Bedelli fazla satış</td><td>667,4</td><td>3,95 ₺ satış</td><td>+2.636.243</td><td>+56.090</td></tr>
+    <tr><td>Bedelsiz (limit üstü)</td><td>0,0</td><td>0 ₺</td><td>0</td><td>0</td></tr>
+    <tr><td>Şebekeden çekiş (bilgi)</td><td>317,4</td><td>4,28 ₺</td><td colspan="2">fatura tarafı</td></tr>
+    <tr><td>OPEX</td><td>–</td><td>–</td><td>−350.000</td><td>−7.447</td></tr>
+    <tr class="tot"><td>Net yıllık fayda (kur 47,0)</td><td>–</td><td>–</td><td>6.063.757</td><td>129.016</td></tr></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h3>Aylık Dağılım — Mahsup / Bedelli Satış / Şebekeden Çekiş <small>(MWh, yıl-1)</small></h3>
+    <svg id="ch_month" viewBox="0 0 900 250" width="100%"><line x1="56" y1="224" x2="888" y2="224" stroke="#E2E7EF"></line><text x="50" y="227" text-anchor="end">0</text><line x1="56" y1="171.5" x2="888" y2="171.5" stroke="#E2E7EF"></line><text x="50" y="174.5" text-anchor="end">24</text><line x1="56" y1="119" x2="888" y2="119" stroke="#E2E7EF"></line><text x="50" y="122" text-anchor="end">47</text><line x1="56" y1="66.5" x2="888" y2="66.5" stroke="#E2E7EF"></line><text x="50" y="69.5" text-anchor="end">71</text><line x1="56" y1="14" x2="888" y2="14" stroke="#E2E7EF"></line><text x="50" y="17" text-anchor="end">95</text><rect x="66.26133333333333" y="101.25631287980644" width="15.253333333333332" height="122.74368712019356" fill="#1E7F4F"></rect><rect x="83.03999999999999" y="188.71712801646757" width="15.253333333333332" height="35.28287198353243" fill="#E8A020"></rect><rect x="99.81866666666666" y="152.59043918910797" width="15.253333333333332" height="71.40956081089203" fill="#C9D3E4"></rect><text x="90.66666666666666" y="242" text-anchor="middle">Oca</text><rect x="135.59466666666668" y="91.52833650843621" width="15.253333333333332" height="132.4716634915638" fill="#1E7F4F"></rect><rect x="152.37333333333333" y="164.0915045826799" width="15.253333333333332" height="59.9084954173201" fill="#E8A020"></rect><rect x="169.152" y="162.31841556047814" width="15.253333333333332" height="61.681584439521856" fill="#C9D3E4"></rect><text x="160" y="242" text-anchor="middle">Şub</text><rect x="204.928" y="67.63006812771901" width="15.253333333333332" height="156.36993187228097" fill="#1E7F4F"></rect><rect x="221.70666666666668" y="98.67041346998681" width="15.253333333333332" height="125.32958653001319" fill="#E8A020"></rect><rect x="238.48533333333333" y="175.5781498079852" width="15.253333333333332" height="48.4218501920148" fill="#C9D3E4"></rect><text x="229.33333333333334" y="242" text-anchor="middle">Mar</text><rect x="274.2613333333333" y="56.148021912662024" width="15.253333333333332" height="167.85197808733798" fill="#1E7F4F"></rect><rect x="291.03999999999996" y="62.057419957822745" width="15.253333333333332" height="161.94258004217727" fill="#E8A020"></rect><rect x="307.8186666666666" y="176.42166188983202" width="15.253333333333332" height="47.57833811016798" fill="#C9D3E4"></rect><text x="298.66666666666663" y="242" text-anchor="middle">Nis</text><rect x="343.5946666666667" y="40.792535493019145" width="15.253333333333332" height="183.20746450698084" fill="#1E7F4F"></rect><rect x="360.37333333333333" y="29.31786665024474" width="15.253333333333332" height="194.68213334975525" fill="#E8A020"></rect><rect x="377.152" y="175.81934710965967" width="15.253333333333332" height="48.180652890340326" fill="#C9D3E4"></rect><text x="368" y="242" text-anchor="middle">May</text><rect x="412.928" y="25.805700590846833" width="15.253333333333332" height="198.19429940915316" fill="#1E7F4F"></rect><rect x="429.70666666666665" y="23.692541669322196" width="15.253333333333332" height="200.3074583306778" fill="#E8A020"></rect><rect x="446.4853333333333" y="169.52911374541162" width="15.253333333333332" height="54.47088625458838" fill="#C9D3E4"></rect><text x="437.3333333333333" y="242" text-anchor="middle">Haz</text><rect x="482.26133333333337" y="14" width="15.253333333333332" height="210" fill="#1E7F4F"></rect><rect x="499.04" y="21.7568023381057" width="15.253333333333332" height="202.2431976618943" fill="#E8A020"></rect><rect x="515.8186666666667" y="165.3770131364432" width="15.253333333333332" height="58.622986863556804" fill="#C9D3E4"></rect><text x="506.6666666666667" y="242" text-anchor="middle">Tem</text><rect x="551.5946666666666" y="16.23823907171604" width="15.253333333333332" height="207.76176092828396" fill="#1E7F4F"></rect><rect x="568.3733333333333" y="40.13072314948468" width="15.253333333333332" height="183.86927685051532" fill="#E8A020"></rect><rect x="585.152" y="163.1387740647272" width="15.253333333333332" height="60.86122593527281" fill="#C9D3E4"></rect><text x="576" y="242" text-anchor="middle">Ağu</text><rect x="620.928" y="42.934148479955596" width="15.253333333333332" height="181.06585152004442" fill="#1E7F4F"></rect><rect x="637.7066666666667" y="75.27129339052915" width="15.253333333333332" height="148.72870660947086" fill="#E8A020"></rect><rect x="654.4853333333334" y="168.35846705611803" width="15.253333333333332" height="55.64153294388197" fill="#C9D3E4"></rect><text x="645.3333333333334" y="242" text-anchor="middle">Eyl</text><rect x="690.2613333333333" y="69.96352808018297" width="15.253333333333332" height="154.03647191981702" fill="#1E7F4F"></rect><rect x="707.04" y="130.6905533226806" width="15.253333333333332" height="93.30944667731939" fill="#E8A020"></rect><rect x="723.8186666666667" y="167.92542278891617" width="15.253333333333332" height="56.074577211083835" fill="#C9D3E4"></rect><text x="714.6666666666666" y="242" text-anchor="middle">Eki</text><rect x="759.5946666666666" y="92.85545222640025" width="15.253333333333332" height="131.14454777359975" fill="#1E7F4F"></rect><rect x="776.3733333333333" y="176.505828786779" width="15.253333333333332" height="47.494171213220994" fill="#E8A020"></rect><rect x="793.152" y="158.3316663092116" width="15.253333333333332" height="65.66833369078839" fill="#C9D3E4"></rect><text x="784" y="242" text-anchor="middle">Kas</text><rect x="828.928" y="112.69451714419343" width="15.253333333333332" height="111.30548285580657" fill="#1E7F4F"></rect><rect x="845.7066666666667" y="197.89108363517516" width="15.253333333333332" height="26.108916364824836" fill="#E8A020"></rect><rect x="862.4853333333334" y="149.13113552462855" width="15.253333333333332" height="74.86886447537145" fill="#C9D3E4"></rect><text x="853.3333333333334" y="242" text-anchor="middle">Ara</text></svg>
+    <div class="legend">
+      <span><i style="background:#1E7F4F"></i>Mahsuplaşan</span>
+      <span><i style="background:#E8A020"></i>Fazla üretim (bedelli)</span>
+      <span><i style="background:#C9D3E4"></i>Şebekeden çekiş</span>
+      <span><i style="background:#C7000B"></i>Bedelsiz (limit üstü)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Kümülatif İskontolu Nakit Akışı <small>(USD) · sıfırı geçtiği an = iskontolu geri ödeme</small></h3>
+    <svg id="ch_cum" viewBox="0 0 900 240" width="100%"><line x1="70" y1="214" x2="888" y2="214" stroke="#E2E7EF"></line><text x="64" y="217" text-anchor="end">-600k$</text><line x1="70" y1="164" x2="888" y2="164" stroke="#E2E7EF"></line><text x="64" y="167" text-anchor="end">-259k$</text><line x1="70" y1="114" x2="888" y2="114" stroke="#E2E7EF"></line><text x="64" y="117" text-anchor="end">83k$</text><line x1="70" y1="64" x2="888" y2="64" stroke="#E2E7EF"></line><text x="64" y="67" text-anchor="end">424k$</text><line x1="70" y1="14" x2="888" y2="14" stroke="#E2E7EF"></line><text x="64" y="17" text-anchor="end">766k$</text><line x1="70" y1="126.13050349618612" x2="888" y2="126.13050349618612" stroke="#5A6478" stroke-dasharray="4 3"></line><rect x="61.348076923076924" y="126.13050349618612" width="17.303846153846155" height="87.86949650381388" fill="#C9D3E4" rx="1.5"></rect><text x="70" y="232" text-anchor="middle">0</text><rect x="94.06807692307692" y="126.13050349618612" width="17.303846153846155" height="70.69285992880515" fill="#C9D3E4" rx="1.5"></rect><rect x="126.78807692307691" y="126.13050349618612" width="17.303846153846155" height="54.76930452288738" fill="#C9D3E4" rx="1.5"></rect><rect x="159.5080769230769" y="126.13050349618612" width="17.303846153846155" height="40.00743110678428" fill="#C9D3E4" rx="1.5"></rect><rect x="192.2280769230769" y="126.13050349618612" width="17.303846153846155" height="26.32250769205413" fill="#C9D3E4" rx="1.5"></rect><rect x="224.9480769230769" y="126.13050349618612" width="17.303846153846155" height="13.635980753528372" fill="#C9D3E4" rx="1.5"></rect><text x="233.6" y="232" text-anchor="middle">5</text><rect x="257.6680769230769" y="126.13050349618612" width="17.303846153846155" height="1.8750242182224781" fill="#C9D3E4" rx="1.5"></rect><rect x="290.3880769230769" y="117.10262963699444" width="17.303846153846155" height="9.027873859191686" fill="#18428F" rx="1.5"></rect><rect x="323.1080769230769" y="106.99519949889199" width="17.303846153846155" height="19.13530399729413" fill="#18428F" rx="1.5"></rect><rect x="355.82807692307694" y="97.6252157661474" width="17.303846153846155" height="28.505287730038717" fill="#18428F" rx="1.5"></rect><rect x="388.5480769230769" y="88.93888272229141" width="17.303846153846155" height="37.19162077389471" fill="#18428F" rx="1.5"></rect><text x="397.2" y="232" text-anchor="middle">10</text><rect x="421.26807692307693" y="80.88633045252924" width="17.303846153846155" height="45.244173043656886" fill="#18428F" rx="1.5"></rect><rect x="453.9880769230769" y="73.4213246698561" width="17.303846153846155" height="52.70917882633002" fill="#18428F" rx="1.5"></rect><rect x="486.70807692307693" y="66.50100722979323" width="17.303846153846155" height="59.62949626639289" fill="#18428F" rx="1.5"></rect><rect x="519.4280769230769" y="60.0856425555225" width="17.303846153846155" height="66.04486094066363" fill="#18428F" rx="1.5"></rect><rect x="552.1480769230769" y="54.13839569629438" width="17.303846153846155" height="71.99210779989174" fill="#18428F" rx="1.5"></rect><text x="560.8" y="232" text-anchor="middle">15</text><rect x="584.868076923077" y="48.62511604654897" width="17.303846153846155" height="77.50538744963715" fill="#18428F" rx="1.5"></rect><rect x="617.588076923077" y="43.51414429296595" width="17.303846153846155" height="82.61635920322017" fill="#18428F" rx="1.5"></rect><rect x="650.308076923077" y="38.776130014107835" width="17.303846153846155" height="87.35437348207829" fill="#18428F" rx="1.5"></rect><rect x="683.0280769230769" y="34.38386373058971" width="17.303846153846155" height="91.74663976559641" fill="#18428F" rx="1.5"></rect><rect x="715.748076923077" y="30.3121223266915" width="17.303846153846155" height="95.81838116949461" fill="#18428F" rx="1.5"></rect><text x="724.4" y="232" text-anchor="middle">20</text><rect x="748.468076923077" y="26.537520993090155" width="17.303846153846155" height="99.59298250309597" fill="#18428F" rx="1.5"></rect><rect x="781.188076923077" y="23.038382249403277" width="17.303846153846155" height="103.09212124678285" fill="#18428F" rx="1.5"></rect><rect x="813.9080769230769" y="19.79460995838148" width="17.303846153846155" height="106.33589353780465" fill="#18428F" rx="1.5"></rect><rect x="846.628076923077" y="16.787573379638886" width="17.303846153846155" height="109.34293011654724" fill="#18428F" rx="1.5"></rect><rect x="879.348076923077" y="14" width="17.303846153846155" height="112.13050349618612" fill="#18428F" rx="1.5"></rect><text x="888" y="232" text-anchor="middle">25</text><line x1="271.9470169623368" y1="14" x2="271.9470169623368" y2="214" stroke="#E8A020" stroke-dasharray="3 3"></line><circle cx="271.9470169623368" cy="126.13050349618612" r="5" fill="#E8A020" stroke="#fff" stroke-width="2"></circle><text x="271.9470169623368" y="117.13050349618612" text-anchor="middle" style="font-weight:600;fill:#9A6A0E">iskontolu geri ödeme: 6,17 yıl</text></svg>
+  </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ================= TAB 2: KARSILASTIRMA ================= -->
+<section id="tab-cmp" class="tab" role="tabpanel">
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">REJİM</span><h2>Saatlik vs Aylık Mahsuplaşma — Ne Değişti?</h2><span class="why">EPDK Karar 14531 (01.05.2026): rejim aylıktan saatliğe döndü.</span></div>
+    <div class="step-body">
+      <p style="font-size:14.5px;color:var(--ink-soft)">EPDK Karar 14531 (01.05.2026 yürürlük) ile mahsuplaşma rejimi <b>aylıktan saatliğe</b> değişti. Bu değişiklik C&amp;I (ticari/sanayi) yatırımcıları için ciddi gelir azalmasına yol açtı.</p>
+      <div class="note"><b>Tek cümleyle özet:</b> Aylık rejimde ay sonu net mahsup yapıldığı için tüm üretim ay içinde "kullanılmış" sayılırdı. Saatlik rejimde sadece o saatin tüketimi kadarı mahsup edilir → öğle saatinde üretim çoksa ama tüketim azsa, fazla üretim ucuz satış fiyatından satılır (mahsup tasarrufu kaybedilir). C&amp;I yatırımcısı için yıllık gelir %20–35 azalır.</div>
+      <div class="card" style="margin-top:14px"><h3>İki Rejimin Matematiksel Farkı</h3>
+        <div class="duo">
+          <div class="dcard g"><h4>📅 Aylık Mahsuplaşma (eski rejim; mesken hâlâ böyle)</h4>
+            Her ay sonu:<span class="codechip">netted_ay = min(üretim_ay, tüketim_ay)</span>
+            Aydaki tüm üretim toplam tüketimle karşılaştırılır; saat fark etmez.<br><b style="color:var(--green)">Avantaj:</b> sabah çok üretip akşam çok tüketsen bile dengelenir.</div>
+          <div class="dcard r"><h4>⏰ Saatlik Mahsuplaşma (yeni rejim, EPDK 14531)</h4>
+            Her saat için:<span class="codechip">netted_saat = min(üretim_saat, tüketim_saat)</span>
+            Saat 13'te 50 kWh üretip 5 kWh tüketirsen yalnız 5 kWh mahsup edilir; kalan 45 kWh fazla üretim olarak ucuz fiyattan satılır.<br><b style="color:var(--red)">Dezavantaj:</b> saatlik eşleşme zorunlu — batarya olmadan gündüz fazlası kaybedilir.</div>
+        </div>
+      </div>
+      <div class="card"><h3>Sayısal Örnek: 50 kW Ticarethane Çatı GES <small>· aynı üretim 60.000 kWh, aynı tüketim 50.000 kWh · alış 4,28 / satış 3,95 TL/kWh</small></h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Kalem</th><th>📅 Aylık</th><th>⏰ Saatlik</th><th>Fark</th></tr></thead><tbody>
+          <tr><td>Mahsuplaşan (kWh)</td><td>50.004</td><td>33.000</td><td style="color:var(--red)">−17.004</td></tr>
+          <tr><td>Fazla üretim (kWh)</td><td>9.996</td><td>27.000</td><td style="color:var(--green)">+17.004</td></tr>
+          <tr><td>Şebekeden çekilen (kWh)</td><td>0 (mahsup kapsadı)</td><td>17.004</td><td style="color:var(--red)">+17.004</td></tr>
+          <tr><td>Mahsup tasarrufu (× alış)</td><td>214.017 TL</td><td>141.240 TL</td><td style="color:var(--red)">−72.777 TL</td></tr>
+          <tr><td>Fazla satışı (× satış)</td><td>39.484 TL</td><td>106.650 TL</td><td style="color:var(--green)">+67.166 TL</td></tr>
+          <tr><td>Şebeke alış faturası (× alış)</td><td>0</td><td>−72.777 TL</td><td style="color:var(--red)">−72.777 TL</td></tr>
+          <tr class="tot"><td>NET YILLIK FAYDA</td><td>253.501 TL</td><td>175.113 TL</td><td style="color:var(--red)">−78.388 TL (−%31)</td></tr>
+          </tbody></table></div>
+      </div>
+      <div class="card"><h3>Neden Böyle Bir Fark Var?</h3>
+        <p style="font-size:14px;color:var(--ink-soft)">Saatlik rejimde <b>üretim ve tüketim profillerinin saatlik uyumu</b> kritiktir. GES öğleyin (10–16) tepe yapar ama ofis tüketimi bu saatlerde belki yarısı kadardır; kalan üretim "fazla" olarak ucuz satılır. Akşam (18–22) ofis hâlâ çalışır ama güneş batmıştır; o saatler 4,28 TL/kWh'ten şebekeden alınır. Aylık rejimde bu iki saat birbiriyle nettleşirken saatlikte nettleşmez.</p>
+        <div class="duo">
+          <div class="dcard g"><h4>↗ Saatliği YAYGINLAŞTIRAN</h4><ul>
+            <li>Üretimle tüketimi saatlik örtüşen sektörler (soğuk hava, veri merkezi, fabrika)</li>
+            <li>Doğu-batı yönelimli paneller (üretim geniş saatlere dağılır)</li>
+            <li>Batarya (BESS) — fazlayı depola, akşam kullan</li>
+            <li>Akıllı EV şarjı — gündüz şarj</li></ul></div>
+          <div class="dcard r"><h4>↘ Saatliği ZORLAYAN</h4><ul>
+            <li>Tüketim yalnız mesai saatleri (5×8 ofis)</li>
+            <li>Güney panel + 30° eğim (öğle tepeli)</li>
+            <li>Bataryasız sistem</li>
+            <li>Sanayi tek vardiya (08–18)</li></ul></div>
+        </div>
+      </div>
+      <div class="note" style="border-left-color:var(--green);background:var(--green-soft)"><b>📌 Mesken hâlâ aylık mahsuplaşma:</b> EPDK Karar 14531 mesken abonelerini kapsam dışında bıraktı — kurulu güç ne olursa olsun aylık rejim ve bedelli üretim limiti yok. Bu kokpitte abone grubu "Mesken" seçildiğinde motor otomatik aylık rejime geçer.</div>
+      <div class="card" style="margin-top:14px"><h3>C&amp;I Yatırımcı İçin Strateji</h3>
+        <ol class="slist">
+          <li><b>Tüketim profilini önce analiz et:</b> saatlik fatura veya akıllı sayaç verisini incele — pik saatler ne zaman?</li>
+          <li><b>Sistem boyutunu pik tüketime göre küçült:</b> aşırı boyutlandırma yapma; saatlik öz tüketim oranını maksimize et.</li>
+          <li><b>Batarya değerlendirmesi yap:</b> 2–4 saatlik LFP, gündüz fazlasını akşama kaydırır — ROI hesabını ADIM 5'teki BESS modülüyle yap.</li>
+          <li><b>PPA düşün:</b> kurumsal alıcıyla sabit fiyat anlaşması saatlik dezavantajı kapatabilir.</li>
+          <li><b>Doğu-batı panel yerleşimi:</b> güney tepesi yerine üretimi 10–18 arası uzun saatlere yay.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-no">CANLI</span><h2>Senin Projen: Saatlik vs Aylık</h2><span class="why">Girdiğin profil ve tarifeyle iki rejimin farkı — motor çıktısı.</span></div>
+    <div class="step-body">
+  <div class="card">
+    <div class="tablewrap"><table id="t_cmp"><thead><tr><th>Kalem (yıl-1)</th><th>⏰ Saatlik</th><th>📅 Aylık</th><th>Fark</th></tr></thead><tbody><tr><td>Üretim</td><td>1.550,0 MWh</td><td>1.550,0 MWh</td><td>0,0 MWh</td></tr><tr><td>Mahsuplaşan</td><td>882,6 MWh</td><td>1.152,7 MWh</td><td>-270,1 MWh</td></tr><tr><td>Fazla üretim</td><td>667,4 MWh</td><td>397,3 MWh</td><td>270,1 MWh</td></tr><tr><td>Şebekeden çekiş</td><td>317,4 MWh</td><td>47,3 MWh</td><td>270,1 MWh</td></tr><tr><td>Bedelli satış</td><td>667,4 MWh</td><td>397,3 MWh</td><td>270,1 MWh</td></tr><tr><td>Tasarruf + satış (USD, yıl-1)</td><td>136.463</td><td>138.359</td><td>-1.896</td></tr>
+    <tr class="tot"><td>Saatlik rejimin maliyeti</td><td colspan="3">1.896 $ / yıl (%1,4 azalma)</td></tr></tbody></table></div>
+    <p class="tsub" id="t_cmp_note">C&amp;I aboneler 01.05.2026 itibarıyla saatlik rejime tabidir; aylık sütun, eski rejimde ne kazanılacağını gösterir. BESS dahilse saatlik sütunda kaydırma etkisi yansıtılmıştır.</p>
+  </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TAB 3: SAATLIK VERI ================= -->
+<section id="tab-hours" class="tab" role="tabpanel">
+  <div class="step">
+    <div class="step-head"><span class="step-no">VERİ</span><h2>Üretim–Tüketim Saatlik Karşılaştırma</h2><span class="why">Filtrele: ay + gün tipi → 24 saat; altında gün / ay / yıl toplamları.</span></div>
+    <div class="step-body">
+      <div class="chips" id="hv_months"><button data-mi="y">Yıllık</button><button data-mi="0">Oca</button><button data-mi="1">Şub</button><button data-mi="2">Mar</button><button data-mi="3">Nis</button><button data-mi="4">May</button><button data-mi="5" class="active">Haz</button><button data-mi="6">Tem</button><button data-mi="7">Ağu</button><button data-mi="8">Eyl</button><button data-mi="9">Eki</button><button data-mi="10">Kas</button><button data-mi="11">Ara</button></div>
+      <div class="chips" id="hv_dtype" style="display: flex;">
+        <button data-dt="wd" class="active">Hafta içi</button>
+        <button data-dt="we">Hafta sonu</button>
+      </div>
+      <div class="card"><h3 id="hv_title">Haz · Hafta içi temsili günü — saat saat (kWh)</h3>
+        <div class="tablewrap"><table id="hv_table"><thead><tr><th>Saat</th><th>Üretim</th><th>Tüketim</th><th>Mahsup</th><th>Fazla</th><th>Çekiş</th></tr></thead>
+    <tbody><tr><td>0:00</td><td>0,0</td><td>56,1</td><td>0,0</td><td>0,0</td><td>56,1</td></tr><tr><td>1:00</td><td>0,0</td><td>56,1</td><td>0,0</td><td>0,0</td><td>56,1</td></tr><tr><td>2:00</td><td>0,0</td><td>56,1</td><td>0,0</td><td>0,0</td><td>56,1</td></tr><tr><td>3:00</td><td>0,0</td><td>56,1</td><td>0,0</td><td>0,0</td><td>56,1</td></tr><tr><td>4:00</td><td>0,0</td><td>56,1</td><td>0,0</td><td>0,0</td><td>56,1</td></tr><tr><td>5:00</td><td>12,2</td><td>74,8</td><td>12,2</td><td>0,0</td><td>62,5</td></tr><tr><td>6:00</td><td>91,7</td><td>144,8</td><td>91,7</td><td>0,0</td><td>53,1</td></tr><tr><td>7:00</td><td>275,2</td><td>289,7</td><td>275,2</td><td>0,0</td><td>14,5</td></tr><tr><td>8:00</td><td>458,7</td><td>364,4</td><td>364,4</td><td>94,2</td><td>0,0</td></tr><tr><td>9:00</td><td>611,6</td><td>364,4</td><td>364,4</td><td>247,1</td><td>0,0</td></tr><tr><td>10:00</td><td>721,6</td><td>364,4</td><td>364,4</td><td>357,2</td><td>0,0</td></tr><tr><td>11:00</td><td>770,6</td><td>345,7</td><td>345,7</td><td>424,8</td><td>0,0</td></tr><tr><td>12:00</td><td>770,6</td><td>327,0</td><td>327,0</td><td>443,5</td><td>0,0</td></tr><tr><td>13:00</td><td>721,6</td><td>364,4</td><td>364,4</td><td>357,2</td><td>0,0</td></tr><tr><td>14:00</td><td>611,6</td><td>364,4</td><td>364,4</td><td>247,1</td><td>0,0</td></tr><tr><td>15:00</td><td>458,7</td><td>364,4</td><td>364,4</td><td>94,2</td><td>0,0</td></tr><tr><td>16:00</td><td>293,6</td><td>345,7</td><td>293,6</td><td>0,0</td><td>52,2</td></tr><tr><td>17:00</td><td>146,8</td><td>257,0</td><td>146,8</td><td>0,0</td><td>110,2</td></tr><tr><td>18:00</td><td>48,9</td><td>126,1</td><td>48,9</td><td>0,0</td><td>77,2</td></tr><tr><td>19:00</td><td>0,0</td><td>74,8</td><td>0,0</td><td>0,0</td><td>74,8</td></tr><tr><td>20:00</td><td>0,0</td><td>65,4</td><td>0,0</td><td>0,0</td><td>65,4</td></tr><tr><td>21:00</td><td>0,0</td><td>56,1</td><td>0,0</td><td>0,0</td><td>56,1</td></tr><tr><td>22:00</td><td>0,0</td><td>56,1</td><td>0,0</td><td>0,0</td><td>56,1</td></tr><tr><td>23:00</td><td>0,0</td><td>42,0</td><td>0,0</td><td>0,0</td><td>42,0</td></tr><tr class="tot"><td>Σ Gün</td><td>5.993</td><td>4.672</td><td>3.728</td><td>2.266</td><td>944</td></tr></tbody></table></div>
+      </div>
+      <div class="card"><h3>Toplamlar <small>· seçili gün × gün sayısı → ay → yıl</small></h3>
+        <div class="tablewrap"><table id="hv_totals"><thead><tr><th>Kapsam</th><th>Üretim (kWh)</th><th>Tüketim (kWh)</th><th>Mahsup (kWh)</th><th>Fazla (kWh)</th><th>Çekiş (kWh)</th></tr></thead><tbody>
+    <tr><td>Seçili gün (Hİ)</td><td>5.993</td><td>4.672</td><td>3.728</td><td>2.266</td><td>944</td></tr>
+    <tr><td>× 21,4 gün</td><td>128.429</td><td>100.117</td><td>79.881</td><td>48.548</td><td>20.236</td></tr>
+    <tr><td>Haz toplamı (Hİ+HS, motor)</td><td>179.800</td><td>114.000</td><td>89.423</td><td>90.377</td><td>24.577</td></tr>
+    <tr class="tot"><td>Yıl toplamı (12 ay)</td><td>1.550.000</td><td>1.200.000</td><td>882.597</td><td>667.403</td><td>317.403</td></tr></tbody></table></div>
+        <p class="tsub">Ay toplamı = hafta içi günü × Hİ gün sayısı + hafta sonu günü × HS gün sayısı. Yıl toplamı, 12 ayın aynı yöntemle toplamıdır ve Dashboard ile birebir aynı motor çıktısıdır.</p>
+      </div>
+      <button type="button" class="btn-mini" id="b_csv2">⤓ CSV indir — tüm yıl (8.760 saat)</button>
+      <p class="tsub">CSV takvim gün deseniyle (ay pazartesi başlar) tüm yılı açar; her takvim günü, kendi gün tipinin temsili saatlik değerlerini taşır. Motor da aynı takvim desenini ve ay içi üretim eğimini kullanır: CSV pivot toplamları motor/Dashboard toplamlarıyla birebir örtüşür.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TAB 4: FATURA ================= -->
+<section id="tab-bill" class="tab" role="tabpanel">
+  <div class="step">
+    <div class="step-head"><span class="step-no">FATURA</span><h2>Mevcut Operasyon vs GES Operasyonu</h2><span class="why">GES kurulmadan önce fatura ne gelecekti, kurulunca ne gelecek?</span></div>
+    <div class="step-body">
+      <div class="card"><h3>Yıl-1 Özet — Aktif Enerji Faturası <small>· saatlik rejim, girdiğin tarifeyle</small></h3>
+        <div class="tablewrap"><table id="t_bill_sum"><thead><tr><th>Kalem</th><th>GES'siz</th><th>GES'li</th><th>Fark</th></tr></thead><tbody><tr><td>Yıllık tüketim (kWh)</td><td>1.200.000</td><td>1.200.000</td><td>0 — aynı</td></tr><tr><td>GES üretimi (kWh)</td><td>—</td><td>1.550.000</td><td><span style="color:var(--green)">+1.550.000</span></td></tr><tr><td>Öz tüketilen (mahsup, kWh)</td><td>—</td><td>882.597</td><td><span style="color:var(--green)">+882.597</span></td></tr><tr><td>Şebekeye satılan fazla (kWh)</td><td>—</td><td>667.403</td><td>—</td></tr><tr><td>Şebekeden alınan (kWh)</td><td>1.200.000</td><td>317.403</td><td><span style="color:var(--green)">−882.597</span></td></tr><tr><td>Aktif enerji faturası (TL/yıl)</td><td>5.136.000</td><td>1.358.486</td><td><span style="color:var(--green)">−3.777.514</span></td></tr><tr><td>Fazla satış geliri (TL/yıl)</td><td>—</td><td>+2.636.243</td><td><span style="color:var(--green)">+2.636.243</span></td></tr><tr class="tot"><td>Net yıllık fatura (TL, OPEX hariç)</td><td>5.136.000</td><td>-1.277.757</td><td style="color:var(--green)">−6.413.757 (−%124,9)</td></tr><tr class="tot"><td>USD karşılığı (kur 47,0)</td><td>109.277 $</td><td>−27.186 $</td><td style="color:var(--green)">−136.463 $</td></tr></tbody></table></div>
+        <p class="tsub">Tablo aktif enerji kalemini karşılaştırır. Dağıtım bedeli çekilen kWh üzerinden tahakkuk ettiğinden GES'li durumda o da orantılı düşer (tasarrufu artırır); sabit bedeller ve vergiler değişmez. GES'li satırda fazla satış geliri fatura mahsubu değil, görevli tedarik şirketinden alacaktır. GES işletme gideri (OPEX) bir fatura kalemi olmadığından buraya dahil edilmez; yatırım getirisinde Fizibilite sekmesinde dikkate alınır.</p>
+      </div>
+      <div class="card"><h3>Aylık Kırılım <small>· 12 ay, yıl-1</small></h3>
+        <div class="tablewrap"><table id="t_bill_m"><thead><tr><th>Ay</th><th>Üretim (kWh)</th><th>Tüketim (kWh)</th><th>Çekiş (kWh)</th><th>GES'siz fatura (TL)</th><th>GES'li fatura (TL)</th><th>Satış geliri (TL)</th><th>Aylık fayda (TL)</th></tr></thead><tbody><tr><td>Oca</td><td>71.300</td><td>87.600</td><td>32.219</td><td>374.928</td><td>137.899</td><td>+62.881</td><td style="color:var(--green)">−299.911</td></tr><tr><td>Şub</td><td>86.800</td><td>87.600</td><td>27.830</td><td>374.928</td><td>119.113</td><td>+106.769</td><td style="color:var(--green)">−362.584</td></tr><tr><td>Mar</td><td>127.100</td><td>92.400</td><td>21.847</td><td>395.472</td><td>93.507</td><td>+223.362</td><td style="color:var(--green)">−525.327</td></tr><tr><td>Nis</td><td>148.800</td><td>97.200</td><td>21.467</td><td>416.016</td><td>91.878</td><td>+288.614</td><td style="color:var(--green)">−612.752</td></tr><tr><td>May</td><td>170.500</td><td>104.400</td><td>21.739</td><td>446.832</td><td>93.041</td><td>+346.963</td><td style="color:var(--green)">−700.753</td></tr><tr><td>Haz</td><td>179.800</td><td>114.000</td><td>24.577</td><td>487.920</td><td>105.188</td><td>+356.988</td><td style="color:var(--green)">−739.720</td></tr><tr><td>Tem</td><td>186.000</td><td>121.200</td><td>26.450</td><td>518.736</td><td>113.206</td><td>+360.438</td><td style="color:var(--green)">−765.967</td></tr><tr><td>Ağu</td><td>176.700</td><td>121.200</td><td>27.460</td><td>518.736</td><td>117.529</td><td>+327.692</td><td style="color:var(--green)">−728.899</td></tr><tr><td>Eyl</td><td>148.800</td><td>106.800</td><td>25.105</td><td>457.104</td><td>107.449</td><td>+265.064</td><td style="color:var(--green)">−614.719</td></tr><tr><td>Eki</td><td>111.600</td><td>94.800</td><td>25.300</td><td>405.744</td><td>108.285</td><td>+166.296</td><td style="color:var(--green)">−463.755</td></tr><tr><td>Kas</td><td>80.600</td><td>88.800</td><td>29.629</td><td>380.064</td><td>126.812</td><td>+84.644</td><td style="color:var(--green)">−337.896</td></tr><tr><td>Ara</td><td>62.000</td><td>84.000</td><td>33.780</td><td>359.520</td><td>144.579</td><td>+46.531</td><td style="color:var(--green)">−261.473</td></tr>
+    <tr class="tot"><td>Σ Yıl</td><td>1.550.000</td><td>1.200.000</td><td>317.403</td><td>5.136.000</td><td>1.358.486</td><td>+2.636.243</td><td style="color:var(--green)">−6.413.757</td></tr></tbody></table></div>
+      </div>
+      <div class="formula">
+        <div class="fl">Formül · fatura karşılaştırması</div>
+        <span class="ml"><span class="lbl">GES'siz:</span>Fatura = Tüketim × Alış fiyatı</span>
+        <span class="ml"><span class="lbl">GES'li:</span>Fatura = Şebekeden çekiş × Alış fiyatı</span>
+        <span class="ml"><span class="lbl">Net fatura:</span>GES'li fatura − Bedelli satış geliri + SKB <span class="lbl">(OPEX hariç)</span></span>
+        <span class="ml"><span class="lbl">Tasarruf:</span>GES'siz fatura − GES'li net fatura</span>
+        <div class="subst" id="s_bill">GES'siz = 1.200.000 kWh × 4,28 ₺ = <b>5.136.000 TL</b><br>GES'li fatura = 317.403 kWh × 4,28 ₺ = <b>1.358.486 TL</b> → net fatura = 1.358.486 − 2.636.243 (satış) = <b>-1.277.757 TL</b><br>Fatura tasarrufu = 5.136.000 − -1.277.757 = <b>6.413.757 TL</b> · USD: <b>136.463 $</b><br>Not: OPEX (350.000 TL/yıl) fatura kalemi değildir; işletme gideri olarak yalnız Fizibilite sekmesindeki nakit akışına girer. Fatura tasarrufu − OPEX = modelin yıl-1 nakit akışı 6.063.757 TL.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TAB 4: SOZLUK ================= -->
+<section id="tab-gloss" class="tab" role="tabpanel">
+  <p class="tsub" style="margin:0 0 14px">Saatlik mahsuplaşma rejiminin temel kavramları — tanım ve formülleriyle.</p>
+  <div id="glist"><details class="gterm"><summary>Saatlik mahsuplaşma<span class="en">Hourly netting</span></summary>
+    <div class="gb"><p>Her saat için mahsup = min(üretim, tüketim). EPDK 14531 ile C&amp;I abonelerde zorunlu; saatler arası taşıma yok, gündüz fazlası akşam çekişini karşılayamaz.</p><div class="gf">mahsup[s] = min(üretim[s], tüketim[s])</div></div></details><details class="gterm"><summary>Aylık mahsuplaşma<span class="en">Monthly netting</span></summary>
+    <div class="gb"><p>Eski rejim; mesken abonelerinde devam eder. Ay toplamı üzerinden netleşir, saat uyumu aranmaz.</p><div class="gf">mahsup_ay = min(Σüretim, Σtüketim)</div></div></details><details class="gterm"><summary>Bedelli üretim limiti<span class="en">Paid production cap</span></summary>
+    <div class="gb"><p>Satışa konu edilebilecek yıllık üretim tavanı: önceki yıl tüketimi × 2. Mesken muaf. Limit üstü YEKDEM bedelsizdir ve SKB doğabilir (MADDE 7/5).</p><div class="gf">limit = önceki yıl tüketim × 2</div></div></details><details class="gterm"><summary>Öz tüketim oranı<span class="en">Self-consumption ratio</span></summary>
+    <div class="gb"><p>Üretimin tüketimle eşleşen payı: mahsup ÷ üretim. Saatlik rejimde fizibilitenin ana KPI değeri; BESS ve doğu-batı yerleşim yükseltir.</p><div class="gf">öz tüketim = mahsup / üretim</div></div></details><details class="gterm"><summary>Otonomi<span class="en">Autonomy / self-sufficiency</span></summary>
+    <div class="gb"><p>Tüketimin GES tarafından karşılanan payı: mahsup ÷ tüketim. Öz tüketimle karıştırma: payda farklı.</p><div class="gf">otonomi = mahsup / tüketim</div></div></details><details class="gterm"><summary>YEKDEM bedelsiz<span class="en">Uncompensated feed-in</span></summary>
+    <div class="gb"><p>Limit üstü ihtiyaç fazlasının 0 TL ile YEKDEM sistemine aktarılması — gelir yaratmayan üretim. Doğru boyutlandırmanın sebebi.</p></div></details><details class="gterm"><summary>SKB — Sistem kullanım bedeli<span class="en">Grid usage fee</span></summary>
+    <div class="gb"><p>Şebekeyi kullanmanın birim bedeli. Limit üstü miktar "SKB ödemeli" statüsündedir: gelir yok, bedel var.</p></div></details><details class="gterm"><summary>Fiyat terfisi (BESS)<span class="en">Price uplift</span></summary>
+    <div class="gb"><p>Depolanan fazla kWh değerinin satış fiyatı yerine alış fiyatından değerlenmesi: bataryanın mahsuplaşma rejimindeki ana değer kaynağı.</p><div class="gf">Δdeğer = kaydırılan × (alış − satış)</div></div></details></div>
+</section>
+
+</main>
+
+<footer>
+  <p>Bu kokpit, EPDK Karar No: 14531 (30.04.2026) saatlik mahsuplaşma usul ve esaslarına göre kurulmuş bir ön fizibilite aracıdır; tarife ve limit değerleri güncel mevzuattan teyit edilmelidir. Tüm hesaplar tarayıcıda çalışır, veri gönderilmez.</p>
+  <div class="brandbar">
+    <span>© 2026 <b>Fizibilite Platformu</b></span><span style="color:#C3CBDA;margin:0 4px">·</span>
+    <span>Tasarım &amp; Geliştirme: <b>Furkan Ozan Seyfi</b></span>
+    <span class="icons">
+      <a href="https://www.linkedin.com/in/fozanseyfi" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M8 11v5M8 8v.01M12 16v-3a2 2 0 0 1 4 0v3"></path></svg></a>
+      <a href="https://fizibilite.fozanseyfi.com/" target="_blank" rel="noopener" aria-label="Web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z"></path></svg></a>
+      <a href="mailto:fozanseyfi@gmail.com" aria-label="E-posta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></a>
+    </span>
+  </div>
+</footer>
+
+<div id="modal" role="dialog" aria-modal="true" hidden="">
+  <div class="m-ov" id="m_ov"></div>
+  <div class="m-card">
+    <div class="m-h"><h3 id="m_title"></h3><button class="m-x" id="m_close" aria-label="Kapat">✕</button></div>
+    <div class="m-b" id="m_body"></div>
+  </div>
+</div>
+
+<div id="report">
+  <div class="r-cover">
+    <div class="r-eyebrow">C&amp;I Saatlik Mahsuplaşma · Ön Fizibilite Raporu · EPDK Karar 14531</div>
+    <h1>C&amp;I Çatı GES — Saatlik Mahsuplaşma</h1>
+    <div class="r-facts">
+      <div class="r-fact"><b>Tarih</b><span>26 Temmuz 2026</span></div>
+      
+      <div class="r-fact"><b>Rejim</b><span>C&amp;I (saatlik rejim)</span></div>
+      <div class="r-fact"><b>Kurulu güç</b><span>1.000 kWp</span></div>
+      <div class="r-fact"><b>Para birimi</b><span>USD · TL tarife kur projeksiyonuyla</span></div>
+    </div>
+  </div>
+
+  <div class="r-block"><h2><span class="rn">01</span>Yönetici Özeti</h2>
+  <div class="r-kpis"><div class="r-kpi"><div class="l">CAPEX</div><div class="v">600.000 $</div></div><div class="r-kpi good"><div class="l">NPV</div><div class="v">765.662 $</div></div><div class="r-kpi good"><div class="l">Proje IRR</div><div class="v">%23,3</div></div><div class="r-kpi"><div class="l">Basit geri ödeme</div><div class="v">4,49 yıl</div></div></div>
+  <div class="r-kpis"><div class="r-kpi good"><div class="l">1. yıl net fayda</div><div class="v">129.016 $</div></div><div class="r-kpi"><div class="l">Öz tüketim</div><div class="v">%56,9</div></div><div class="r-kpi"><div class="l">İskontolu geri ödeme</div><div class="v">6,17 yıl</div></div><div class="r-kpi"><div class="l">Otonomi</div><div class="v">%73,5</div></div></div>
+  <p class="r-note">Proje bu varsayımlarla USD bazında değer yaratıyor: iç verim oranı (%23,3) iskonto oranını (%10,0) aşıyor, basit geri ödeme 4,49 yıl. Yıl-1 öz tüketim oranı %57.</p></div>
+
+  <div class="r-block"><h2><span class="rn">02</span>Girdiler ve Varsayımlar</h2>
+  <table class="r-assume"><tbody>
+  <tr><td>GES</td><td>1.000 kWp · 1.550 kWh/kWp/yıl · güney yerleşim · degradasyon %0,5/yıl · 25 yıl</td></tr>
+  <tr><td>Tüketim</td><td>1.200 MWh/yıl · profil: Sanayi tek vardiya (08–18) · aylık dağılım düzenlenebilir yüzde</td></tr>
+  <tr><td>Bedelli limit</td><td>2.400 MWh (önceki yıl tüketimi × 2)</td></tr>
+  <tr><td>Tarife</td><td>alış 4,28 / satış 3,95 TL/kWh · TL enflasyonu %25 (ilk 5y) → %12</td></tr>
+  <tr><td>Kur</td><td>başlangıç 47,0 TL/$ · SAGP: enflasyon farkı kadar artış · USD enflasyonu %2,5</td></tr>
+  
+  <tr><td>Finansman</td><td>GES CAPEX 600 $/kWp · OPEX 350 TL/kWp-yıl (TL enfl.) · iskonto %10,0 USD · kredisiz</td></tr>
+  </tbody></table></div>
+
+  <div class="r-block"><h2><span class="rn">03</span>Yıl-1 Enerji Dengesi</h2>
+  <table id="t_bal"><thead><tr><th>Kalem</th><th>MWh</th><th>TL fiyat</th><th>TL/yıl</th><th>USD/yıl</th></tr></thead><tbody>
+    <tr><td>Üretim (yıl-1)</td><td>1.550,0</td><td>–</td><td>–</td><td>–</td></tr>
+    <tr><td>Tüketim</td><td>1.200,0</td><td>–</td><td>–</td><td>–</td></tr>
+    <tr><td>Mahsuplaşan</td><td>882,6</td><td>4,28 ₺ alış</td><td>+3.777.514</td><td>+80.373</td></tr>
+    <tr><td>Bedelli fazla satış</td><td>667,4</td><td>3,95 ₺ satış</td><td>+2.636.243</td><td>+56.090</td></tr>
+    <tr><td>Bedelsiz (limit üstü)</td><td>0,0</td><td>0 ₺</td><td>0</td><td>0</td></tr>
+    <tr><td>Şebekeden çekiş (bilgi)</td><td>317,4</td><td>4,28 ₺</td><td colspan="2">fatura tarafı</td></tr>
+    <tr><td>OPEX</td><td>–</td><td>–</td><td>−350.000</td><td>−7.447</td></tr>
+    <tr class="tot"><td>Net yıllık fayda (kur 47,0)</td><td>–</td><td>–</td><td>6.063.757</td><td>129.016</td></tr></tbody></table>
+  <div class="r-chart"><div class="r-cap">Aylık dağılım — mahsup / bedelli satış / şebekeden çekiş (MWh)</div><svg id="ch_month" viewBox="0 0 900 250" width="100%"><line x1="56" y1="224" x2="888" y2="224" stroke="#E2E7EF"></line><text x="50" y="227" text-anchor="end">0</text><line x1="56" y1="171.5" x2="888" y2="171.5" stroke="#E2E7EF"></line><text x="50" y="174.5" text-anchor="end">24</text><line x1="56" y1="119" x2="888" y2="119" stroke="#E2E7EF"></line><text x="50" y="122" text-anchor="end">47</text><line x1="56" y1="66.5" x2="888" y2="66.5" stroke="#E2E7EF"></line><text x="50" y="69.5" text-anchor="end">71</text><line x1="56" y1="14" x2="888" y2="14" stroke="#E2E7EF"></line><text x="50" y="17" text-anchor="end">95</text><rect x="66.26133333333333" y="101.25631287980644" width="15.253333333333332" height="122.74368712019356" fill="#1E7F4F"></rect><rect x="83.03999999999999" y="188.71712801646757" width="15.253333333333332" height="35.28287198353243" fill="#E8A020"></rect><rect x="99.81866666666666" y="152.59043918910797" width="15.253333333333332" height="71.40956081089203" fill="#C9D3E4"></rect><text x="90.66666666666666" y="242" text-anchor="middle">Oca</text><rect x="135.59466666666668" y="91.52833650843621" width="15.253333333333332" height="132.4716634915638" fill="#1E7F4F"></rect><rect x="152.37333333333333" y="164.0915045826799" width="15.253333333333332" height="59.9084954173201" fill="#E8A020"></rect><rect x="169.152" y="162.31841556047814" width="15.253333333333332" height="61.681584439521856" fill="#C9D3E4"></rect><text x="160" y="242" text-anchor="middle">Şub</text><rect x="204.928" y="67.63006812771901" width="15.253333333333332" height="156.36993187228097" fill="#1E7F4F"></rect><rect x="221.70666666666668" y="98.67041346998681" width="15.253333333333332" height="125.32958653001319" fill="#E8A020"></rect><rect x="238.48533333333333" y="175.5781498079852" width="15.253333333333332" height="48.4218501920148" fill="#C9D3E4"></rect><text x="229.33333333333334" y="242" text-anchor="middle">Mar</text><rect x="274.2613333333333" y="56.148021912662024" width="15.253333333333332" height="167.85197808733798" fill="#1E7F4F"></rect><rect x="291.03999999999996" y="62.057419957822745" width="15.253333333333332" height="161.94258004217727" fill="#E8A020"></rect><rect x="307.8186666666666" y="176.42166188983202" width="15.253333333333332" height="47.57833811016798" fill="#C9D3E4"></rect><text x="298.66666666666663" y="242" text-anchor="middle">Nis</text><rect x="343.5946666666667" y="40.792535493019145" width="15.253333333333332" height="183.20746450698084" fill="#1E7F4F"></rect><rect x="360.37333333333333" y="29.31786665024474" width="15.253333333333332" height="194.68213334975525" fill="#E8A020"></rect><rect x="377.152" y="175.81934710965967" width="15.253333333333332" height="48.180652890340326" fill="#C9D3E4"></rect><text x="368" y="242" text-anchor="middle">May</text><rect x="412.928" y="25.805700590846833" width="15.253333333333332" height="198.19429940915316" fill="#1E7F4F"></rect><rect x="429.70666666666665" y="23.692541669322196" width="15.253333333333332" height="200.3074583306778" fill="#E8A020"></rect><rect x="446.4853333333333" y="169.52911374541162" width="15.253333333333332" height="54.47088625458838" fill="#C9D3E4"></rect><text x="437.3333333333333" y="242" text-anchor="middle">Haz</text><rect x="482.26133333333337" y="14" width="15.253333333333332" height="210" fill="#1E7F4F"></rect><rect x="499.04" y="21.7568023381057" width="15.253333333333332" height="202.2431976618943" fill="#E8A020"></rect><rect x="515.8186666666667" y="165.3770131364432" width="15.253333333333332" height="58.622986863556804" fill="#C9D3E4"></rect><text x="506.6666666666667" y="242" text-anchor="middle">Tem</text><rect x="551.5946666666666" y="16.23823907171604" width="15.253333333333332" height="207.76176092828396" fill="#1E7F4F"></rect><rect x="568.3733333333333" y="40.13072314948468" width="15.253333333333332" height="183.86927685051532" fill="#E8A020"></rect><rect x="585.152" y="163.1387740647272" width="15.253333333333332" height="60.86122593527281" fill="#C9D3E4"></rect><text x="576" y="242" text-anchor="middle">Ağu</text><rect x="620.928" y="42.934148479955596" width="15.253333333333332" height="181.06585152004442" fill="#1E7F4F"></rect><rect x="637.7066666666667" y="75.27129339052915" width="15.253333333333332" height="148.72870660947086" fill="#E8A020"></rect><rect x="654.4853333333334" y="168.35846705611803" width="15.253333333333332" height="55.64153294388197" fill="#C9D3E4"></rect><text x="645.3333333333334" y="242" text-anchor="middle">Eyl</text><rect x="690.2613333333333" y="69.96352808018297" width="15.253333333333332" height="154.03647191981702" fill="#1E7F4F"></rect><rect x="707.04" y="130.6905533226806" width="15.253333333333332" height="93.30944667731939" fill="#E8A020"></rect><rect x="723.8186666666667" y="167.92542278891617" width="15.253333333333332" height="56.074577211083835" fill="#C9D3E4"></rect><text x="714.6666666666666" y="242" text-anchor="middle">Eki</text><rect x="759.5946666666666" y="92.85545222640025" width="15.253333333333332" height="131.14454777359975" fill="#1E7F4F"></rect><rect x="776.3733333333333" y="176.505828786779" width="15.253333333333332" height="47.494171213220994" fill="#E8A020"></rect><rect x="793.152" y="158.3316663092116" width="15.253333333333332" height="65.66833369078839" fill="#C9D3E4"></rect><text x="784" y="242" text-anchor="middle">Kas</text><rect x="828.928" y="112.69451714419343" width="15.253333333333332" height="111.30548285580657" fill="#1E7F4F"></rect><rect x="845.7066666666667" y="197.89108363517516" width="15.253333333333332" height="26.108916364824836" fill="#E8A020"></rect><rect x="862.4853333333334" y="149.13113552462855" width="15.253333333333332" height="74.86886447537145" fill="#C9D3E4"></rect><text x="853.3333333333334" y="242" text-anchor="middle">Ara</text></svg>
+  <div class="r-legend"><span><i style="background:#1E7F4F"></i>Mahsuplaşan</span><span><i style="background:#E8A020"></i>Fazla (bedelli)</span><span><i style="background:#C9D3E4"></i>Çekiş</span><span><i style="background:#C7000B"></i>Bedelsiz</span></div></div></div>
+
+  <div class="r-block"><h2><span class="rn">04</span>Saatlik vs Aylık Rejim</h2>
+  <table id="t_cmp"><thead><tr><th>Kalem (yıl-1)</th><th>⏰ Saatlik</th><th>📅 Aylık</th><th>Fark</th></tr></thead><tbody><tr><td>Üretim</td><td>1.550,0 MWh</td><td>1.550,0 MWh</td><td>0,0 MWh</td></tr><tr><td>Mahsuplaşan</td><td>882,6 MWh</td><td>1.152,7 MWh</td><td>-270,1 MWh</td></tr><tr><td>Fazla üretim</td><td>667,4 MWh</td><td>397,3 MWh</td><td>270,1 MWh</td></tr><tr><td>Şebekeden çekiş</td><td>317,4 MWh</td><td>47,3 MWh</td><td>270,1 MWh</td></tr><tr><td>Bedelli satış</td><td>667,4 MWh</td><td>397,3 MWh</td><td>270,1 MWh</td></tr><tr><td>Tasarruf + satış (USD, yıl-1)</td><td>136.463</td><td>138.359</td><td>-1.896</td></tr>
+    <tr class="tot"><td>Saatlik rejimin maliyeti</td><td colspan="3">1.896 $ / yıl (%1,4 azalma)</td></tr></tbody></table></div>
+
+  <div class="r-block"><h2><span class="rn">05</span>Yıllık Nakit Akışı (25 yıl)</h2>
+  <table><thead><tr><th>Yıl</th><th>Mahsup (MWh)</th><th>Bedelli (MWh)</th><th>Bedelsiz (MWh)</th><th>Alış ₺/kWh</th><th>Kur ₺/$</th><th>Net CF (TL)</th><th>Net CF ($)</th></tr></thead><tbody><tr><td>1</td><td>882,6</td><td>667,4</td><td>0,0</td><td>4,28</td><td>47,0</td><td>6.063.757</td><td>129.016</td></tr><tr><td>2</td><td>881,3</td><td>661,0</td><td>0,0</td><td>5,35</td><td>57,3</td><td>7.540.889</td><td>131.564</td></tr><tr><td>3</td><td>880,0</td><td>654,6</td><td>0,0</td><td>6,69</td><td>69,9</td><td>9.377.840</td><td>134.163</td></tr><tr><td>4</td><td>878,6</td><td>648,2</td><td>0,0</td><td>8,36</td><td>85,2</td><td>11.662.255</td><td>136.813</td></tr><tr><td>5</td><td>877,3</td><td>641,9</td><td>0,0</td><td>10,45</td><td>104,0</td><td>14.503.130</td><td>139.514</td></tr><tr><td>6</td><td>876,0</td><td>635,6</td><td>0,0</td><td>11,70</td><td>113,6</td><td>16.160.265</td><td>142.270</td></tr><tr><td>7</td><td>874,7</td><td>629,4</td><td>0,0</td><td>13,11</td><td>124,1</td><td>18.006.721</td><td>145.079</td></tr><tr><td>8</td><td>873,3</td><td>623,2</td><td>0,0</td><td>14,68</td><td>135,6</td><td>20.064.127</td><td>147.943</td></tr><tr><td>9</td><td>872,0</td><td>617,1</td><td>0,0</td><td>16,44</td><td>148,2</td><td>22.356.571</td><td>150.864</td></tr><tr><td>10</td><td>870,6</td><td>611,0</td><td>0,0</td><td>18,42</td><td>161,9</td><td>24.910.915</td><td>153.843</td></tr><tr><td>11</td><td>869,3</td><td>604,9</td><td>0,0</td><td>20,62</td><td>176,9</td><td>27.757.068</td><td>156.880</td></tr><tr><td>12</td><td>867,9</td><td>598,9</td><td>0,0</td><td>23,10</td><td>193,3</td><td>30.928.370</td><td>159.976</td></tr><tr><td>13</td><td>866,6</td><td>592,9</td><td>0,0</td><td>25,87</td><td>211,2</td><td>34.461.942</td><td>163.134</td></tr><tr><td>14</td><td>865,2</td><td>587,0</td><td>0,0</td><td>28,98</td><td>230,8</td><td>38.399.177</td><td>166.354</td></tr><tr><td>15</td><td>863,9</td><td>581,1</td><td>0,0</td><td>32,45</td><td>252,2</td><td>42.786.166</td><td>169.637</td></tr><tr><td>16</td><td>862,5</td><td>575,3</td><td>0,0</td><td>36,35</td><td>275,6</td><td>47.674.295</td><td>172.984</td></tr><tr><td>17</td><td>861,1</td><td>569,4</td><td>0,0</td><td>40,71</td><td>301,1</td><td>53.120.796</td><td>176.397</td></tr><tr><td>18</td><td>859,7</td><td>563,7</td><td>0,0</td><td>45,60</td><td>329,1</td><td>59.189.450</td><td>179.878</td></tr><tr><td>19</td><td>858,3</td><td>557,9</td><td>0,0</td><td>51,07</td><td>359,6</td><td>65.951.312</td><td>183.427</td></tr><tr><td>20</td><td>856,9</td><td>552,3</td><td>0,0</td><td>57,19</td><td>392,9</td><td>73.485.527</td><td>187.045</td></tr><tr><td>21</td><td>855,5</td><td>546,6</td><td>0,0</td><td>64,06</td><td>429,3</td><td>81.880.324</td><td>190.735</td></tr><tr><td>22</td><td>854,1</td><td>541,0</td><td>0,0</td><td>71,74</td><td>469,1</td><td>91.233.949</td><td>194.497</td></tr><tr><td>23</td><td>852,7</td><td>535,5</td><td>0,0</td><td>80,35</td><td>512,6</td><td>101.655.881</td><td>198.333</td></tr><tr><td>24</td><td>851,3</td><td>530,0</td><td>0,0</td><td>90,00</td><td>560,1</td><td>113.268.123</td><td>202.244</td></tr><tr><td>25</td><td>849,8</td><td>524,5</td><td>0,0</td><td>100,80</td><td>612,0</td><td>126.206.622</td><td>206.232</td></tr></tbody></table>
+  <div class="r-chart"><div class="r-cap">Kümülatif iskontolu nakit akışı (USD) — sıfırı geçtiği an iskontolu geri ödeme</div><svg id="ch_cum" viewBox="0 0 900 240" width="100%"><line x1="70" y1="214" x2="888" y2="214" stroke="#E2E7EF"></line><text x="64" y="217" text-anchor="end">-600k$</text><line x1="70" y1="164" x2="888" y2="164" stroke="#E2E7EF"></line><text x="64" y="167" text-anchor="end">-259k$</text><line x1="70" y1="114" x2="888" y2="114" stroke="#E2E7EF"></line><text x="64" y="117" text-anchor="end">83k$</text><line x1="70" y1="64" x2="888" y2="64" stroke="#E2E7EF"></line><text x="64" y="67" text-anchor="end">424k$</text><line x1="70" y1="14" x2="888" y2="14" stroke="#E2E7EF"></line><text x="64" y="17" text-anchor="end">766k$</text><line x1="70" y1="126.13050349618612" x2="888" y2="126.13050349618612" stroke="#5A6478" stroke-dasharray="4 3"></line><rect x="61.348076923076924" y="126.13050349618612" width="17.303846153846155" height="87.86949650381388" fill="#C9D3E4" rx="1.5"></rect><text x="70" y="232" text-anchor="middle">0</text><rect x="94.06807692307692" y="126.13050349618612" width="17.303846153846155" height="70.69285992880515" fill="#C9D3E4" rx="1.5"></rect><rect x="126.78807692307691" y="126.13050349618612" width="17.303846153846155" height="54.76930452288738" fill="#C9D3E4" rx="1.5"></rect><rect x="159.5080769230769" y="126.13050349618612" width="17.303846153846155" height="40.00743110678428" fill="#C9D3E4" rx="1.5"></rect><rect x="192.2280769230769" y="126.13050349618612" width="17.303846153846155" height="26.32250769205413" fill="#C9D3E4" rx="1.5"></rect><rect x="224.9480769230769" y="126.13050349618612" width="17.303846153846155" height="13.635980753528372" fill="#C9D3E4" rx="1.5"></rect><text x="233.6" y="232" text-anchor="middle">5</text><rect x="257.6680769230769" y="126.13050349618612" width="17.303846153846155" height="1.8750242182224781" fill="#C9D3E4" rx="1.5"></rect><rect x="290.3880769230769" y="117.10262963699444" width="17.303846153846155" height="9.027873859191686" fill="#18428F" rx="1.5"></rect><rect x="323.1080769230769" y="106.99519949889199" width="17.303846153846155" height="19.13530399729413" fill="#18428F" rx="1.5"></rect><rect x="355.82807692307694" y="97.6252157661474" width="17.303846153846155" height="28.505287730038717" fill="#18428F" rx="1.5"></rect><rect x="388.5480769230769" y="88.93888272229141" width="17.303846153846155" height="37.19162077389471" fill="#18428F" rx="1.5"></rect><text x="397.2" y="232" text-anchor="middle">10</text><rect x="421.26807692307693" y="80.88633045252924" width="17.303846153846155" height="45.244173043656886" fill="#18428F" rx="1.5"></rect><rect x="453.9880769230769" y="73.4213246698561" width="17.303846153846155" height="52.70917882633002" fill="#18428F" rx="1.5"></rect><rect x="486.70807692307693" y="66.50100722979323" width="17.303846153846155" height="59.62949626639289" fill="#18428F" rx="1.5"></rect><rect x="519.4280769230769" y="60.0856425555225" width="17.303846153846155" height="66.04486094066363" fill="#18428F" rx="1.5"></rect><rect x="552.1480769230769" y="54.13839569629438" width="17.303846153846155" height="71.99210779989174" fill="#18428F" rx="1.5"></rect><text x="560.8" y="232" text-anchor="middle">15</text><rect x="584.868076923077" y="48.62511604654897" width="17.303846153846155" height="77.50538744963715" fill="#18428F" rx="1.5"></rect><rect x="617.588076923077" y="43.51414429296595" width="17.303846153846155" height="82.61635920322017" fill="#18428F" rx="1.5"></rect><rect x="650.308076923077" y="38.776130014107835" width="17.303846153846155" height="87.35437348207829" fill="#18428F" rx="1.5"></rect><rect x="683.0280769230769" y="34.38386373058971" width="17.303846153846155" height="91.74663976559641" fill="#18428F" rx="1.5"></rect><rect x="715.748076923077" y="30.3121223266915" width="17.303846153846155" height="95.81838116949461" fill="#18428F" rx="1.5"></rect><text x="724.4" y="232" text-anchor="middle">20</text><rect x="748.468076923077" y="26.537520993090155" width="17.303846153846155" height="99.59298250309597" fill="#18428F" rx="1.5"></rect><rect x="781.188076923077" y="23.038382249403277" width="17.303846153846155" height="103.09212124678285" fill="#18428F" rx="1.5"></rect><rect x="813.9080769230769" y="19.79460995838148" width="17.303846153846155" height="106.33589353780465" fill="#18428F" rx="1.5"></rect><rect x="846.628076923077" y="16.787573379638886" width="17.303846153846155" height="109.34293011654724" fill="#18428F" rx="1.5"></rect><rect x="879.348076923077" y="14" width="17.303846153846155" height="112.13050349618612" fill="#18428F" rx="1.5"></rect><text x="888" y="232" text-anchor="middle">25</text><line x1="271.9470169623368" y1="14" x2="271.9470169623368" y2="214" stroke="#E8A020" stroke-dasharray="3 3"></line><circle cx="271.9470169623368" cy="126.13050349618612" r="5" fill="#E8A020" stroke="#fff" stroke-width="2"></circle><text x="271.9470169623368" y="117.13050349618612" text-anchor="middle" style="font-weight:600;fill:#9A6A0E">iskontolu geri ödeme: 6,17 yıl</text></svg></div></div>
+
+  <div class="r-block"><h2><span class="rn">06</span>Metodoloji ve Uyarılar</h2>
+  <p class="r-note">Motor, her işletme yılını 12 ay × takvim günü (hafta içi/sonu) deseniyle saatlik simüle eder; mahsup = Σ min(üretim, tüketim). Ay içi üretim, aylık ortalamalar arası interpolasyonla gün gün eğimlendirilir (ay toplamı korunur). Bedelli üretim limiti = önceki yıl tüketimi × 2; bedelli satış = min(yıllık fazla, limit − mahsup); kalan miktar YEKDEM'e bedelsiz yazılır (EPDK Karar 14531, MADDE 7 ve 9). BESS günlük döngüsel dispatch: fazladan şarj, çekişe RTE ile deşarj — arbitraj modellenmez. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır; hava durumu rastgeleliği bilinçli modellenmez (P50). Bu bir ön fizibilitedir; tarife, bedelli limit ve şebeke bağlantı koşulları güncel mevzuat ve ilgili şebeke işletmecisinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>
+  <div class="r-foot"><span>© 2026 <b>Fizibilite Platformu</b> · Furkan Ozan Seyfi</span><span>EPDK Karar 14531 · 26 Temmuz 2026</span></div></div></div>
+
+<script>
+/* ============ HELPERS ============ */
+const $=id=>document.getElementById(id);
+const fmt=(x,d=0)=>isFinite(x)?x.toLocaleString('tr-TR',{maximumFractionDigits:d,minimumFractionDigits:d}):'–';
+const tl=(x,d=0)=>isFinite(x)?fmt(x,d)+' TL':'–';
+const mtl=x=>isFinite(x)?fmt(x/1e6,2)+' M TL':'–';
+const usd=(x,d=0)=>isFinite(x)?(x<0?'−':'')+fmt(Math.abs(x),d)+' $':'–';
+const kusd=x=>isFinite(x)?(x<0?'−':'')+fmt(Math.abs(x)/1e3,1)+' k$':'–';
+const pct=(x,d=1)=>isFinite(x)?'%'+fmt(x,d):'–';
+const today=()=>new Date().toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
+const MONTHS=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+const DAYS=[31,28,31,30,31,30,31,31,30,31,30,31];
+
+
+
+document.querySelectorAll('nav button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active');
+    window.scrollTo({top:0});
+  });
+});
+
+/* ============ PROFILES ============ */
+const SOLAR_M=[4.6,5.6,8.2,9.6,11.0,11.6,12.0,11.4,9.6,7.2,5.2,4.0]; /* % */
+/* Ay içi üretim eğimi: aylık günlük-ortalama değerleri ay ortalarına çakılı kabul edilir,
+   günler arasında doğrusal interpolasyon yapılır, sonra her ayın ortalaması 1'e normalize
+   edilir → ay toplamı birebir korunur, gün gün artış/azalış trendi oluşur. */
+const DAYF=(()=>{
+  const V=SOLAR_M.map((s,i)=>s/DAYS[i]);            /* göreli günlük ortalama */
+  const cum=[0];for(let i=0;i<12;i++)cum.push(cum[i]+DAYS[i]);
+  const C=V.map((_,i)=>cum[i]+DAYS[i]/2);           /* ay merkezleri */
+  const interp=x=>{                                  /* yıl-sarmalı doğrusal interp. */
+    let a=11,b=0;
+    for(let i=0;i<12;i++){
+      const c1=C[i],c2=(i<11)?C[i+1]:C[0]+365;
+      const xx=(x<C[0])?x+365:x;
+      if(xx>=c1&&xx<c2){a=i;b=(i+1)%12;
+        return V[a]+(V[b]-V[a])*(xx-c1)/(c2-c1);}
+    }
+    return V[0];
+  };
+  return SOLAR_M.map((_,mi)=>{
+    const raw=[];
+    for(let d=0;d<DAYS[mi];d++)raw.push(interp(cum[mi]+d+0.5));
+    const mean=raw.reduce((a,b)=>a+b,0)/DAYS[mi];
+    return raw.map(v=>v/mean);
+  });
+})();
+const SUN_S =[0,0,0,0,0,.2,1.5,4.5,7.5,10,11.8,12.6,12.6,11.8,10,7.5,4.8,2.4,.8,0,0,0,0,0];
+const SUN_EW=[0,0,0,0,0,.6,3.2,6.2,8.2,9.2,9.6,9.7,9.7,9.6,9.2,8.4,7,4.6,2,.8,0,0,0,0];
+function norm(a){const s=a.reduce((x,y)=>x+y,0);return a.map(v=>v/s);}
+const PROFILES={
+ ofis:{wd:[18,18,18,18,18,20,30,55,85,95,100,100,90,95,100,95,85,60,35,25,22,20,18,18],
+       we:[15,15,15,15,15,15,18,20,22,25,25,25,25,25,25,22,20,18,16,15,15,15,15,15]},
+ tekvardiya:{wd:[15,15,15,15,15,20,40,80,100,100,100,95,90,100,100,100,95,70,35,20,18,16,15,15],
+       we:[15,15,15,15,15,15,18,25,30,30,30,28,25,25,25,22,20,18,16,15,15,15,15,15]},
+ fabrika:{wd:[88,88,88,88,88,90,95,100,100,100,100,98,95,100,100,100,98,95,92,90,90,88,88,88],
+       we:[85,85,85,85,85,85,88,90,90,90,90,88,86,88,88,88,86,86,85,85,85,85,85,85]},
+ otel:{wd:[55,50,48,48,50,58,75,85,70,55,50,50,52,50,52,58,70,88,100,100,95,85,70,60],
+       we:[60,55,52,52,55,62,80,92,80,62,55,55,58,55,58,64,76,92,100,100,98,90,75,65]},
+ soguk:{wd:[92,92,92,92,92,94,96,100,102,104,106,108,108,108,106,104,102,100,96,94,92,92,92,92],
+       we:[92,92,92,92,92,94,96,100,102,104,106,108,108,108,106,104,102,100,96,94,92,92,92,92]},
+ m_aksam:{wd:[30,25,22,22,24,30,45,55,40,32,30,30,32,32,34,40,55,80,100,100,95,85,65,45],
+       we:[35,30,26,25,27,32,45,60,55,45,42,44,46,44,44,48,60,82,100,100,96,88,70,50]},
+ m_gece:{wd:[85,90,95,95,90,70,50,45,32,26,25,25,26,26,28,34,45,60,75,85,95,100,100,95],
+       we:[85,90,95,95,90,72,52,50,40,34,32,33,34,33,34,40,50,64,78,88,96,100,100,95]},
+ m_gunduz:{wd:[28,24,22,22,24,32,50,65,75,85,92,96,98,96,94,90,85,90,95,90,75,60,45,34],
+       we:[30,26,24,24,26,34,50,66,76,86,92,96,98,96,94,90,86,90,96,92,78,62,46,36]},
+ m_hs:{wd:[30,25,22,22,24,30,45,55,40,32,30,30,32,32,34,40,55,80,100,100,95,85,65,45],
+       we:[38,32,28,27,30,36,52,70,72,66,64,66,68,66,66,70,80,95,100,100,98,92,75,55]}
+};
+const SEASON={flat:Array(12).fill(1),
+ yaz:[.90,.90,.95,1.0,1.08,1.18,1.25,1.25,1.10,.98,.92,.90],
+ kis:[1.20,1.15,1.05,.95,.90,.88,.88,.88,.92,1.00,1.10,1.20]};
+
+/* ---- yüzde gridleri: son hücre otomatik kalan, Σ=100 zorunlu ---- */
+function toPct(arr){
+  const s=arr.reduce((a,b)=>a+b,0);
+  const p=arr.map(v=>Math.round(v/s*1000)/10);
+  const head=p.slice(0,-1).reduce((a,b)=>a+b,0);
+  p[p.length-1]=Math.round((100-head)*10)/10;
+  return p;
+}
+function buildPctGrid(id,labels,arr,onWrite){
+  const g=$(id);g.innerHTML='';
+  const n=arr.length, per=(n===24?12:n);
+  for(let off=0;off<n;off+=per){
+    for(let i=off;i<off+per;i++)g.insertAdjacentHTML('beforeend',`<div class="hlbl">${labels[i]}</div>`);
+    for(let i=off;i<off+per;i++){
+      const last=(i===n-1);
+      g.insertAdjacentHTML('beforeend',
+        `<input type="number" data-h="${i}" value="${arr[i]}" min="0" max="100" step="0.5" ${last?'readonly class="rem" title="Otomatik kalan: 100 − diğer hücreler"':''}>`);
+    }
+  }
+  g.querySelectorAll('input:not(.rem)').forEach(el=>el.addEventListener('input',()=>{
+    const inputs=Array(n);
+    g.querySelectorAll('input').forEach(x=>inputs[+x.dataset.h]=x);
+    const i=+el.dataset.h;
+    let others=0;
+    inputs.forEach((x,j)=>{if(j!==i&&j!==n-1)others+=parseFloat(x.value)||0;});
+    let v=parseFloat(el.value)||0;
+    if(v<0)v=0;
+    if(others+v>100){v=Math.round((100-others)*10)/10;el.value=v;}
+    inputs[n-1].value=Math.round((100-others-v)*10)/10;
+    if(onWrite)onWrite(inputs.map(x=>parseFloat(x.value)||0));
+    calcAll();
+  }));
+}
+function readGrid(id){const a=[];[...$(id).querySelectorAll('input')].forEach(el=>a[+el.dataset.h]=parseFloat(el.value)||0);return a;}
+const WE_RATIO={ofis:30,tekvardiya:30,fabrika:92,otel:105,soguk:100,m_aksam:110,m_gece:100,m_gunduz:100,m_hs:145};
+const SHAPES={wd:[],we:[]}; /* tek doğruluk kaynağı: % dizileri (Σ=100) */
+const zoneOf=h=>(h>=6&&h<=16)?'g':(h>=17&&h<=21)?'p':'n';
+function zoneSums(arr){const s={g:0,p:0,n:0};arr.forEach((v,h)=>s[zoneOf(h)]+=v);return s;}
+function updateZones(){
+  ['wd','we'].forEach(dt=>{
+    const s=zoneSums(SHAPES[dt]);
+    $('z_'+dt+'_g').value=Math.round(s.g*10)/10;
+    $('z_'+dt+'_p').value=Math.round(s.p*10)/10;
+    $('z_'+dt+'_n').value=Math.round(s.n*10)/10;
+  });
+}
+function rescaleZones(dt){
+  /* dilim hedeflerine göre mevcut şekli dilim içi oranları koruyarak ölçekle */
+  let g=parseFloat($('z_'+dt+'_g').value)||0, p=parseFloat($('z_'+dt+'_p').value)||0;
+  if(g<0)g=0;if(p<0)p=0;
+  if(g+p>100){ /* 100 aşılamaz: son dokunulanı kırpmak yerine puantı kırp */
+    p=Math.round((100-g)*10)/10;if(p<0){p=0;g=100;}
+    $('z_'+dt+'_p').value=p;$('z_'+dt+'_g').value=g;
+  }
+  const n=Math.round((100-g-p)*10)/10;
+  $('z_'+dt+'_n').value=n;
+  const cur=zoneSums(SHAPES[dt]);
+  const tgt={g,p,n};
+  const cnt={g:11,p:5,n:8};
+  SHAPES[dt]=SHAPES[dt].map((v,h)=>{
+    const z=zoneOf(h);
+    return cur[z]>1e-9 ? v*tgt[z]/cur[z] : tgt[z]/cnt[z];
+  });
+  buildHourGrids();
+  calcAll();
+}
+['wd','we'].forEach(dt=>['g','p'].forEach(k=>$('z_'+dt+'_'+k).addEventListener('input',()=>rescaleZones(dt))));
+$('b_adv').addEventListener('click',()=>{
+  const a=$('adv_hours');
+  const open=a.style.display==='none';
+  a.style.display=open?'':'none';
+  $('b_adv').textContent=open?'▲ Saatlik detayı gizle (dilimlerle devam et)':'🕐 Gün içi saatlik ayarla (detay — 24 hücre)';
+});
+const HLBL=[...Array(24).keys()].map(h=>h+':00');
+function buildHourGrids(){
+  buildPctGrid('g_wd',HLBL,SHAPES.wd.map(v=>Math.round(v*10)/10),v=>{SHAPES.wd=v;updateZones();});
+  buildPctGrid('g_we',HLBL,SHAPES.we.map(v=>Math.round(v*10)/10),v=>{SHAPES.we=v;updateZones();});
+}
+function loadProfile(){
+  const key=$('i_profile').value,p=PROFILES[key];
+  SHAPES.wd=toPct(p.wd);
+  SHAPES.we=toPct(p.we);
+  buildHourGrids();
+  updateZones();
+  $('i_weratio').value=WE_RATIO[key];
+}
+function loadSeason(){
+  buildPctGrid('g_m',MONTHS,toPct(SEASON[$('i_season').value]));
+}
+$('i_profile').addEventListener('change',()=>{loadProfile();calcAll();});
+$('i_season').addEventListener('change',()=>{loadSeason();calcAll();});
+const TARPRE={tic:[4.28,3.95],mesken:[3.10,2.85]};
+$('i_tarpre').addEventListener('change',()=>{
+  const v=TARPRE[$('i_tarpre').value];
+  if(v){$('i_pBuy').value=v[0];$('i_pSell').value=v[1];}
+  calcAll();
+});
+
+
+/* ============ INPUTS ============ */
+function readInputs(){
+  const v=id=>parseFloat($(id).value)||0;
+  const bessOn=$('b_on').checked;
+  ['b_kwh','b_kw','b_rte','b_degr','b_capex','b_opex'].forEach(id=>$(id).disabled=!bessOn);
+  const lOn=$('l_on').checked;
+  ['l_ratio','l_rate','l_term'].forEach(id=>$(id).disabled=!lOn);
+  $('i_fxman').disabled=($('i_fxmode').value!=='man');
+  const isMesken=$('i_abone').value==='mesken';
+  $('mesken_note').style.display=isMesken?'':'none';
+  $('zone_card').style.display=isMesken?'none':'';
+  const adv=$('adv_hours'); if(isMesken){adv.style.display='none';}
+  $('b_adv').style.display=isMesken?'none':'';
+
+  return{
+    pname:$('i_pname').value||'C&I GES Projesi',prep:$('i_prep').value,
+    abone:$('i_abone').value,consY:v('i_cons'),consPrev:v('i_consPrev'), /* kWh */
+    mPct:readGrid('g_m'),weRatio:v('i_weratio')/100,
+    wd:SHAPES.wd.slice(),we:SHAPES.we.slice(),
+    kwp:v('i_kwp'),spec:v('i_spec'),orient:$('i_orient').value,degr:v('i_degr')/100,
+    life:Math.max(5,Math.round(v('i_life'))),
+    skb:v('i_skb'),
+    pBuy:v('i_pBuy'),pSell:v('i_pSell'),esc1:v('i_esc1')/100,esc2:v('i_esc2')/100,
+    preal:v('i_preal')/100,fx0:v('i_fx0'),piUS:v('i_pius')/100,
+    fxMode:$('i_fxmode').value,fxMan:v('i_fxman')/100,
+    bessOn,bKwh:v('b_kwh'),bKw:v('b_kw'),bRte:v('b_rte')/100,bDegr:v('b_degr')/100,
+    bCapex:v('b_capex'),bOpex:v('b_opex'),
+    capexU:v('i_capex'),opexU:v('i_opex'),r:v('i_r')/100,
+    lOn,lRatio:Math.min(v('l_ratio'),100)/100,lRate:v('l_rate')/100,lTerm:Math.max(1,Math.round(v('l_term')))
+  };
+}
+
+/* ============ ENGINE ============ */
+/* representative daily arrays per month & daytype (kWh) */
+function dailyProd(p,m,scale){
+  const sun=norm(p.orient==='ew'?SUN_EW:SUN_S);
+  const mProd=p.kwp*p.spec*SOLAR_M[m]/100*scale; /* kWh in month */
+  const dProd=mProd/DAYS[m];
+  return sun.map(s=>s*dProd);
+}
+
+function monthCons(p,mi){ /* ayın toplam tüketimi (kWh) = yıllık × ay %'si */
+  return p.consY*p.mPct[mi]/100;
+}
+function calDays(mi){ /* takvim gün sayıları (pazartesi başlar): {wd,we} */
+  let wd=0,we=0;for(let d=0;d<DAYS[mi];d++)(d%7>=5)?we++:wd++;
+  return{wd,we};
+}
+function dayCons(p,mi,dt){ /* seçili ay + gün tipi için 24 saatlik tüketim (kWh) */
+  const {wd,we}=calDays(mi);
+  const Cm=monthCons(p,mi);
+  const Dwd=Cm/(wd+we*p.weRatio);            /* hafta içi günlük toplam (takvim günü sayımıyla) */
+  const Dday=(dt==='wd')?Dwd:Dwd*p.weRatio;  /* hafta sonu = oran × hafta içi */
+  const shape=(dt==='wd')?p.wd:p.we;         /* % dizisi, Σ=100 */
+  return shape.map(s=>Dday*s/100);
+}
+function hourlyNet(prod,cons,bess,track){
+  /* per-day {mah,faz,cek,shift}; track={} verilirse saatlik diziler doldurulur */
+  let mah=0,faz=0,cek=0,shift=0;
+  const exc=[],deficit=[],mahH=[],chH=Array(24).fill(0),dchH=Array(24).fill(0);
+  for(let h=0;h<24;h++){
+    const mm=Math.min(prod[h],cons[h]);
+    mahH[h]=mm;
+    mah+=mm;exc[h]=prod[h]-mm;deficit[h]=cons[h]-mm;
+  }
+  if(bess&&bess.cap>0){
+    /* döngüsel gün: şarj hedefi, o günün deşarj edilebilir açığıyla baştan sınırlanır */
+    let defCap=0,excCap=0;
+    for(let h=0;h<24;h++){defCap+=Math.min(deficit[h],bess.kw);excCap+=Math.min(exc[h],bess.kw);}
+    const target=Math.min(bess.cap,excCap,defCap/bess.rte);
+    let soc=0;
+    for(let h=0;h<24;h++){ /* fazladan şarj, hedefe kadar */
+      const c=Math.min(exc[h],bess.kw,target-soc);
+      if(c>0){soc+=c;exc[h]-=c;chH[h]+=c;}
+    }
+    for(let pass=0;pass<2&&soc>1e-9;pass++){ /* deşarj: iki tur (akşam + döngüsel sabah) */
+      for(let h=0;h<24;h++){
+        if(soc<=1e-9)break;
+        const dEnergy=Math.min(deficit[h],bess.kw,soc*bess.rte);
+        if(dEnergy>0){soc-=dEnergy/bess.rte;deficit[h]-=dEnergy;shift+=dEnergy;dchH[h]+=dEnergy;}
+      }
+    }
+  }
+  faz=exc.reduce((a,b)=>a+b,0);
+  cek=deficit.reduce((a,b)=>a+b,0);
+  if(track){track.prod=prod.slice();track.cons=cons.slice();track.mah=mahH;track.ch=chH;track.dch=dchH;track.faz=exc.slice();track.cek=deficit.slice();}
+  return{mah,faz,cek,shift};
+}
+/* tek gün saatlik detay (yıl-1) — grafik, modal ve CSV tek kaynaktan */
+function dayDetail(p,mi,dt,pf){
+  const pd=dailyProd(p,mi,1).map(v=>v*(pf||1));
+  const cd=dayCons(p,mi,dt);
+  const bess=p.bessOn?{cap:p.bKwh,kw:p.bKw,rte:p.bRte}:null;
+  const t={};
+  hourlyNet(pd,cd,bess,t);
+  return t;
+}
+function simYear(p,yr){
+  const prodScale=Math.pow(1-p.degr,yr-1);
+  const bess=p.bessOn?{cap:p.bKwh*Math.pow(1-p.bDegr,yr-1),kw:p.bKw,rte:p.bRte}:null;
+  const monthly=[];
+  let mah=0,faz=0,cek=0,shift=0,prod=0;
+  for(let m=0;m<12;m++){
+    const pd=dailyProd(p,m,prodScale);
+    prod+=pd.reduce((a,b)=>a+b,0)*DAYS[m];
+    let mm=0,mf=0,mc=0,ms=0;
+    const cdW=dayCons(p,m,'wd'),cdE=dayCons(p,m,'we');
+    for(let d=0;d<DAYS[m];d++){
+      const f=DAYF[m][d];
+      const pdd=pd.map(v=>v*f);
+      const r=hourlyNet(pdd,(d%7>=5)?cdE:cdW,bess);
+      mm+=r.mah;mf+=r.faz;mc+=r.cek;ms+=r.shift;
+    }
+    mah+=mm;faz+=mf;cek+=mc;shift+=ms;
+    monthly.push({mah:mm,faz:mf,cek:mc,shift:ms,prod:pd.reduce((a,b)=>a+b,0)*DAYS[m],cons:monthCons(p,m)});
+  }
+  return{mah,faz,cek,shift,prod,monthly};
+}
+function simYearMonthlyRegime(p,yr){
+  /* aylık rejim: her ay min(üretimAy, tüketimAy) */
+  const prodScale=Math.pow(1-p.degr,yr-1);
+  let mah=0,faz=0,cek=0,prod=0;
+  for(let m=0;m<12;m++){
+    const pd=dailyProd(p,m,prodScale);
+    const pm=pd.reduce((a,b)=>a+b,0)*DAYS[m];
+    const cm=monthCons(p,m);
+    const mm=Math.min(pm,cm);
+    mah+=mm;faz+=pm-mm;cek+=cm-mm;prod+=pm;
+  }
+  return{mah,faz,cek,shift:0,prod};
+}
+function applyLimit(p,s){
+  if(p.abone==='mesken')return{bedelli:s.faz,bedelsiz:0,limit:Infinity};
+  const limit=p.consPrev*2;
+  const bedelli=Math.min(s.faz,Math.max(0,limit-s.mah));
+  return{bedelli,bedelsiz:s.faz-bedelli,limit};
+}
+function tlF(p,yr){ /* kümülatif TL enflasyon çarpanı (yıl-1 = 1) */
+  let f=1;
+  for(let t=2;t<=yr;t++)f*=(1+((t<=5)?p.esc1:p.esc2));
+  return f;
+}
+function fxT(p,yr){ /* o yılın kuru */
+  let fx=p.fx0;
+  for(let t=2;t<=yr;t++){
+    fx*=(p.fxMode==='man')?(1+p.fxMan):((1+((t<=5)?p.esc1:p.esc2))/(1+p.piUS));
+  }
+  return fx;
+}
+function priceY(p,yr,base){ /* TL fiyat: enflasyon × reel artış */
+  return base*tlF(p,yr)*Math.pow(1+p.preal,yr-1);
+}
+function irrOf(c0,cfs){
+  const f=r=>{let s=-c0;cfs.forEach((cf,i)=>s+=cf/Math.pow(1+r,i+1));return s;};
+  let lo=-.95,hi=15;if(f(lo)*f(hi)>0)return NaN;
+  for(let i=0;i<200;i++){const m=(lo+hi)/2;(f(lo)*f(m)<=0)?hi=m:lo=m;}
+  return(lo+hi)/2;
+}
+function payback(c0,cfs){let cum=-c0;for(let i=0;i<cfs.length;i++){const pv=cum;cum+=cfs[i];if(pv<0&&cum>=0)return i+(cfs[i]?-pv/cfs[i]:0);}return NaN;}
+function annuity(P,r,n){if(r===0)return P/n;return P*r/(1-Math.pow(1+r,-n));}
+
+function fullModel(p){
+  const regime=(p.abone==='mesken')?'monthly':'hourly';
+  const capex=p.kwp*p.capexU+(p.bessOn?p.bKwh*p.bCapex:0); /* USD */
+  const years=[];const cfs=[];
+  for(let y=1;y<=p.life;y++){
+    const s=(regime==='hourly')?simYear(p,y):simYearMonthlyRegime(p,y);
+    const L=applyLimit(p,s);
+    const buy=priceY(p,y,p.pBuy),sell=priceY(p,y,p.pSell),skb=p.skb*tlF(p,y);
+    const fx=fxT(p,y);
+    const opexTL=(p.kwp*p.opexU+(p.bessOn?p.bKwh*p.bOpex:0))*tlF(p,y);
+    const sav=(s.mah+s.shift)*buy;   /* TL */
+    const rev=L.bedelli*sell;        /* TL */
+    const cost=L.bedelsiz*skb;       /* TL */
+    const cfTL=sav+rev-cost-opexTL;
+    const cf=cfTL/fx;                /* USD */
+    years.push({y,s,L,buy,sell,fx,opexTL,sav,rev,cost,cfTL,cf});
+    cfs.push(cf);
+  }
+  const npv=cfs.reduce((a,cf,i)=>a+cf/Math.pow(1+p.r,i+1),0)-capex;
+  const irr=irrOf(capex,cfs);
+  const pb=payback(capex,cfs);
+  const pbD=payback(capex,cfs.map((cf,i)=>cf/Math.pow(1+p.r,i+1)));
+  /* loan */
+  let eIRR=NaN,ePB=NaN,loan=0,pay=0;
+  if(p.lOn){
+    loan=capex*p.lRatio;pay=annuity(loan,p.lRate,p.lTerm);
+    const eq=capex-loan;
+    const ecfs=cfs.map((cf,i)=>cf-(i<p.lTerm?pay:0));
+    eIRR=irrOf(eq,ecfs);ePB=payback(eq,ecfs);
+  }
+  return{regime,capex,years,cfs,npv,irr,pb,pbD,eIRR,ePB,loan,pay};
+}
+
+/* ============ RENDER ============ */
+let STATE={};
+function calcAll(){
+  const p=readInputs();
+  const m=fullModel(p);
+  STATE={p,m};
+  const y1=m.years[0],s1=y1.s,L1=y1.L;
+
+  $('k_npv').textContent=usd(m.npv);
+  $('k_npv_c').className='kpi '+(m.npv>=0?'good':'bad');
+  $('k_npv_h').textContent=`r=%${fmt(p.r*100)} · ${p.life} yıl`;
+  $('k_irr').textContent=pct(m.irr*100,1);
+  $('k_pb').textContent=isFinite(m.pb)?fmt(m.pb,2)+' yıl':'–';
+  $('k_pb_h').textContent=`basit · iskontolu ${isFinite(m.pbD)?fmt(m.pbD,2)+' yıl':'–'} (grafik)`;
+  $('k_eirr').textContent=p.lOn?pct(m.eIRR*100,1):'—';
+  $('k_eirr_h').textContent=p.lOn?`özkaynak ${usd(m.capex-m.loan)} · taksit ${usd(m.pay/12)} /ay`:'kredi kapalı';
+  $('k_ben1').textContent=usd(y1.cf);
+  $('k_self').textContent=pct(s1.prod>0?(s1.mah+s1.shift)/s1.prod*100:0,1);
+  $('k_auto').textContent=pct(p.consY>0?(s1.mah+s1.shift)/p.consY*100:0,1);
+  $('k_free').textContent=fmt(L1.bedelsiz/1000,1)+' MWh';
+  $('k_free_h').textContent=L1.bedelsiz>0?`≈ ${usd(L1.bedelsiz*y1.sell/y1.fx)} satılamayan değer`:'limit içinde ✓';
+
+  const vd=$('verdict');
+  if(m.npv>=0&&m.irr>p.r){vd.className='verdict good';
+    vd.textContent=`✓ Yatırım USD bazında değer yaratıyor: IRR ${pct(m.irr*100,1)} > iskonto ${pct(p.r*100)}, geri ödeme ${fmt(m.pb,2)} yıl${p.lOn?', equity IRR '+pct(m.eIRR*100,1):''}. Öz tüketim oranı ${pct((s1.mah+s1.shift)/Math.max(s1.prod,1)*100,0)}.`;}
+  else{vd.className='verdict bad';
+    vd.textContent=`✗ Bu varsayımlarla NPV ${usd(m.npv)}: sistem boyutunu tüketim profiline yaklaştırmayı, BESS ile öz tüketimi artırmayı veya CAPEX/tarife varsayımlarını gözden geçir.`;}
+
+  /* balance table */
+  $('t_bal').innerHTML=`<thead><tr><th>Kalem</th><th>MWh</th><th>TL fiyat</th><th>TL/yıl</th><th>USD/yıl</th></tr></thead><tbody>
+    <tr><td>Üretim (yıl-1)</td><td>${fmt(s1.prod/1000,1)}</td><td>–</td><td>–</td><td>–</td></tr>
+    <tr><td>Tüketim</td><td>${fmt(p.consY/1000,1)}</td><td>–</td><td>–</td><td>–</td></tr>
+    <tr><td>Mahsuplaşan${p.bessOn?' (+BESS '+fmt(s1.shift/1000,1)+')':''}</td><td>${fmt((s1.mah+s1.shift)/1000,1)}</td><td>${fmt(y1.buy,2)} ₺ alış</td><td>+${fmt(y1.sav)}</td><td>+${fmt(y1.sav/y1.fx)}</td></tr>
+    <tr><td>Bedelli fazla satış</td><td>${fmt(L1.bedelli/1000,1)}</td><td>${fmt(y1.sell,2)} ₺ satış</td><td>+${fmt(y1.rev)}</td><td>+${fmt(y1.rev/y1.fx)}</td></tr>
+    <tr><td>Bedelsiz (limit üstü)</td><td>${fmt(L1.bedelsiz/1000,1)}</td><td>0 ₺${p.skb>0?' − SKB':''}</td><td>${y1.cost>0?'−'+fmt(y1.cost):'0'}</td><td>${y1.cost>0?'−'+fmt(y1.cost/y1.fx):'0'}</td></tr>
+    <tr><td>Şebekeden çekiş (bilgi)</td><td>${fmt(s1.cek/1000,1)}</td><td>${fmt(y1.buy,2)} ₺</td><td colspan="2">fatura tarafı</td></tr>
+    <tr><td>OPEX</td><td>–</td><td>–</td><td>−${fmt(y1.opexTL)}</td><td>−${fmt(y1.opexTL/y1.fx)}</td></tr>
+    <tr class="tot"><td>Net yıllık fayda (kur ${fmt(y1.fx,1)})</td><td>–</td><td>–</td><td>${fmt(y1.cfTL)}</td><td>${fmt(y1.cf)}</td></tr></tbody>`;
+
+  /* substs */
+  $('s_prod').innerHTML=`Yıllık üretim = ${fmt(p.kwp)} kWp × ${fmt(p.spec)} = <b>${fmt(p.kwp*p.spec/1000,1)} MWh</b> · Haziran payı %${SOLAR_M[5]} → günlük ${fmt(p.kwp*p.spec*SOLAR_M[5]/100/30)} kWh · yerleşim: ${p.orient==='ew'?'doğu-batı (yayvan eğri)':'güney (öğle tepeli)'}`;
+  $('s_limit').innerHTML=`1) Limit = ${fmt(p.consPrev/1000)} MWh × 2 = <b>${p.abone==='mesken'?'∞ (mesken)':fmt(L1.limit/1000)+' MWh'}</b><br>2) Mahsup = <b>${fmt(s1.mah/1000,1)} MWh</b> · Yıllık fazla = <b>${fmt(s1.faz/1000,1)} MWh</b><br>3) Bedelli satış = min(${fmt(s1.faz/1000,1)}, ${p.abone==='mesken'?'∞':fmt(Math.max(0,(L1.limit-s1.mah))/1000,1)}) = <b>${fmt(L1.bedelli/1000,1)} MWh</b><br>4) Bedelsiz = <b>${fmt(L1.bedelsiz/1000,1)} MWh</b>${L1.bedelsiz>0?' → yıl-1 kaybı ≈ '+usd(L1.bedelsiz*y1.sell/y1.fx):''}`;
+  $('s_tar').innerHTML=
+    `Yıl-1: tasarruf ${fmt((s1.mah+s1.shift)/1000,1)} MWh × ${fmt(y1.buy,2)} ₺ = <b>${tl(y1.sav)}</b> ÷ kur ${fmt(y1.fx,1)} = <b>${usd(y1.sav/y1.fx)}</b><br>`+
+    `Yıl-10: alış fiyatı ${fmt(priceY(p,10,p.pBuy),2)} ₺ · kur ${fmt(fxT(p,10),1)} → USD fiyat ${fmt(priceY(p,10,p.pBuy)/fxT(p,10)*100,2)} ¢/kWh (yıl-1: ${fmt(p.pBuy/p.fx0*100,2)} ¢)`+
+    ((p.fxMode==='ppp')?` — SAGP altında USD fiyat yalnız USD enflasyonu${p.preal? '+reel artış':''} kadar büyür`:'');
+  $('s_bess').innerHTML=p.bessOn
+    ?`Yıl-1 kaydırma = <b>${fmt(s1.shift/1000,1)} MWh</b> → ek değer = ${fmt(s1.shift/1000,1)} × (${fmt(y1.buy,2)} − ${fmt(y1.sell,2)}) = <b>${usd(s1.shift*(y1.buy-y1.sell)/y1.fx)}</b>/yıl fiyat terfisi + satılamayan bedelsizden kurtarma etkisi · BESS CAPEX = ${usd(p.bKwh*p.bCapex)}`
+    :'BESS kapalı — kutuyu işaretleyerek dahil et.';
+  const eq=m.capex-m.loan;
+  $('s_fin').innerHTML=`CAPEX = ${fmt(p.kwp)} kWp × ${fmt(p.capexU)} $${p.bessOn?' + '+fmt(p.bKwh)+' kWh × '+fmt(p.bCapex)+' $':''} = <b>${usd(m.capex)}</b><br>`+
+    `Yıl-1 net TL fayda ${fmt(y1.cfTL)} ₺ ÷ kur ${fmt(y1.fx,1)} = <b>${usd(y1.cf)}</b> USD nakit akışı<br>`+
+    (p.lOn?`Kredi (USD) = %${fmt(p.lRatio*100)} × ${usd(m.capex)} = <b>${usd(m.loan)}</b> · yıllık taksit (anüite, %${fmt(p.lRate*100,1)}, ${p.lTerm} yıl) = <b>${usd(m.pay)}</b> · özkaynak = <b>${usd(eq)}</b><br>`:'')+
+    `NPV = −${usd(m.capex)} + Σ CF<sub>USD</sub>/(1+%${fmt(p.r*100,1)})<sup>t</sup> = <b>${usd(m.npv)}</b> · IRR = <b>${pct(m.irr*100,1)}</b> (USD)`;
+
+  renderBill(p,m);
+  drawConsChart(p);
+  renderHourView();
+  $('bess_expl').style.display=p.bessOn?'':'none';
+  if(p.bessOn){
+    const y1=m.years[0],s1=y1.s;
+    const uplift=s1.shift*(y1.buy-y1.sell);
+    $('s_bess2').innerHTML=
+      `Yıl-1 kaydırma = <b>${fmt(s1.shift/1000,1)} MWh</b> (şarj ${fmt(s1.shift/p.bRte/1000,1)} MWh × RTE %${fmt(p.bRte*100,0)})<br>`+
+      `Fiyat terfisi = ${fmt(s1.shift/1000,1)} MWh × (${fmt(y1.buy,2)} − ${fmt(y1.sell,2)}) ₺ = <b>${tl(uplift)}</b> ≈ ${usd(uplift/y1.fx)}/yıl · öz tüketim %${fmt(s1.mah/s1.prod*100,1)} → %${fmt((s1.mah+s1.shift)/s1.prod*100,1)}`;
+  }
+  drawNet(p,m);
+  drawMonthly(p,m);
+  drawCum(p,m);
+  renderCompare(p);
+}
+
+/* tüketim grafiği: yıl → ay → gün drill-down */
+let CG={level:'y',mi:5,dt:'wd'};
+function drawConsChart(p){
+  const W=900,H=260,pl=64,pr=12,pt=16,pb=30;
+  const svg=$('ch_cons');
+  const crumb=$('cg_crumb');
+  let bars=[],title='',hint='';
+  if(CG.level==='y'){
+    bars=MONTHS.map((lab,i)=>({lab,val:monthCons(p,i)/1000,c:'#18428F',click:{level:'m',mi:i}}));
+    hint='Birim: MWh/ay. Bir ayın çubuğuna tıklayınca o ayın gün gün dağılımı açılır.';
+  }else if(CG.level==='m'){
+    const mi=CG.mi,nd=DAYS[mi];
+    const dw=dayCons(p,mi,'wd').reduce((a,b)=>a+b,0), de=dayCons(p,mi,'we').reduce((a,b)=>a+b,0);
+    for(let d=0;d<nd;d++){
+      const we=(d%7>=5);
+      bars.push({lab:(d+1)%5===0||d===0?String(d+1):'',val:(we?de:dw)/1000,c:we?'#E8A020':'#18428F',click:{level:'d',mi,dt:we?'we':'wd'}});
+    }
+    hint=`${MONTHS[mi]}: hafta içi günlük ${fmt(dw)} kWh (lacivert), hafta sonu ${fmt(de)} kWh (altın). Ay pazartesi başlar varsayılır. Bir güne tıklayınca 24 saatlik profil açılır. Birim: MWh/gün.`;
+  }else{
+    const cd=dayCons(p,CG.mi,CG.dt);
+    bars=cd.map((v,h)=>({lab:h%3===0?h+':00':'',val:v,c:CG.dt==='we'?'#E8A020':'#18428F',click:null}));
+    hint=`${MONTHS[CG.mi]} · ${CG.dt==='wd'?'hafta içi':'hafta sonu'} temsili günü, saat saat tüketim (kWh). Gün toplamı ${fmt(cd.reduce((a,b)=>a+b,0))} kWh.`;
+  }
+  const mx=Math.max(...bars.map(b=>b.val),1e-9);
+  const x=i=>pl+(W-pl-pr)*(i+.5)/bars.length, bw=Math.max(3,(W-pl-pr)/bars.length*.62);
+  const y=v=>pt+(H-pt-pb)*(1-v/mx);
+  let s='';
+  for(let g=0;g<=4;g++){const v=mx*g/4;s+=`<line x1="${pl}" y1="${y(v)}" x2="${W-pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl-6}" y="${y(v)+3}" text-anchor="end">${fmt(v,CG.level==='d'?0:1)}</text>`;}
+  bars.forEach((b,i)=>{
+    s+=`<rect data-i="${i}" x="${x(i)-bw/2}" y="${y(b.val)}" width="${bw}" height="${H-pb-y(b.val)}" fill="${b.c}" rx="2"${b.click?' style="cursor:pointer"':''}/>`;
+    if(b.lab)s+=`<text x="${x(i)}" y="${H-9}" text-anchor="middle">${b.lab}</text>`;
+  });
+  svg.innerHTML=s;
+  svg.onclick=e=>{
+    const r=e.target.closest('rect');if(!r)return;
+    const b=bars[+r.dataset.i];if(!b||!b.click)return;
+    CG=Object.assign({},CG,b.click);drawConsChart(STATE.p);
+  };
+  /* breadcrumb */
+  let ch=`<button data-l="y"${CG.level==='y'?' class="active"':''}>Yıllık</button>`;
+  if(CG.level!=='y')ch+=`<button data-l="m"${CG.level==='m'?' class="active"':''}>› ${MONTHS[CG.mi]}</button>`;
+  if(CG.level==='d')ch+=`<button data-l="d" class="active">› Günlük (${CG.dt==='wd'?'Hİ':'HS'})</button>`;
+  crumb.innerHTML=ch;
+  crumb.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    CG.level=b.dataset.l;drawConsChart(STATE.p);
+  }));
+  $('cg_hint').textContent=hint;
+}
+
+/* saatlik veri sekmesi */
+let HV={mi:5,dt:'wd'};
+$('hv_months').insertAdjacentHTML('beforeend','<button data-mi="y">Yıllık</button>');
+MONTHS.forEach((m,i)=>$('hv_months').insertAdjacentHTML('beforeend',
+  `<button data-mi="${i}"${i===5?' class="active"':''}>${m}</button>`));
+$('hv_months').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+  $('hv_months').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');HV.mi=(b.dataset.mi==='y')?'y':+b.dataset.mi;renderHourView();
+}));
+$('hv_dtype').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+  $('hv_dtype').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');HV.dt=b.dataset.dt;renderHourView();
+}));
+function renderHourView(){
+  if(!STATE.p)return;
+  const {p,m}=STATE;
+  const yearMode=(HV.mi==='y');
+  $('hv_dtype').style.display=yearMode?'none':'flex';
+  document.querySelector('#hv_totals').closest('.card').style.display=yearMode?'none':'';
+  if(yearMode){
+    const bess=p.bessOn;
+    const S=a=>a.reduce((x,y)=>x+y,0);
+    let rows='';
+    const y1=m.years[0].s;
+    for(let mi=0;mi<12;mi++){
+      const d=y1.monthly[mi];
+      rows+=`<tr><td>${MONTHS[mi]}</td><td>${fmt(d.prod)}</td><td>${fmt(d.cons)}</td><td>${fmt(d.mah)}</td>${bess?`<td>${fmt(d.shift/p.bRte)}</td><td>${fmt(d.shift)}</td>`:''}<td>${fmt(d.faz)}</td><td>${fmt(d.cek)}</td></tr>`;
+    }
+    $('hv_title').textContent='Yıl geneli — ay ay toplamlar (kWh, Hİ + HS birlikte)';
+    $('hv_table').innerHTML=`<thead><tr><th>Ay</th><th>Üretim</th><th>Tüketim</th><th>Mahsup</th>${bess?'<th>BESS şarj</th><th>BESS deşarj</th>':''}<th>Fazla</th><th>Çekiş</th></tr></thead>
+      <tbody>${rows}<tr class="tot"><td>Σ Yıl</td><td>${fmt(y1.prod)}</td><td>${fmt(p.consY)}</td><td>${fmt(y1.mah)}</td>${bess?`<td>${fmt(y1.shift/p.bRte)}</td><td>${fmt(y1.shift)}</td>`:''}<td>${fmt(y1.faz)}</td><td>${fmt(y1.cek)}</td></tr></tbody>`;
+    return;
+  }
+  const mi=HV.mi,dt=HV.dt;
+  const T=dayDetail(p,mi,dt);
+  const bess=p.bessOn;
+  let rows='',tp=0,tc=0,tm=0,tch=0,tdc=0,tf=0,tk=0;
+  for(let h=0;h<24;h++){
+    tp+=T.prod[h];tc+=T.cons[h];tm+=T.mah[h];tch+=T.ch[h];tdc+=T.dch[h];tf+=T.faz[h];tk+=T.cek[h];
+    rows+=`<tr><td>${h}:00</td><td>${fmt(T.prod[h],1)}</td><td>${fmt(T.cons[h],1)}</td><td>${fmt(T.mah[h],1)}</td>${bess?`<td>${fmt(T.ch[h],1)}</td><td>${fmt(T.dch[h],1)}</td>`:''}<td>${fmt(T.faz[h],1)}</td><td>${fmt(T.cek[h],1)}</td></tr>`;
+  }
+  $('hv_title').textContent=`${MONTHS[mi]} · ${dt==='wd'?'Hafta içi':'Hafta sonu'} temsili günü — saat saat (kWh)`;
+  $('hv_table').innerHTML=`<thead><tr><th>Saat</th><th>Üretim</th><th>Tüketim</th><th>Mahsup</th>${bess?'<th>BESS şarj</th><th>BESS deşarj</th>':''}<th>Fazla</th><th>Çekiş</th></tr></thead>
+    <tbody>${rows}<tr class="tot"><td>Σ Gün</td><td>${fmt(tp)}</td><td>${fmt(tc)}</td><td>${fmt(tm)}</td>${bess?`<td>${fmt(tch)}</td><td>${fmt(tdc)}</td>`:''}<td>${fmt(tf)}</td><td>${fmt(tk)}</td></tr></tbody>`;
+  /* totals: day×count → month (wd+we) → year */
+  const wdD=DAYS[mi]*5/7, weD=DAYS[mi]*2/7;
+  const S=a=>a.reduce((x,y)=>x+y,0);
+  const dayCnt=(dt==='wd')?wdD:weD;
+  const y1=m.years[0].s;
+  const md=y1.monthly[mi];
+  const monMap={prod:md.prod,cons:md.cons,mah:md.mah,ch:md.shift/p.bRte,dch:md.shift,faz:md.faz,cek:md.cek};
+  const cols=bess?['prod','cons','mah','ch','dch','faz','cek']:['prod','cons','mah','faz','cek'];
+  const heads=bess?['Üretim','Tüketim','Mahsup','BESS şarj','BESS deşarj','Fazla','Çekiş']:['Üretim','Tüketim','Mahsup','Fazla','Çekiş'];
+  const dayVals=cols.map(k=>S(T[k]));
+  const monVals=cols.map(k=>monMap[k]);
+  const yearVals={prod:y1.prod,cons:p.consY,mah:y1.mah,ch:y1.shift/p.bRte,dch:y1.shift,faz:y1.faz,cek:y1.cek};
+  $('hv_totals').innerHTML=`<thead><tr><th>Kapsam</th>${heads.map(h=>'<th>'+h+' (kWh)</th>').join('')}</tr></thead><tbody>
+    <tr><td>Seçili gün (${dt==='wd'?'Hİ':'HS'})</td>${dayVals.map(v=>'<td>'+fmt(v)+'</td>').join('')}</tr>
+    <tr><td>× ${fmt(dayCnt,1)} gün</td>${dayVals.map(v=>'<td>'+fmt(v*dayCnt)+'</td>').join('')}</tr>
+    <tr><td>${MONTHS[mi]} toplamı (Hİ+HS, motor)</td>${monVals.map(v=>'<td>'+fmt(v)+'</td>').join('')}</tr>
+    <tr class="tot"><td>Yıl toplamı (12 ay)</td>${cols.map(k=>'<td>'+fmt(yearVals[k])+'</td>').join('')}</tr></tbody>`;
+}
+
+/* fatura analizi */
+function renderBill(p,m){
+  const y1=m.years[0],s1=y1.s,L1=y1.L;
+  const buy=y1.buy,fx=y1.fx;
+  const cekA=s1.cek;                    /* motor çıktısı zaten BESS deşarjı düşülmüş net çekiştir */
+  const billNo=p.consY*buy;             /* GES'siz aktif enerji faturası */
+  const billYes=cekA*buy;
+  const netYes=billYes-y1.rev+y1.cost;   /* OPEX fatura analizine dahil değil */
+  const savTL=billNo-netYes;
+  const r=(lab,a,b,d)=>`<tr><td>${lab}</td><td>${a}</td><td>${b}</td><td>${d}</td></tr>`;
+  $('t_bill_sum').innerHTML=`<thead><tr><th>Kalem</th><th>GES'siz</th><th>GES'li</th><th>Fark</th></tr></thead><tbody>`+
+    r('Yıllık tüketim (kWh)',fmt(p.consY),fmt(p.consY),'0 — aynı')+
+    r('GES üretimi (kWh)','—',fmt(s1.prod),`<span style="color:var(--green)">+${fmt(s1.prod)}</span>`)+
+    r('Öz tüketilen (mahsup${bess}, kWh)'.replace('${bess}',p.bessOn?'+BESS':''),'—',fmt(s1.mah+s1.shift),`<span style="color:var(--green)">+${fmt(s1.mah+s1.shift)}</span>`)+
+    r('Şebekeye satılan fazla (kWh)','—',fmt(L1.bedelli+L1.bedelsiz),'—')+
+    r('Şebekeden alınan (kWh)',fmt(p.consY),fmt(cekA),`<span style="color:var(--green)">−${fmt(p.consY-cekA)}</span>`)+
+    r('Aktif enerji faturası (TL/yıl)',fmt(billNo),fmt(billYes),`<span style="color:var(--green)">−${fmt(billNo-billYes)}</span>`)+
+    r('Fazla satış geliri (TL/yıl)','—','+'+fmt(y1.rev),`<span style="color:var(--green)">+${fmt(y1.rev)}</span>`)+
+    (y1.cost>0?r('Limit üstü SKB (TL/yıl)','—','−'+fmt(y1.cost),`<span style="color:var(--red)">−${fmt(y1.cost)}</span>`):'')+
+    `<tr class="tot"><td>Net yıllık fatura (TL, OPEX hariç)</td><td>${fmt(billNo)}</td><td>${fmt(netYes)}</td><td style="color:var(--green)">−${fmt(savTL)} (−%${fmt(savTL/billNo*100,1)})</td></tr>`+
+    `<tr class="tot"><td>USD karşılığı (kur ${fmt(fx,1)})</td><td>${usd(billNo/fx)}</td><td>${usd(netYes/fx)}</td><td style="color:var(--green)">−${usd(savTL/fx)}</td></tr></tbody>`;
+
+  /* aylık kırılım */
+  const fazTot=s1.faz||1,bedTot=L1.bedelli;
+  let rows='',tN=0,tY=0,tR=0;
+  for(let mi=0;mi<12;mi++){
+    const consM=monthCons(p,mi);
+    const d=s1.monthly[mi];
+    const cekM=d.cek;
+    const prodM=d.prod;
+    const bN=consM*buy, bY=cekM*buy;
+    const revM=(d.faz/fazTot)*bedTot*y1.sell;
+    tN+=bN;tY+=bY;tR+=revM;
+    rows+=`<tr><td>${MONTHS[mi]}</td><td>${fmt(prodM)}</td><td>${fmt(consM)}</td><td>${fmt(cekM)}</td><td>${fmt(bN)}</td><td>${fmt(bY)}</td><td>+${fmt(revM)}</td><td style="color:var(--green)">−${fmt(bN-bY+revM)}</td></tr>`;
+  }
+  $('t_bill_m').innerHTML=`<thead><tr><th>Ay</th><th>Üretim (kWh)</th><th>Tüketim (kWh)</th><th>Çekiş (kWh)</th><th>GES'siz fatura (TL)</th><th>GES'li fatura (TL)</th><th>Satış geliri (TL)</th><th>Aylık fayda (TL)</th></tr></thead><tbody>${rows}
+    <tr class="tot"><td>Σ Yıl</td><td>${fmt(s1.prod)}</td><td>${fmt(p.consY)}</td><td>${fmt(s1.cek)}</td><td>${fmt(tN)}</td><td>${fmt(tY)}</td><td>+${fmt(tR)}</td><td style="color:var(--green)">−${fmt(tN-tY+tR)}</td></tr></tbody>`;
+
+  $('s_bill').innerHTML=
+    `GES'siz = ${fmt(p.consY)} kWh × ${fmt(buy,2)} ₺ = <b>${fmt(billNo)} TL</b><br>`+
+    `GES'li fatura = ${fmt(cekA)} kWh × ${fmt(buy,2)} ₺ = <b>${fmt(billYes)} TL</b> → net fatura = ${fmt(billYes)} − ${fmt(y1.rev)} (satış)${y1.cost>0?' + '+fmt(y1.cost)+' (SKB)':''} = <b>${fmt(netYes)} TL</b><br>`+
+    `Fatura tasarrufu = ${fmt(billNo)} − ${fmt(netYes)} = <b>${fmt(savTL)} TL</b> · USD: <b>${usd(savTL/fx)}</b><br>`+
+    `Not: OPEX (${fmt(y1.opexTL)} TL/yıl) fatura kalemi değildir; işletme gideri olarak yalnız Fizibilite sekmesindeki nakit akışına girer. Fatura tasarrufu − OPEX = modelin yıl-1 nakit akışı ${fmt(y1.cfTL)} TL.`;
+}
+
+/* comparison */
+function renderCompare(p){
+  const h=simYear(p,1),mo=simYearMonthlyRegime(p,1);
+  const Lh=applyLimit(p,h),Lm=applyLimit(p,mo);
+  const row=(lab,a,b,d=1,suf=' MWh')=>`<tr><td>${lab}</td><td>${fmt(a,d)}${suf}</td><td>${fmt(b,d)}${suf}</td><td>${fmt(a-b,d)}${suf}</td></tr>`;
+  const benH=((h.mah+h.shift)*p.pBuy+Lh.bedelli*p.pSell)/p.fx0;
+  const benM=(mo.mah*p.pBuy+Lm.bedelli*p.pSell)/p.fx0;
+  $('t_cmp').innerHTML=`<thead><tr><th>Kalem (yıl-1)</th><th>⏰ Saatlik</th><th>📅 Aylık</th><th>Fark</th></tr></thead><tbody>`+
+    row('Üretim',h.prod/1000,mo.prod/1000)+
+    row('Mahsuplaşan',(h.mah+h.shift)/1000,mo.mah/1000)+
+    row('Fazla üretim',h.faz/1000,mo.faz/1000)+
+    row('Şebekeden çekiş',h.cek/1000,mo.cek/1000)+
+    row('Bedelli satış',Lh.bedelli/1000,Lm.bedelli/1000)+
+    `<tr><td>Tasarruf + satış (USD, yıl-1)</td><td>${fmt(benH)}</td><td>${fmt(benM)}</td><td>${fmt(benH-benM)}</td></tr>
+    <tr class="tot"><td>Saatlik rejimin maliyeti</td><td colspan="3">${usd(benM-benH)} / yıl (${pct(benM>0?(benM-benH)/benM*100:0,1)} azalma)</td></tr></tbody>`;
+  $('t_cmp_note').textContent=p.abone==='mesken'
+    ?'Mesken abonesisin: fiilen aylık rejimdesin, bu tablo bilgilendirme amaçlıdır.'
+    :'C&I aboneler 01.05.2026 itibarıyla saatlik rejime tabidir; aylık sütun, eski rejimde ne kazanılacağını gösterir. BESS dahilse saatlik sütunda kaydırma etkisi yansıtılmıştır.';
+}
+
+/* ============ CHARTS ============ */
+/* ---- motor görünümü: yıllık / ay / gün, çoklu gün tipi ---- */
+const NV={mi:'y',view:'d',wd:true,we:true};
+$('nv_period').insertAdjacentHTML('beforeend','<button data-mi="y">Yıllık</button>');
+MONTHS.forEach((m,i)=>$('nv_period').insertAdjacentHTML('beforeend',`<button data-mi="${i}"${i===5?' class="active"':''}>${m}</button>`));
+NV.mi=5;
+$('nv_period').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+  $('nv_period').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  NV.mi=(b.dataset.mi==='y')?'y':+b.dataset.mi;
+  drawNet(STATE.p,STATE.m);
+}));
+$('nv_view').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+  $('nv_view').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');NV.view=b.dataset.v;
+  drawNet(STATE.p,STATE.m);
+}));
+$('nv_dtype').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+  const k=b.dataset.dt;
+  const other=(k==='wd')?'we':'wd';
+  if(NV[k]&&!NV[other])return; /* en az biri seçili kalmalı */
+  NV[k]=!NV[k];
+  b.classList.toggle('active',NV[k]);
+  drawNet(STATE.p,STATE.m);
+}));
+function drawNet(p,m){
+  const svg=$('ch_day');
+  const W=900,H=300,pl=64,pr=12,pt=16,pb=34;
+  const S=a=>a.reduce((x,y)=>x+y,0);
+  const yearMode=(NV.mi==='y');
+  $('nv_view').style.display=yearMode?'none':'flex';
+  let cols=[],unit='kWh',hint='';
+  if(yearMode){
+    /* 12 ay: seçili gün tiplerinin toplamları (MWh) */
+    for(let mi=0;mi<12;mi++){
+      const wdD=DAYS[mi]*5/7,weD=DAYS[mi]*2/7;
+      let mah=0,sh=0,fz=0,ck=0,pr_=0,cn=0;
+      [['wd',wdD],['we',weD]].forEach(([dt,days])=>{
+        if(!NV[dt])return;
+        const T=dayDetail(p,mi,dt);
+        mah+=S(T.mah)*days;sh+=S(T.dch)*days;fz+=S(T.faz)*days;ck+=S(T.cek)*days;
+        pr_+=S(T.prod)*days;cn+=S(T.cons)*days;
+      });
+      cols.push({lab:MONTHS[mi],mah:mah/1e3,sh:sh/1e3,fz:fz/1e3,ck:ck/1e3,pr:pr_/1e3,cn:cn/1e3});
+    }
+    unit='MWh';
+    hint='Yıllık görünüm: her ay için seçili gün tiplerinin toplamı. Çubuk = üretimin bileşenleri (mahsup + BESS kaydırma + fazla); gri çubuk = şebekeden çekiş. Çizgiler: lacivert üretim, koyu tüketim.';
+  }else if(NV.view==='m'){
+    const mi=NV.mi,nd=DAYS[mi];
+    for(let d=0;d<nd;d++){
+      const we=(d%7>=5),on=NV[we?'we':'wd'];
+      const T=dayDetail(p,mi,we?'we':'wd',DAYF[mi][d]);
+      cols.push({lab:((d+1)%5===0||d===0)?String(d+1):'',dim:!on,
+        mah:S(T.mah),sh:S(T.dch),fz:S(T.faz),ck:S(T.cek),pr:S(T.prod),cn:S(T.cons)});
+    }
+    hint=`${MONTHS[mi]} · gün gün (pazartesi başlar varsayılır): üretim, ay içi mevsim eğimiyle gün gün değişir (aylık ortalamalar arası interpolasyon; ay toplamı korunur). Hafta sonu günleri ${NV.wd&&NV.we?'takvimdeki yerinde':'filtre dışıysa soluk'}. Birim: kWh/gün.`;
+  }else{
+    const mi=NV.mi;
+    const types=[['wd','Hafta içi'],['we','Hafta sonu']].filter(([k])=>NV[k]);
+    types.forEach(([dt,lab],ti)=>{
+      const T=dayDetail(p,mi,dt);
+      for(let h=0;h<24;h++){
+        cols.push({lab:h%4===0?h+':00':'',group:types.length>1?lab:'',gsep:(ti>0&&h===0),
+          mah:T.mah[h],sh:T.dch[h],fz:T.faz[h],ck:T.cek[h],pr:T.prod[h],cn:T.cons[h]});
+      }
+    });
+    hint=`${MONTHS[mi]} ay-ortalaması temsili günü, saat saat.${types.length>1?' Sol blok hafta içi, sağ blok hafta sonu.':''} Birim: kWh/saat.`;
+  }
+  const mx=Math.max(...cols.map(c=>Math.max(c.mah+c.sh+c.fz,c.ck,c.pr,c.cn)),1e-9);
+  const n=cols.length;
+  const x=i=>pl+(W-pl-pr)*(i+.5)/n, bwFull=(W-pl-pr)/n;
+  const bw=Math.max(2.5,bwFull*.6);
+  const y=v=>pt+(H-pt-pb)*(1-v/mx);
+  let s='';
+  for(let g=0;g<=4;g++){const v=mx*g/4;s+=`<line x1="${pl}" y1="${y(v)}" x2="${W-pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl-6}" y="${y(v)+3}" text-anchor="end">${fmt(v,mx<20?1:0)}</text>`;}
+  cols.forEach((c,i)=>{
+    const op=c.dim?' opacity=".22"':'';
+    if(c.gsep)s+=`<line x1="${x(i)-bwFull/2}" y1="${pt}" x2="${x(i)-bwFull/2}" y2="${H-pb}" stroke="#98A2B6" stroke-dasharray="4 3"/>`;
+    let base=0;
+    [[c.mah,'#2F6B4F'],[c.sh,'#5D7FA3'],[c.fz,'#C9922A']].forEach(([v,col])=>{
+      if(v>0){s+=`<rect x="${x(i)-bw/2}" y="${y(base+v)}" width="${bw*0.55}" height="${y(base)-y(base+v)}" fill="${col}"${op}/>`;base+=v;}
+    });
+    if(c.ck>0)s+=`<rect x="${x(i)-bw/2+bw*0.6}" y="${y(c.ck)}" width="${bw*0.4}" height="${H-pb-y(c.ck)}" fill="#9E3A3F"${op}/>`;
+    if(c.lab)s+=`<text x="${x(i)}" y="${H-9}" text-anchor="middle">${c.lab}</text>`;
+    if(c.group&&c.lab==='0:00')s+=`<text x="${x(i+11)}" y="${pt-2}" text-anchor="middle" style="font-weight:600;fill:#00A651">${c.group}</text>`;
+  });
+  const line=(key,col)=>{
+    const pts=cols.map((c,i)=>x(i)+','+y(c[key])).join(' ');
+    return '<polyline fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linejoin="round" stroke-linecap="round" points="'+pts+'"/>'
+         + '<polyline fill="none" stroke="'+col+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="'+pts+'"/>';
+  };
+  s+=line('pr','#00A651')+line('cn','#0E2A5E');
+  svg.innerHTML=s;
+  $('nv_hint').textContent=hint+' Eksen: '+unit+'.';
+}
+function drawMonthly(p,m){
+  const y1=m.years[0];const L=y1.L;
+  const W=900,H=250,pl=56,pr=12,pt=14,pb=26;
+  /* distribute bedelsiz proportionally to fazla for display */
+  const fazTot=y1.s.faz||1;
+  const data=y1.s.monthly?y1.s.monthly:MONTHS.map(()=>({mah:0,faz:0,cek:0,shift:0}));
+  const mx=Math.max(...data.map(d=>Math.max(d.mah+d.shift,d.faz,d.cek)))/1000||1;
+  const x=i=>pl+(W-pl-pr)*(i+.5)/12, bw=(W-pl-pr)/12*.22;
+  const y=v=>pt+(H-pt-pb)*(1-v/mx);
+  let s='';
+  for(let g=0;g<=4;g++){const v=mx*g/4;s+=`<line x1="${pl}" y1="${y(v)}" x2="${W-pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl-6}" y="${y(v)+3}" text-anchor="end">${fmt(v,0)}</text>`;}
+  data.forEach((d,i)=>{
+    const bfree=(L.bedelsiz>0?d.faz/fazTot*L.bedelsiz:0)/1000;
+    const bpaid=d.faz/1000-bfree;
+    s+=`<rect x="${x(i)-bw*1.6}" y="${y((d.mah+d.shift)/1000)}" width="${bw}" height="${H-pb-y((d.mah+d.shift)/1000)}" fill="#1E7F4F"/>`;
+    s+=`<rect x="${x(i)-bw*.5}" y="${y(bpaid)}" width="${bw}" height="${H-pb-y(bpaid)}" fill="#E8A020"/>`;
+    if(bfree>0.01)s+=`<rect x="${x(i)-bw*.5}" y="${y(bpaid+bfree)}" width="${bw}" height="${y(bpaid)-y(bpaid+bfree)}" fill="#C7000B"/>`;
+    s+=`<rect x="${x(i)+bw*.6}" y="${y(d.cek/1000)}" width="${bw}" height="${H-pb-y(d.cek/1000)}" fill="#C9D3E4"/>`;
+    s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${MONTHS[i]}</text>`;
+  });
+  $('ch_month').innerHTML=s;
+}
+function drawCum(p,m){
+  const pts=[-m.capex];let cum=-m.capex;
+  m.cfs.forEach((cf,i)=>{cum+=cf/Math.pow(1+p.r,i+1);pts.push(cum);});
+  const W=900,H=240,pl=70,pr=12,pt=14,pb=26;
+  const mn=Math.min(...pts,0),mx=Math.max(...pts,0);
+  const x=i=>pl+(W-pl-pr)*i/(pts.length-1);
+  const y=v=>pt+(H-pt-pb)*(1-(v-mn)/((mx-mn)||1));
+  let s='';
+  for(let g=0;g<=4;g++){const v=mn+(mx-mn)*g/4;s+=`<line x1="${pl}" y1="${y(v)}" x2="${W-pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl-6}" y="${y(v)+3}" text-anchor="end">${(v/1e3).toFixed(0)}k$</text>`;}
+  s+=`<line x1="${pl}" y1="${y(0)}" x2="${W-pr}" y2="${y(0)}" stroke="#5A6478" stroke-dasharray="4 3"/>`;
+  const bw=Math.max(3,(W-pl-pr)/pts.length*.55);
+  pts.forEach((v,i)=>{
+    s+=`<rect x="${x(i)-bw/2}" y="${v>=0?y(v):y(0)}" width="${bw}" height="${Math.abs(y(v)-y(0))||.5}" fill="${v>=0?'#18428F':'#C9D3E4'}" rx="1.5"/>`;
+    if(i%5===0||i===pts.length-1)s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${i}</text>`;
+  });
+  for(let i=1;i<pts.length;i++)if(pts[i-1]<0&&pts[i]>=0){
+    const frac=(-pts[i-1]/(pts[i]-pts[i-1]));
+    const xi=x(i-1)+(x(i)-x(i-1))*frac, yi=y(0);
+    s+=`<line x1="${xi}" y1="${pt}" x2="${xi}" y2="${H-pb}" stroke="#E8A020" stroke-dasharray="3 3"/>`;
+    s+=`<circle cx="${xi}" cy="${yi}" r="5" fill="#E8A020" stroke="#fff" stroke-width="2"/><text x="${xi}" y="${yi-9}" text-anchor="middle" style="font-weight:600;fill:#9A6A0E">iskontolu geri ödeme: ${fmt(i-1+frac,2)} yıl</text>`;break;}
+  $('ch_cum').innerHTML=s;
+}
+
+/* ============ MODAL ============ */
+function openModal(t,b){$('m_title').textContent=t;$('m_body').innerHTML=b;$('modal').hidden=false;}
+const closeModal=()=>{$('modal').hidden=true;};
+$('m_close').addEventListener('click',closeModal);
+$('m_ov').addEventListener('click',closeModal);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+$('b_hourly').addEventListener('click',()=>{
+  const {p}=STATE;
+  const mi=(NV.mi==='y')?5:NV.mi;
+  const types=[['wd','hafta içi'],['we','hafta sonu']].filter(([k])=>NV[k]);
+  const mkTable=(dt,lab)=>{
+    const T=dayDetail(p,mi,dt);
+    const dayCnt=(dt==='wd'?DAYS[mi]*5/7:DAYS[mi]*2/7);
+    let rows='',tp=0,tc=0,tm=0,tch=0,tdc=0,tf=0,tk=0;
+    for(let h=0;h<24;h++){
+      tp+=T.prod[h];tc+=T.cons[h];tm+=T.mah[h];tch+=T.ch[h];tdc+=T.dch[h];tf+=T.faz[h];tk+=T.cek[h];
+      rows+=`<tr><td>${h}:00</td><td>${fmt(T.prod[h],1)}</td><td>${fmt(T.cons[h],1)}</td><td>${fmt(T.mah[h],1)}</td>${p.bessOn?`<td>${fmt(T.ch[h],1)}</td><td>${fmt(T.dch[h],1)}</td>`:''}<td>${fmt(T.faz[h],1)}</td><td>${fmt(T.cek[h],1)}</td></tr>`;
+    }
+    return `<h4 style="font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);margin:10px 0 6px">${lab} · ayda ≈ ${fmt(dayCnt,1)} gün</h4>
+    <table><thead><tr><th>Saat</th><th>Üretim (kWh)</th><th>Tüketim (kWh)</th><th>Mahsup (kWh)</th>${p.bessOn?'<th>BESS şarj</th><th>BESS deşarj</th>':''}<th>Fazla (kWh)</th><th>Çekiş (kWh)</th></tr></thead>
+    <tbody>${rows}<tr class="tot"><td>Σ gün</td><td>${fmt(tp)}</td><td>${fmt(tc)}</td><td>${fmt(tm)}</td>${p.bessOn?`<td>${fmt(tch)}</td><td>${fmt(tdc)}</td>`:''}<td>${fmt(tf)}</td><td>${fmt(tk)}</td></tr></tbody></table>
+    <div class="mnote">Denge: Üretim ${fmt(tp)} = Mahsup ${fmt(tm)} + Fazla ${fmt(tf)}${p.bessOn?' + Şarj '+fmt(tch):''} ✓ · Tüketim ${fmt(tc)} = Mahsup ${fmt(tm)} + Çekiş ${fmt(tk)}${p.bessOn?' + Deşarj '+fmt(tdc):''} ✓</div>`;
+  };
+  openModal(`Saat Saat Mahsuplaşma — ${MONTHS[mi]}`,
+   `<div class="mnote">Her saat: mahsup = min(üretim, tüketim)${p.bessOn?'; BESS fazladan şarj olur, çekişe RTE ('+fmt(p.bRte*100,0)+'%) ile deşarj eder':''}. Tüm yılı (8.760 saat) CSV olarak indirebilirsin.</div>`+
+   types.map(([dt,lab])=>mkTable(dt,lab)).join(''));
+});
+
+function exportCSV(){
+  const {p}=STATE;
+  const sep=';';
+  let csv='Ay'+sep+'Gün'+sep+'Gün tipi'+sep+'Saat'+sep+'Üretim (kWh)'+sep+'Tüketim (kWh)'+sep+'Mahsup (kWh)'+sep+'BESS şarj (kWh)'+sep+'BESS deşarj (kWh)'+sep+'Fazla üretim (kWh)'+sep+'Şebeke çekişi (kWh)\r\n';
+  const num=x=>String(Math.round(x*100)/100).replace('.',',');
+  for(let mi=0;mi<12;mi++){
+    for(let d=0;d<DAYS[mi];d++){
+      const we=(d%7>=5),lab=we?'Hafta sonu':'Hafta içi';
+      const T=dayDetail(p,mi,we?'we':'wd',DAYF[mi][d]);
+      for(let h=0;h<24;h++){
+        csv+=MONTHS[mi]+sep+(d+1)+sep+lab+sep+h+':00'+sep+num(T.prod[h])+sep+num(T.cons[h])+sep+num(T.mah[h])+sep+num(T.ch[h])+sep+num(T.dch[h])+sep+num(T.faz[h])+sep+num(T.cek[h])+'\r\n';
+      }
+    }
+  }
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='saatlik-mahsuplasma-'+(p.pname||'proje').replace(/[^\wğüşöçıİĞÜŞÖÇ-]+/g,'-')+'.csv';
+  a.click();URL.revokeObjectURL(a.href);
+}
+$('b_csv').addEventListener('click',exportCSV);
+$('b_csv2').addEventListener('click',exportCSV);
+
+/* ============ REPORT ============ */
+function kpiBox(l,v,cls){return `<div class="r-kpi${cls?' '+cls:''}"><div class="l">${l}</div><div class="v">${v}</div></div>`;}
+$('b_report').addEventListener('click',()=>{
+  calcAll();
+  const {p,m}=STATE;const y1=m.years[0];
+  let rows='';m.years.forEach(yy=>{rows+=`<tr><td>${yy.y}</td><td>${fmt((yy.s.mah+yy.s.shift)/1000,1)}</td><td>${fmt(yy.L.bedelli/1000,1)}</td><td>${fmt(yy.L.bedelsiz/1000,1)}</td><td>${fmt(yy.buy,2)}</td><td>${fmt(yy.fx,1)}</td><td>${fmt(yy.cfTL)}</td><td>${fmt(yy.cf)}</td></tr>`;});
+  const rejim=p.abone==='mesken'?'Mesken (aylık rejim)':'C&I (saatlik rejim)';
+  const selfC=(y1.s.mah+y1.s.shift)/Math.max(y1.s.prod,1)*100;
+  const html=`
+  <div class="r-cover">
+    <div class="r-eyebrow">C&I Saatlik Mahsuplaşma · Ön Fizibilite Raporu · EPDK Karar 14531</div>
+    <h1>${p.pname}</h1>
+    <div class="r-facts">
+      <div class="r-fact"><b>Tarih</b><span>${today()}</span></div>
+      ${p.prep?`<div class="r-fact"><b>Hazırlayan</b><span>${p.prep}</span></div>`:''}
+      <div class="r-fact"><b>Rejim</b><span>${rejim}</span></div>
+      <div class="r-fact"><b>Kurulu güç</b><span>${fmt(p.kwp)} kWp${p.bessOn?' + '+fmt(p.bKwh)+' kWh BESS':''}</span></div>
+      <div class="r-fact"><b>Para birimi</b><span>USD · TL tarife kur projeksiyonuyla</span></div>
+    </div>
+  </div>
+
+  <div class="r-block"><h2><span class="rn">01</span>Yönetici Özeti</h2>
+  <div class="r-kpis">${kpiBox('CAPEX',usd(m.capex))}${kpiBox('NPV',usd(m.npv),m.npv>=0?'good':'bad')}${kpiBox('Proje IRR',pct(m.irr*100,1),m.irr>p.r?'good':'bad')}${kpiBox('Basit geri ödeme',fmt(m.pb,2)+' yıl')}</div>
+  <div class="r-kpis">${kpiBox('1. yıl net fayda',usd(y1.cf),'good')}${kpiBox('Öz tüketim',pct(selfC,1))}${kpiBox('İskontolu geri ödeme',isFinite(m.pbD)?fmt(m.pbD,2)+' yıl':'—')}${p.lOn?kpiBox('Equity IRR',pct(m.eIRR*100,1),'good'):kpiBox('Otonomi',pct((y1.s.mah+y1.s.shift)/p.consY*100,1))}</div>
+  <p class="r-note">${m.npv>=0?`Proje bu varsayımlarla USD bazında değer yaratıyor: iç verim oranı (%${fmt(m.irr*100,1)}) iskonto oranını (%${fmt(p.r*100,1)}) aşıyor, basit geri ödeme ${fmt(m.pb,2)} yıl. Yıl-1 öz tüketim oranı %${fmt(selfC,0)}.`:`Proje bu varsayımlarla negatif NPV veriyor (${usd(m.npv)}); sistem boyutunu tüketim profiline yaklaştırmak, BESS ile öz tüketimi artırmak veya CAPEX/tarife varsayımlarını gözden geçirmek önerilir.`}</p></div>
+
+  <div class="r-block"><h2><span class="rn">02</span>Girdiler ve Varsayımlar</h2>
+  <table class="r-assume"><tbody>
+  <tr><td>GES</td><td>${fmt(p.kwp)} kWp · ${fmt(p.spec)} kWh/kWp/yıl · ${p.orient==='ew'?'doğu-batı yerleşim':'güney yerleşim'} · degradasyon ${pct(p.degr*100,1)}/yıl · ${fmt(p.life)} yıl</td></tr>
+  <tr><td>Tüketim</td><td>${fmt(p.consY/1000,0)} MWh/yıl · profil: ${$('i_profile').selectedOptions[0].text} · aylık dağılım düzenlenebilir yüzde</td></tr>
+  <tr><td>Bedelli limit</td><td>${p.abone==='mesken'?'uygulanmaz (mesken abone grubu)':fmt(p.consPrev*2/1000,0)+' MWh (önceki yıl tüketimi × 2)'}</td></tr>
+  <tr><td>Tarife</td><td>alış ${fmt(p.pBuy,2)} / satış ${fmt(p.pSell,2)} TL/kWh · TL enflasyonu %${fmt(p.esc1*100)} (ilk 5y) → %${fmt(p.esc2*100)}${p.preal?' · reel +%'+fmt(p.preal*100,1):''}</td></tr>
+  <tr><td>Kur</td><td>başlangıç ${fmt(p.fx0,1)} TL/$ · ${p.fxMode==='ppp'?'SAGP: enflasyon farkı kadar artış':'manuel %'+fmt(p.fxMan*100)+'/yıl'} · USD enflasyonu %${fmt(p.piUS*100,1)}</td></tr>
+  ${p.bessOn?`<tr><td>Batarya (BESS)</td><td>${fmt(p.bKwh)} kWh / ${fmt(p.bKw)} kW · round-trip %${fmt(p.bRte*100)} · CAPEX ${fmt(p.bCapex)} $/kWh · degradasyon ${pct(p.bDegr*100,1)}/yıl</td></tr>`:''}
+  <tr><td>Finansman</td><td>GES CAPEX ${fmt(p.capexU)} $/kWp · OPEX ${fmt(p.opexU)} TL/kWp-yıl (TL enfl.) · iskonto %${fmt(p.r*100,1)} USD${p.lOn?' · kredi %'+fmt(p.lRatio*100)+' / faiz %'+fmt(p.lRate*100,1)+' / '+p.lTerm+' yıl':' · kredisiz'}</td></tr>
+  </tbody></table></div>
+
+  <div class="r-block"><h2><span class="rn">03</span>Yıl-1 Enerji Dengesi</h2>
+  ${$('t_bal').outerHTML}
+  <div class="r-chart"><div class="r-cap">Aylık dağılım — mahsup / bedelli satış / şebekeden çekiş (MWh)</div>${$('ch_month').outerHTML}
+  <div class="r-legend"><span><i style="background:#1E7F4F"></i>Mahsuplaşan</span><span><i style="background:#E8A020"></i>Fazla (bedelli)</span><span><i style="background:#C9D3E4"></i>Çekiş</span><span><i style="background:#C7000B"></i>Bedelsiz</span></div></div></div>
+
+  <div class="r-block"><h2><span class="rn">04</span>Saatlik vs Aylık Rejim</h2>
+  ${$('t_cmp').outerHTML}</div>
+
+  <div class="r-block"><h2><span class="rn">05</span>Yıllık Nakit Akışı (${fmt(p.life)} yıl)</h2>
+  <table><thead><tr><th>Yıl</th><th>Mahsup (MWh)</th><th>Bedelli (MWh)</th><th>Bedelsiz (MWh)</th><th>Alış ₺/kWh</th><th>Kur ₺/$</th><th>Net CF (TL)</th><th>Net CF ($)</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="r-chart"><div class="r-cap">Kümülatif iskontolu nakit akışı (USD) — sıfırı geçtiği an iskontolu geri ödeme</div>${$('ch_cum').outerHTML}</div></div>
+
+  <div class="r-block"><h2><span class="rn">06</span>Metodoloji ve Uyarılar</h2>
+  <p class="r-note">Motor, her işletme yılını 12 ay × takvim günü (hafta içi/sonu) deseniyle saatlik simüle eder; mahsup = Σ min(üretim, tüketim). Ay içi üretim, aylık ortalamalar arası interpolasyonla gün gün eğimlendirilir (ay toplamı korunur). Bedelli üretim limiti = önceki yıl tüketimi × 2; bedelli satış = min(yıllık fazla, limit − mahsup); kalan miktar YEKDEM'e bedelsiz yazılır (EPDK Karar 14531, MADDE 7 ve 9). BESS günlük döngüsel dispatch: fazladan şarj, çekişe RTE ile deşarj — arbitraj modellenmez. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır; hava durumu rastgeleliği bilinçli modellenmez (P50). Bu bir ön fizibilitedir; tarife, bedelli limit ve şebeke bağlantı koşulları güncel mevzuat ve ilgili şebeke işletmecisinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>
+  <div class="r-foot"><span>© 2026 <b>Fizibilite Platformu</b> · Furkan Ozan Seyfi</span><span>EPDK Karar 14531 · ${today()}</span></div></div>`;
+  $('report').innerHTML=html;
+  document.body.classList.add('printing');
+  const cleanup=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',cleanup);};
+  window.addEventListener('afterprint',cleanup);
+  window.print();
+});
+
+/* ============ GLOSSARY ============ */
+const GLOSS=[
+ ['Saatlik mahsuplaşma','Hourly netting','Her saat için mahsup = min(üretim, tüketim). EPDK 14531 ile C&I abonelerde zorunlu; saatler arası taşıma yok, gündüz fazlası akşam çekişini karşılayamaz.','mahsup[s] = min(üretim[s], tüketim[s])'],
+ ['Aylık mahsuplaşma','Monthly netting','Eski rejim; mesken abonelerinde devam eder. Ay toplamı üzerinden netleşir, saat uyumu aranmaz.','mahsup_ay = min(Σüretim, Σtüketim)'],
+ ['Bedelli üretim limiti','Paid production cap','Satışa konu edilebilecek yıllık üretim tavanı: önceki yıl tüketimi × 2. Mesken muaf. Limit üstü YEKDEM bedelsizdir ve SKB doğabilir (MADDE 7/5).','limit = önceki yıl tüketim × 2'],
+ ['Öz tüketim oranı','Self-consumption ratio','Üretimin tüketimle eşleşen payı: mahsup ÷ üretim. Saatlik rejimde fizibilitenin ana KPI değeri; BESS ve doğu-batı yerleşim yükseltir.','öz tüketim = mahsup / üretim'],
+ ['Otonomi','Autonomy / self-sufficiency','Tüketimin GES tarafından karşılanan payı: mahsup ÷ tüketim. Öz tüketimle karıştırma: payda farklı.','otonomi = mahsup / tüketim'],
+ ['YEKDEM bedelsiz','Uncompensated feed-in','Limit üstü ihtiyaç fazlasının 0 TL ile YEKDEM sistemine aktarılması — gelir yaratmayan üretim. Doğru boyutlandırmanın sebebi.',null],
+ ['SKB — Sistem kullanım bedeli','Grid usage fee','Şebekeyi kullanmanın birim bedeli. Limit üstü miktar "SKB ödemeli" statüsündedir: gelir yok, bedel var.',null],
+ ['Fiyat terfisi (BESS)','Price uplift','Depolanan fazla kWh değerinin satış fiyatı yerine alış fiyatından değerlenmesi: bataryanın mahsuplaşma rejimindeki ana değer kaynağı.','Δdeğer = kaydırılan × (alış − satış)']
+];
+GLOSS.forEach(([t,en,d,f])=>{
+  $('glist').insertAdjacentHTML('beforeend',
+   `<details class="gterm"><summary>${t}<span class="en">${en}</span></summary>
+    <div class="gb"><p>${d}</p>${f?`<div class="gf">${f}</div>`:''}</div></details>`);
+});
+
+/* ============ TOOLTIPS ============ */
+const TIPS={
+ i_abone:"Rejimi belirler: Ticarethane/Sanayi (C&I) 01.05.2026 itibarıyla SAATLİK mahsuplaşmaya tabidir; Mesken aylık rejimde kalır ve bedelli üretim limiti uygulanmaz. Seçim, motorun tüm hesap mantığını değiştirir.",
+ i_cons:"Tesisin yıllık toplam elektrik tüketimi. 24 saatlik profil şekilleri ve mevsimsellik bu toplama ölçeklenir — faturalarından son 12 ayın toplamını gir.",
+ i_consPrev:"Bedelli üretim limitinin bazı: limit = bu değer × 2. Yeni tesislerde/devirde şebeke işletmecisinin LÜM'e kaydettiği değer esas alınır — teyit et. Mesken için anlamsızdır (limitsiz).",
+ i_profile:"Hazır arketip seçince aşağıdaki 24 saatlik şekiller dolar; her hücre elle düzenlenebilir. Ofis: gündüz pik, GES ile iyi uyum. Fabrika 3 vardiya: düz yük. Otel: akşam pik, saatlik rejimde en zor profil.",
+ i_season:"Aylık tüketim ağırlıkları. Yaz pik (klima/soğutma) GES üretim tepesiyle örtüştüğü için öz tüketimi yükseltir; kış pik tersine çalışır.",
+ i_kwp:"Panel tarafının DC kurulu gücü. Saatlik rejimde 'çatıyı doldur' yerine 'profiline boyutlan' geçerlidir — fazla kapasite bedelsize kaçar.",
+ i_spec:"Yıllık birim üretim (kWh/kWp). Türkiye çatılarında tipik 1.400–1.650; sahaya, eğime ve gölgelenmeye bağlıdır. PVsyst/PVGIS değerini gir.",
+ i_orient:"Güney: öğle tepeli klasik eğri, toplam üretim en yüksek. Doğu-Batı: sabah-akşam yayvan eğri, toplam ~%2-4 düşük ama tüketim profiliyle örtüşme (öz tüketim) genelde daha iyi.",
+ i_degr:"Panel performansının yıllık azalması. Modern modüllerde %0,4–0,6 tipiktir; motor her yılı bu katsayıyla ayrıca simüle eder.",
+ i_life:"Ekonomik analiz süresi. Çatı GES için 25 yıl standart; inverter yenilemesi OPEX içinde kabul edilir.",
+ i_skb:"MADDE 7(5): limit üstü ihtiyaç fazlası 'sistem kullanım bedeli ödemeli' miktardır — gelir getirmediği gibi SKB maliyeti doğabilir. Dağıtım bölgenin birim SKB'sini gir; 0 bırakılırsa yalnız gelir kaybı olarak modellenir.",
+ i_tarpre:"Ticarethane AG (4,28/3,95) yalnız referanstır. Kendi faturandaki aktif enerji tek zamanlı birim fiyatını 'Elle gir' ile kullan — tarife sınıfına göre fark büyüktür.",
+ i_pBuy:"Aktif enerji tek zamanlı ALIŞ fiyatı (vergisiz-fonsuz enerji bedeli). Mahsuplaşan her kWh ve BESS kaydırması bu fiyattan değerlenir; şebekeden çekiş de bu fiyattan ödenir.",
+ i_pSell:"Bedelli fazla üretimin SATIŞ fiyatı — mevzuatta gruptaki en düşük ilgili tarife fiyatı. Alıştan düşük olması, öz tüketimin satıştan daha değerli olmasının sebebidir.",
+ i_esc1:"İlk 5 yılın yıllık tarife zam varsayımı. Tarife zamları uzun vadede TÜFE'yi izler; TCMB beklenti patikasına paralel %20–25 makul başlangıçtır.",
+ i_esc2:"5. yıldan sonraki kalıcı zam varsayımı — enflasyonun hedefe yakınsadığı dönem: %10–15 bandı savunulabilir.",
+ b_on:"Bataryayı modele dahil eder: gündüz fazlası depolanır, akşam çekişi karşılanır. CAPEX/OPEX ve degradasyon dahil tüm etkiler yıllık simülasyona girer.",
+ b_kwh:"Enerji kapasitesi. Kaba boyutlama: tipik günün akşam çekişi kadar (fazla üretim × RTE sınırında).",
+ b_kw:"Güç (şarj/deşarj hızı). Kapasite/güç oranı 2 saat civarı C&I için dengelidir.",
+ b_rte:"Round-trip verim: depolanan enerjinin geri alınabilen payı. LFP sistemlerde %86–90 tipik; kayıp, deşarjda düşülür.",
+ b_degr:"Kullanılabilir kapasitenin yıllık azalması. Günlük tek döngüde %1,5–2,5 tipik; motor her yıl kapasiteyi küçülterek simüle eder.",
+ b_capex:"Batarya sistemi anahtar teslim birim maliyeti (PCS + BMS + montaj dahil). 2026 itibarıyla ~10.000–14.000 TL/kWh bandı.",
+ b_opex:"Yıllık bakım/garanti bedeli; OPEX artış oranıyla eskale edilir.",
+ i_capex:"GES anahtar teslim birim maliyeti (panel, inverter, konstrüksiyon, AG/OG bağlantı, proje-izin dahil). 2026 çatı bandı ~25.000–32.000 TL/kWp.",
+ i_opex:"Yıllık işletme-bakım: temizlik, izleme, sigorta, küçük onarımlar. İnverter yenileme karşılığını da içerecek şekilde seçilebilir.",
+ i_oesc:"OPEX'in yıllık artışı — TL maliyet kalemi olduğundan enflasyona yakın tutulmalı.",
+ i_r:"TL nominal iskonto oranı: bu paranın alternatif getirisi (mevduat, para piyasası, iç verim beklentin). Tarife zamları nominal olduğundan iskonto da nominal olmalı — reel oranla karıştırma.",
+ l_on:"Yatırımın bir kısmının TL krediyle finanse edilmesi. Equity IRR ve özkaynak geri dönüşü buna göre hesaplanır.",
+ l_ratio:"Kredinin toplam CAPEX içindeki payı. C&I çatı projelerinde %50–70 tipik.",
+ l_rate:"TL ticari kredi faizi (yıllık). Temmuz 2026 ortamında %35–45 bandı; leasing alternatifi ayrıca değerlendirilebilir.",
+ l_term:"Anüite vadesi. Kısa vade taksiti büyütür, ilk yıllarda equity nakit akışını bastırır — payback ile birlikte oku."
+};
+function attachTips(){
+  for(const id in TIPS){
+    const el=$(id);if(!el)continue;
+    let lab=el.closest('.field')?.querySelector('label');
+    if(!lab&&el.closest('label.check'))lab=el.closest('label.check');
+    if(!lab||lab.querySelector('.tipq'))continue;
+    if(lab.classList.contains('check')){
+      const span=document.createElement('span');span.className='tipq';span.dataset.tip=TIPS[id];
+      while(el.nextSibling)span.appendChild(el.nextSibling);
+      lab.appendChild(span);
+    }else{
+      const tn=lab.firstChild;
+      const span=document.createElement('span');span.className='tipq';span.dataset.tip=TIPS[id];
+      span.textContent=tn.textContent.trim()+' ';
+      lab.replaceChild(span,tn);
+    }
+  }
+}
+const tipbox=document.createElement('div');tipbox.id='tipbox';document.body.appendChild(tipbox);
+function showTip(el){
+  tipbox.textContent=el.dataset.tip;
+  const w=Math.min(380,window.innerWidth-24);
+  tipbox.style.width=w+'px';tipbox.style.display='block';
+  const r=el.getBoundingClientRect();
+  let x=Math.min(Math.max(10,r.left),window.innerWidth-w-10);
+  tipbox.style.left=x+'px';tipbox.style.top='0px';
+  const h=tipbox.offsetHeight;
+  let y=r.bottom+9;
+  if(y+h>window.innerHeight-10)y=r.top-h-9;
+  if(y<10)y=10;
+  tipbox.style.top=y+'px';
+}
+const hideTip=()=>{tipbox.style.display='none';};
+document.addEventListener('mouseover',e=>{const t=e.target.closest('.tipq');if(t)showTip(t);});
+document.addEventListener('mouseout',e=>{if(e.target.closest('.tipq'))hideTip();});
+document.addEventListener('focusin',e=>{const t=e.target.closest('.tipq');if(t)showTip(t);});
+document.addEventListener('focusout',e=>{if(e.target.closest('.tipq'))hideTip();});
+window.addEventListener('scroll',hideTip,true);
+
+/* init */
+attachTips();
+loadProfile();
+loadSeason();
+document.querySelectorAll('input,select').forEach(el=>{
+  if(el.closest('.hgrid'))return;
+  el.addEventListener('input',calcAll);
+});
+calcAll();
+</script><div id="tipbox" style="display: none;"></div>
+
+</body></html>

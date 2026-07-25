@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { listProjects, IS_DEMO_MODE } from '@/lib/db';
-import { autoSeedIfEmpty } from '@/lib/seed';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, FileText, Plus, Building2, Home, Info } from 'lucide-react';
 import type { ProjectSummary } from '@/lib/models/types';
@@ -13,7 +12,6 @@ interface Row { id: string; name: string; kind: string; summary: ProjectSummary;
 const HURDLE = 0.12;
 
 export default function DashboardPage() {
-  if (IS_DEMO_MODE) autoSeedIfEmpty();
   const rows: Row[] = listProjects()
     .filter((p) => p.resultsJson)
     .map((p) => ({ id: p.id, name: p.name, kind: p.projectType, summary: JSON.parse(p.resultsJson!) as ProjectSummary, updatedAt: p.updatedAt }));
