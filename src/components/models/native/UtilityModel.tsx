@@ -143,6 +143,10 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
             <div className="eyebrow">Solar + Storage · Proje Finansmanı Analiz Aracı</div>
             <h1>GES + BESS Proje Finansmanı Fizibilite Modeli</h1>
             <p className="sub">İnşaat dönemi ve IDC, kaynak–kullanım, grace period, DSCR-sculpted borç takvimi, DSRA, LLCR/PLCR, vergi tatili ve batarya modülü dahil tam proje finansmanı mekaniği. Her formül, girilen değerlerle dolu halde gösterilir.</p>
+          </div>
+        </div>
+        <div className="m-tabs">
+          <div className="hwrap">
             <nav role="tablist">
               <button className={tab === 'fiz' ? 'active' : ''} onClick={() => setTab('fiz')}>1 · Fizibilite Modeli</button>
               <button className={tab === 'hw' ? 'active' : ''} onClick={() => setTab('hw')}>2 · Huawei Değer Analizi</button>

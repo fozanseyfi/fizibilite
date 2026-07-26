@@ -167,6 +167,10 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
             <div className="eyebrow">C&I Solar · EPDK Karar 14531 · Saatlik Mahsuplaşma</div>
             <h1>C&I Saatlik Mahsuplaşma Fizibilite Kokpiti</h1>
             <p className="sub">Saatlik min(üretim, tüketim) eşleşmesi, bedelli üretim limiti, BESS kaydırma ve USD bazlı yatırım analizi (TL tarife → kur projeksiyonu) — her işletme yılı, 12 ay × hafta içi/sonu temsili günlerle saatlik simüle edilir. Her formül, girilen değerlerle dolu halde gösterilir.</p>
+          </div>
+        </div>
+        <div className="m-tabs">
+          <div className="hwrap">
             <nav role="tablist">
               {chip(tab === 'fiz', '1 · Fizibilite Modeli', () => setTab('fiz'))}
               {chip(tab === 'hours', '2 · Saatlik Veri', () => setTab('hours'))}

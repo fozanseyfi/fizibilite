@@ -12,16 +12,18 @@
   --mono: 'IBM Plex Mono', ui-monospace, monospace; --sans: 'IBM Plex Sans', system-ui, sans-serif;
   --disp: 'Archivo', var(--sans); --radius: 12px;
   --shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 6px 18px rgba(15, 23, 42, .06);
-  background: #F6F8FB; color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55;
+  background: transparent; color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55;
 }
 .mdl * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.mdl .m-header { background: var(--navy-deep); color: #fff; padding: 22px 20px 0; border-radius: var(--radius) var(--radius) 0 0; position: sticky; top: 0; z-index: 40; box-shadow: 0 6px 20px rgba(14, 42, 94, .16); }
+.mdl .m-header { background: var(--navy-deep); color: #fff; padding: 22px 20px 16px; border-radius: var(--radius) var(--radius) 0 0; }
+/* Yalnızca sekme çubuğu yapışkan — başlık/alt metin yukarı kaydırılır (küçük ekranı kaplamaz) */
+.mdl .m-tabs { background: var(--navy-deep); padding: 0 20px; position: sticky; top: 0; z-index: 40; box-shadow: 0 6px 16px rgba(14, 42, 94, .18); }
 .mdl .hwrap { max-width: 1180px; margin: 0 auto; }
 .mdl .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
 .mdl h1 { font-family: var(--disp); font-weight: 800; font-size: clamp(21px, 3.2vw, 31px); letter-spacing: -.01em; }
 .mdl .sub { color: #B7C4DE; font-size: 14px; margin-top: 4px; max-width: 760px; }
-.mdl nav { display: flex; gap: 4px; margin-top: 22px; flex-wrap: wrap; }
+.mdl nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .mdl nav button { appearance: none; border: none; cursor: pointer; font-family: var(--sans); font-weight: 600; font-size: 14px; padding: 11px 18px; border-radius: 10px 10px 0 0; background: transparent; color: #9FB0D0; }
 .mdl nav button:hover { color: #fff; }
 .mdl nav button.active { background: var(--surface); color: var(--navy-deep); }
