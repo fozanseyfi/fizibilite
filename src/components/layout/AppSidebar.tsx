@@ -4,10 +4,11 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Sun, LayoutDashboard, FolderPlus, BookOpen, FlaskConical,
+  LayoutDashboard, FolderPlus, BookOpen, FlaskConical,
   ChevronRight, ChevronsLeft, ChevronsRight,
   User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu, Plus, BookText,
 } from 'lucide-react';
+import { BrandMark } from '@/components/layout/BrandMark';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LocaleToggle } from '@/components/LocaleToggle';
 import { cn } from '@/lib/utils';
@@ -110,16 +111,11 @@ export function AppSidebar() {
           )}
           title={collapsed ? 'Fizibilite Platformu' : undefined}
         >
-          <div className="h-10 w-10 rounded-xl gradient-solar flex items-center justify-center shadow-sm flex-shrink-0">
-            <Sun className="h-5 w-5 text-white" />
-          </div>
+          <BrandMark className="h-10 w-10 flex-shrink-0 drop-shadow-sm" />
           {!collapsed && (
             <div className="min-w-0">
               <div className="font-bold text-sm leading-tight whitespace-nowrap">
                 Fizibilite <span className="text-solar">Platformu</span>
-              </div>
-              <div className="text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap">
-                EPDK 14531
               </div>
             </div>
           )}
@@ -243,9 +239,7 @@ export function MobileTopNav() {
           <Menu className="h-5 w-5" />
         </button>
         <Link href="/" className="flex items-center gap-2 min-w-0">
-          <div className="h-8 w-8 rounded-lg gradient-solar flex items-center justify-center flex-shrink-0">
-            <Sun className="h-4 w-4 text-white" />
-          </div>
+          <BrandMark className="h-8 w-8 flex-shrink-0" />
           <span className="font-bold text-sm truncate">
             Fizibilite <span className="text-solar">Platformu</span>
           </span>
