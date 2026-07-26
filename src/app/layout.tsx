@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import '@/styles/model.css';
 import { cookies } from 'next/headers';
 import { Locale } from '@/lib/i18n';
 import { AppSidebar, MobileTopNav } from '@/components/layout/AppSidebar';
@@ -19,6 +20,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const locale: Locale = localeCookie === 'en' ? 'en' : 'tr';
   return (
     <html lang={locale}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-screen bg-background antialiased">
         <div className="flex">
           <AppSidebar />
