@@ -19,7 +19,7 @@
 .mdl .m-header { background: var(--navy-deep); color: #fff; padding: 22px 20px 16px; border-radius: var(--radius) var(--radius) 0 0; }
 /* Yalnızca sekme çubuğu yapışkan — başlık/alt metin yukarı kaydırılır (küçük ekranı kaplamaz) */
 .mdl .m-tabs { background: var(--navy-deep); padding: 0 20px; position: sticky; top: 0; z-index: 40; box-shadow: 0 6px 16px rgba(14, 42, 94, .18); }
-.mdl .hwrap { max-width: 1180px; margin: 0 auto; }
+.mdl .hwrap { max-width: none; margin: 0; }
 .mdl .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
 .mdl h1 { font-family: var(--disp); font-weight: 800; font-size: clamp(21px, 3.2vw, 31px); letter-spacing: -.01em; }
 .mdl .sub { color: #B7C4DE; font-size: 14px; margin-top: 4px; max-width: 760px; }
@@ -29,7 +29,7 @@
 .mdl nav button.active { background: var(--surface); color: var(--navy-deep); }
 .mdl nav button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-.mdl .m-main { max-width: 1180px; margin: 0 auto; padding: 26px 20px 70px; }
+.mdl .m-main { max-width: none; margin: 0; padding: 26px 22px 70px; }
 .mdl .tab { display: none; }
 .mdl .tab.active { display: block; animation: mdlfade .25s ease; }
 @keyframes mdlfade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -167,7 +167,8 @@
 .mdl .hgrid input.rem { background: var(--gold-soft); border-color: var(--gold); font-weight: 600; }
 .mdl input.remz { background: var(--gold-soft) !important; border-color: var(--gold) !important; font-weight: 600; }
 .mdl .hlbl { font-family: var(--mono); font-size: 9.5px; color: #98A2B6; text-align: center; }
-@media (max-width: 760px) { .mdl .hgrid { grid-template-columns: repeat(6, 1fr); } }
+/* Dar ekranda 12'li düzen korunur; grid kendi içinde yatay kaydırılır (etiket-kutu hizası bozulmaz) */
+@media (max-width: 760px) { .mdl .hgrid { grid-template-columns: repeat(12, minmax(42px, 1fr)); overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; } }
 
 /* ---- Sonuçlar (yönetici özeti) sekmesi ---- */
 .mdl .exec-hero { background: linear-gradient(135deg, var(--navy-deep) 0%, #14397E 60%, #18428F 100%); color: #fff; border-radius: var(--radius); padding: 26px 28px 22px; margin-bottom: 24px; box-shadow: var(--shadow); }
@@ -191,6 +192,50 @@
 @media (max-width: 900px) {
   .mdl .exec-grid2 { grid-template-columns: 1fr; }
   .mdl .exec-stat + .exec-stat { border-left: none; padding-left: 0; }
+}
+
+/* ---- Mobil ince ayar (telefon) — tüm bileşen tanımlarından SONRA gelmeli ---- */
+@media (max-width: 640px) {
+  .mdl { font-size: 14px; }
+  .mdl .m-header { padding: 16px 14px 12px; border-radius: 10px 10px 0 0; }
+  .mdl .m-header h1 { font-size: 20px; }
+  .mdl .m-header .sub { font-size: 12.5px; }
+  /* Sekmeler tek satır, yatay kaydırmalı — sabit çubuk ekranı kaplamaz */
+  .mdl .m-tabs { padding: 0 8px; }
+  .mdl .m-tabs nav { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .mdl .m-tabs nav::-webkit-scrollbar { display: none; }
+  .mdl .m-tabs nav button { white-space: nowrap; flex: 0 0 auto; padding: 10px 13px; font-size: 13px; }
+  .mdl .m-main { padding: 14px 10px 46px; }
+  .mdl .toolbar { padding: 12px; gap: 10px; }
+  .mdl .step { margin-bottom: 14px; border-radius: 10px; }
+  .mdl .step-head { padding: 12px 13px; gap: 9px; }
+  .mdl .step-head h2 { font-size: 15.5px; }
+  .mdl .step-body { padding: 13px 12px; gap: 16px; }
+  .mdl .card { padding: 13px 12px; margin-bottom: 12px; }
+  .mdl .chartcard { padding: 12px 10px; }
+  .mdl .formula-card, .mdl .formula { padding: 12px; }
+  .mdl .kpis { grid-template-columns: repeat(2, 1fr); gap: 9px; }
+  .mdl .kpi { padding: 11px 12px; }
+  .mdl .kpi .kval, .mdl .kpi .kv { font-size: 17px; }
+  .mdl .exec-hero { padding: 16px 14px 14px; }
+  .mdl .exec-hero h2 { font-size: 19px; }
+  .mdl .exec-hero .eh-sub { font-size: 12px; }
+  .mdl .exec-badge { margin-left: 0; }
+  .mdl .exec-stats { grid-template-columns: repeat(2, 1fr); gap: 12px 14px; }
+  .mdl .exec-stat { padding: 0; border-left: none !important; }
+  .mdl .exec-stat .v { font-size: 18px; }
+  .mdl .pitch { padding: 15px 14px; }
+  .mdl .pitch p { font-size: 14px; }
+  .mdl .su { gap: 10px; }
+  .mdl .sucard { padding: 12px 12px; }
+  .mdl .chips button { padding: 6px 10px; font-size: 12px; }
+  .mdl .btn-mini { width: 100%; margin-left: 0 !important; margin-top: 8px; }
+  .mdl .note { font-size: 12.5px; padding: 9px 11px; }
+  .mdl .tsub { font-size: 11.5px; }
+}
+@media (max-width: 480px) {
+  .mdl .row2 { grid-template-columns: 1fr; }
+  .mdl .toolbar .field { min-width: 100%; }
 }
 
 /* ---- tooltip (floating) — id tabanlı, scope gerektirmez ---- */

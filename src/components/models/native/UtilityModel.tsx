@@ -164,8 +164,8 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
           <div className={`tab ${tab === 'fiz' ? 'active' : ''}`}>
             <div className="toolbar">
               <TxtF label="Proje adı" unit="(raporda görünür)" value={inputs.pname} onChange={(v) => set('pname', v)} />
-              <TxtF label="Firma" unit="(raporda görünür)" value={inputs.firm ?? ''} onChange={(v) => set('firm', v)} placeholder="ör. Kontrolmatik Enerji" />
-              <TxtF label="Lokasyon" unit="(il / saha)" value={inputs.loc ?? ''} onChange={(v) => set('loc', v)} placeholder="ör. Konya, Karapınar" />
+              <TxtF label="Firma" unit="(raporda görünür)" value={inputs.firm ?? ''} onChange={(v) => set('firm', v)} placeholder="ör. ABC" />
+              <TxtF label="Lokasyon" unit="(il / saha)" value={inputs.loc ?? ''} onChange={(v) => set('loc', v)} placeholder="ör. Ankara, Çankaya" />
               <TxtF label="Hazırlayan" value={inputs.prep} onChange={(v) => set('prep', v)} />
             </div>
 
