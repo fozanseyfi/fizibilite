@@ -437,7 +437,7 @@ export function scenMatrixCi(i: CiInputs): string {
 function esc(s: string): string {
   return String(s).replace(/[&<>]/g, (c) => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'));
 }
-export interface CiReportMeta { title: string; prep: string; date: string; profileLabel: string; }
+export interface CiReportMeta { title: string; prep: string; date: string; profileLabel: string; firm?: string; loc?: string; }
 export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
   const y1 = m.years[0];
   const selfC = (y1.s.mah + y1.s.shift) / Math.max(y1.s.prod, 1) * 100;
@@ -447,7 +447,10 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
   m.years.forEach((yy) => { rows += `<tr><td>${yy.y}</td><td>${fmt((yy.s.mah + yy.s.shift) / 1000, 1)}</td><td>${fmt(yy.L.bedelli / 1000, 1)}</td><td>${fmt(yy.L.bedelsiz / 1000, 1)}</td><td>${fmt(yy.buy, 2)}</td><td>${fmt(yy.fx, 1)}</td><td>${fmt(yy.cfTL)}</td><td>${fmt(yy.cf)}</td></tr>`; });
   return `<div class="r-cover"><div class="r-eyebrow">C&I Saatlik Mahsuplaşma · Ön Fizibilite Raporu · EPDK Karar 14531</div><h1>${esc(meta.title)}</h1>`
     + `<div class="r-sub">${fmt(i.kwp)} kWp${i.bessOn ? ' + ' + fmt(i.bKwh) + ' kWh BESS' : ''} · ${fmt(i.consY / 1000, 0)} MWh/yıl tüketim · ${rejim} · ${fmt(i.life)} yıl analiz</div>`
-    + `<div class="r-facts"><div class="r-fact"><b>Tarih</b><span>${esc(meta.date)}</span></div>`
+    + `<div class="r-facts">`
+    + (meta.firm ? `<div class="r-fact"><b>Firma</b><span>${esc(meta.firm)}</span></div>` : '')
+    + (meta.loc ? `<div class="r-fact"><b>Lokasyon</b><span>${esc(meta.loc)}</span></div>` : '')
+    + `<div class="r-fact"><b>Tarih</b><span>${esc(meta.date)}</span></div>`
     + (meta.prep ? `<div class="r-fact"><b>Hazırlayan</b><span>${esc(meta.prep)}</span></div>` : '')
     + `<div class="r-fact"><b>Rejim</b><span>${rejim}</span></div>`
     + `<div class="r-fact"><b>Tüketim profili</b><span>${esc(meta.profileLabel)}</span></div>`

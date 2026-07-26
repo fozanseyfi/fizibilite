@@ -7,6 +7,8 @@ export function defaultCiInputs(): CiInputs {
   return {
     pname: 'C&I Çatı GES — Saatlik Mahsuplaşma',
     prep: '',
+    firm: '',
+    loc: '',
     abone: 'ci',
     consY: 1200000,
     consPrev: 1200000,

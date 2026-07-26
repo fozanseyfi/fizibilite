@@ -164,6 +164,8 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
           <div className={`tab ${tab === 'fiz' ? 'active' : ''}`}>
             <div className="toolbar">
               <TxtF label="Proje adı" unit="(raporda görünür)" value={inputs.pname} onChange={(v) => set('pname', v)} />
+              <TxtF label="Firma" unit="(raporda görünür)" value={inputs.firm ?? ''} onChange={(v) => set('firm', v)} placeholder="ör. Kontrolmatik Enerji" />
+              <TxtF label="Lokasyon" unit="(il / saha)" value={inputs.loc ?? ''} onChange={(v) => set('loc', v)} placeholder="ör. Konya, Karapınar" />
               <TxtF label="Hazırlayan" value={inputs.prep} onChange={(v) => set('prep', v)} />
             </div>
 
@@ -422,7 +424,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
                 <div>
                   <div className="eh-eyebrow">Yönetici Özeti · Otomatik Oluşturulur</div>
                   <h2>{inputs.pname || 'Utility GES Projesi'}</h2>
-                  <div className="eh-sub">{nf(inputs.mw)} MWp{inputs.bessOn ? ` + ${nf(inputs.bMWh)} MWh BESS` : ''} · {inputs.life} yıl işletme · kaldıraç %{nf(inputs.debt)} · iskonto {pct(p.r * 100, 2)}{inputs.useWacc ? ' (vergi-sonrası WACC)' : ''}</div>
+                  <div className="eh-sub">{inputs.firm ? `${inputs.firm} · ` : ''}{inputs.loc ? `${inputs.loc} · ` : ''}{nf(inputs.mw)} MWp{inputs.bessOn ? ` + ${nf(inputs.bMWh)} MWh BESS` : ''} · {inputs.life} yıl işletme · kaldıraç %{nf(inputs.debt)} · iskonto {pct(p.r * 100, 2)}{inputs.useWacc ? ' (vergi-sonrası WACC)' : ''}</div>
                 </div>
                 <span className={`exec-badge ${vd.cls}`}>{vd.cls === 'good' ? '✓ Finanse edilebilir' : '⚠ Varsayımları gözden geçir'}</span>
               </div>
@@ -474,7 +476,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
       </div>
 
       <PrintReport open={printing} onClose={() => setPrinting(false)}>
-        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(inputs, p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }, scens) }} />
+        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(inputs, p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }, scens) }} />
       </PrintReport>
     </>
   );

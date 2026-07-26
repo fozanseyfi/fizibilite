@@ -8,6 +8,8 @@ import { SOLAR_M, SUN_S, SUN_EW, DAYS, norm } from './presets';
 export interface CiInputs {
   pname: string;
   prep: string;
+  firm?: string;   // firma adı (raporda görünür)
+  loc?: string;    // lokasyon (raporda görünür)
 
   abone: 'ci' | 'mesken';
   consY: number;      // yıllık tüketim (kWh)

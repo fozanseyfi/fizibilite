@@ -187,6 +187,8 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
           <div className={`tab ${tab === 'fiz' ? 'active' : ''}`}>
             <div className="toolbar">
               <TxtF label="Proje adı" unit="(raporda görünür)" value={inputs.pname} onChange={(v) => set('pname', v)} />
+              <TxtF label="Firma" unit="(raporda görünür)" value={inputs.firm ?? ''} onChange={(v) => set('firm', v)} placeholder="ör. Kontrolmatik Enerji" />
+              <TxtF label="Lokasyon" unit="(il / tesis)" value={inputs.loc ?? ''} onChange={(v) => set('loc', v)} placeholder="ör. Ankara OSB" />
               <TxtF label="Hazırlayan" value={inputs.prep} onChange={(v) => set('prep', v)} />
             </div>
 
@@ -518,7 +520,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                       <div>
                         <div className="eh-eyebrow">Yönetici Özeti · Otomatik Oluşturulur</div>
                         <h2>{inputs.pname || 'C&I GES Projesi'}</h2>
-                        <div className="eh-sub">{nf(inputs.kwp)} kWp{inputs.bessOn ? ` + ${nf(inputs.bKwh)} kWh BESS` : ''} · {nf(inputs.consY / 1000)} MWh/yıl tüketim · {mesken ? 'aylık rejim (mesken)' : 'saatlik rejim (EPDK 14531)'} · {inputs.life} yıl · iskonto {pct(inputs.r, 1)} USD</div>
+                        <div className="eh-sub">{inputs.firm ? `${inputs.firm} · ` : ''}{inputs.loc ? `${inputs.loc} · ` : ''}{nf(inputs.kwp)} kWp{inputs.bessOn ? ` + ${nf(inputs.bKwh)} kWh BESS` : ''} · {nf(inputs.consY / 1000)} MWh/yıl tüketim · {mesken ? 'aylık rejim (mesken)' : 'saatlik rejim (EPDK 14531)'} · {inputs.life} yıl · iskonto {pct(inputs.r, 1)} USD</div>
                       </div>
                       <span className={`exec-badge ${vd.cls}`}>{vd.cls === 'good' ? '✓ Değer yaratıyor' : '✗ NPV negatif'}</span>
                     </div>
@@ -567,7 +569,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
 
       {modal && <Modal title={modal.title} onClose={() => setModal(null)}><Html html={modal.body} /></Modal>}
       <PrintReport open={printing} onClose={() => setPrinting(false)}>
-        <div dangerouslySetInnerHTML={{ __html: R.reportCi(inputs, m, { title: inputs.pname || 'C&I Projesi', prep: inputs.prep, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }), profileLabel: PROFILE_LABELS[inputs.profileId as ProfileKey] || inputs.profileId }) }} />
+        <div dangerouslySetInnerHTML={{ __html: R.reportCi(inputs, m, { title: inputs.pname || 'C&I Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }), profileLabel: PROFILE_LABELS[inputs.profileId as ProfileKey] || inputs.profileId }) }} />
       </PrintReport>
     </>
   );

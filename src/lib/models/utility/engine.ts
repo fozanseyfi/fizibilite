@@ -16,6 +16,8 @@ export interface HuaweiInputs {
 export interface UtilityInputs {
   pname: string;
   prep: string;
+  firm?: string;   // firma adı (raporda görünür)
+  loc?: string;    // lokasyon (raporda görünür)
 
   mw: number;          // kurulu güç (MWp DC)
   capexUnit: number;   // EPC CAPEX ($/kWp)

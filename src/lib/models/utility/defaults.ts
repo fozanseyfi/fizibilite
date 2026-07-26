@@ -5,6 +5,8 @@ export function defaultUtilityInputs(): UtilityInputs {
   return {
     pname: '100 MWp Arazi GES + BESS Projesi',
     prep: '',
+    firm: '',
+    loc: '',
     mw: 100,
     capexUnit: 485,
     cur: 'tl',

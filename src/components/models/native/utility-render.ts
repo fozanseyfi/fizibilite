@@ -447,7 +447,7 @@ function assumpTable(p: P): string {
   return h + '</tbody></table>';
 }
 
-export interface ReportMeta { title: string; prep: string; date: string; }
+export interface ReportMeta { title: string; prep: string; date: string; firm?: string; loc?: string; }
 /** #mdl-report gövdesi — kurumsal yönetici özeti formatında PDF raporu (tek HTML string). */
 export function reportUtility(i: UtilityInputs, p: P, m: UtilityModel, hw: HuaweiResult, meta: ReportMeta, scens?: TechScen[]): string {
   const tl = p.cur === 'tl';
@@ -460,6 +460,8 @@ export function reportUtility(i: UtilityInputs, p: P, m: UtilityModel, hw: Huawe
   const cover = `<div class="r-cover"><div class="r-eyebrow">Solar + Storage · Proje Finansmanı · Ön Fizibilite Raporu</div><h1>${esc(meta.title)}</h1>`
     + `<div class="r-sub">${capacity} · ${p.life} yıl işletme · kaldıraç %${fmt(p.debtR * 100)} · ${p.style === 'sculpt' ? 'DSCR-sculpted borç' : p.style === 'ann' ? 'anüite borç' : 'eşit anapara borç'}</div>`
     + `<div class="r-facts">`
+    + (meta.firm ? `<div class="r-fact"><b>Firma</b><span>${esc(meta.firm)}</span></div>` : '')
+    + (meta.loc ? `<div class="r-fact"><b>Lokasyon</b><span>${esc(meta.loc)}</span></div>` : '')
     + `<div class="r-fact"><b>Tarih</b><span>${esc(meta.date)}</span></div>`
     + (meta.prep ? `<div class="r-fact"><b>Hazırlayan</b><span>${esc(meta.prep)}</span></div>` : '')
     + `<div class="r-fact"><b>Para birimi</b><span>${tl ? 'USD · TL gelir kur projeksiyonuyla' : 'USD'}</span></div>`
