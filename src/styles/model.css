@@ -215,40 +215,77 @@
 .mdl .btn-mini { appearance: none; border: 1.5px solid var(--navy); background: #fff; color: var(--navy); font-family: var(--sans); font-weight: 600; font-size: 13px; padding: 8px 14px; border-radius: 8px; cursor: pointer; margin-top: 12px; }
 .mdl .btn-mini:hover { background: var(--navy); color: #fff; }
 
-/* ---- PDF print report (body'ye portal edilir) ---- */
+/* ---- PDF print report (body'ye portal edilir) — kurumsal yönetici özeti şablonu ---- */
 #mdl-report { display: none; }
 @media print {
-  @page { size: A4; margin: 13mm 12mm; }
+  @page { size: A4; margin: 12mm 11mm 14mm; }
   body.mdl-printing > *:not(#mdl-report) { display: none !important; }
   body.mdl-printing #mdl-report { display: block; }
-  body.mdl-printing { background: #fff; font-size: 11px; color: #111; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
-  #mdl-report { --navy: #18428F; --navy-deep: #0E2A5E; --gold: #E8A020; --green: #1E7F4F; --red: #C7000B; }
-  #mdl-report h1 { font-size: 21px; font-family: 'Archivo', sans-serif; color: var(--navy-deep); margin-bottom: 2px; }
-  #mdl-report .r-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
-  #mdl-report .r-sub { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #33405C; margin-bottom: 3px; }
-  #mdl-report .r-meta { font-size: 10px; color: #556; margin-bottom: 14px; padding-bottom: 9px; border-bottom: 2px solid var(--navy-deep); }
-  #mdl-report h2 { font-family: 'Archivo', sans-serif; font-size: 13.5px; color: var(--navy-deep); margin: 16px 0 7px; padding-bottom: 3px; border-bottom: 1px solid #CCD5E4; page-break-after: avoid; }
-  #mdl-report table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 8.6px; margin-bottom: 6px; }
-  #mdl-report th { background: #EEF2F9; color: var(--navy-deep); padding: 4px 6px; text-align: right; border: 1px solid #D5DDEA; font-weight: 600; }
-  #mdl-report td { padding: 3px 6px; text-align: right; border: 1px solid #E2E7EF; }
-  #mdl-report th:first-child, #mdl-report td:first-child { text-align: left; }
-  #mdl-report tr { page-break-inside: avoid; }
-  #mdl-report .r-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin: 7px 0; }
-  #mdl-report .r-kpi { border: 1px solid #D5DDEA; border-radius: 6px; padding: 7px 9px; }
-  #mdl-report .r-kpi .l { font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; letter-spacing: .08em; text-transform: uppercase; color: #667; }
-  #mdl-report .r-kpi .v { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; color: var(--navy-deep); margin-top: 2px; }
-  #mdl-report .r-verdict { border-left: 3px solid var(--gold); background: #FDF7EA; padding: 7px 11px; font-size: 10.5px; margin: 7px 0; }
-  #mdl-report .r-pitch { border: 1.5px solid var(--navy-deep); border-radius: 8px; padding: 11px 13px; font-size: 11.5px; line-height: 1.6; margin: 7px 0; }
-  #mdl-report .r-note { font-size: 8.5px; color: #667; line-height: 1.5; }
-  #mdl-report .r-form { font-family: 'IBM Plex Mono', monospace; font-size: 9px; background: #F4F6FB; padding: 6px 9px; border-radius: 5px; margin: 4px 0; }
-  #mdl-report .pagebreak { page-break-before: always; }
-  #mdl-report svg { max-width: 100%; height: auto; }
-  #mdl-report .r-su { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  #mdl-report .r-cover { background: var(--navy-deep); color: #fff; padding: 22px; border-radius: 12px; margin-bottom: 18px; }
-  #mdl-report .r-cover .r-eyebrow { color: var(--gold); }
-  #mdl-report .r-cover h1 { color: #fff; }
-  #mdl-report .r-cover .r-facts { display: flex; flex-wrap: wrap; gap: 6px 26px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.2); }
+  body.mdl-printing { background: #fff; font-size: 10.5px; color: #1A2436; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  #mdl-report { --navy: #18428F; --navy-deep: #0E2A5E; --gold: #E8A020; --green: #1E7F4F; --red: #C7000B; --line: #D9E0EC; line-height: 1.5; }
+  #mdl-report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* Kapak / başlık bandı */
+  #mdl-report .r-cover { background: linear-gradient(135deg, var(--navy-deep) 0%, #14397E 70%, #18428F 100%); color: #fff; padding: 24px 26px 20px; border-radius: 12px; border-bottom: 4px solid var(--gold); margin-bottom: 16px; }
+  #mdl-report .r-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  #mdl-report .r-cover h1 { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 25px; letter-spacing: -.01em; line-height: 1.15; color: #fff; margin: 0; }
+  #mdl-report .r-cover .r-sub { color: #B7C4DE; font-size: 10.5px; margin-top: 4px; }
+  #mdl-report .r-cover .r-facts { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-top: 13px; padding-top: 11px; border-top: 1px solid rgba(255,255,255,.22); }
   #mdl-report .r-cover .r-fact { font-size: 9.5px; }
-  #mdl-report .r-cover .r-fact b { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #9FB0D0; font-weight: 400; margin-bottom: 2px; }
+  #mdl-report .r-cover .r-fact b { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase; color: #9FB0D0; font-weight: 400; margin-bottom: 2px; }
   #mdl-report .r-cover .r-fact span { color: #fff; font-weight: 600; }
+  #mdl-report .r-cover .r-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 13px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.22); }
+  #mdl-report .r-cover .r-stat .l { font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; letter-spacing: .1em; text-transform: uppercase; color: #9FB0D0; }
+  #mdl-report .r-cover .r-stat .v { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: #fff; margin-top: 3px; letter-spacing: -.01em; }
+  #mdl-report .r-cover .r-stat .v.gold { color: var(--gold); }
+
+  /* Numaralı bölüm başlıkları */
+  #mdl-report h2 { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13px; color: var(--navy-deep); margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 2px solid var(--gold); page-break-after: avoid; }
+  #mdl-report h2 .rn { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--gold); margin-right: 8px; }
+  #mdl-report .r-block { page-break-inside: avoid; }
+
+  /* KPI kartları — renkli sol şerit */
+  #mdl-report .r-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0; }
+  #mdl-report .r-kpi { border: 1px solid var(--line); border-left: 3px solid var(--navy); border-radius: 7px; padding: 8px 10px; background: #FAFBFD; }
+  #mdl-report .r-kpi.good { border-left-color: var(--green); }
+  #mdl-report .r-kpi.bad { border-left-color: var(--red); }
+  #mdl-report .r-kpi .l { font-family: 'IBM Plex Mono', monospace; font-size: 7px; letter-spacing: .08em; text-transform: uppercase; color: #6A7488; margin-bottom: 3px; }
+  #mdl-report .r-kpi .v { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--navy-deep); }
+  #mdl-report .r-kpi.good .v { color: var(--green); }
+  #mdl-report .r-kpi.bad .v { color: var(--red); }
+
+  /* Karar bandı */
+  #mdl-report .r-verdict { border-left: 3px solid var(--gold); background: #FDF7EA; padding: 8px 12px; font-size: 10.5px; margin: 8px 0; border-radius: 0 6px 6px 0; font-weight: 600; }
+  #mdl-report .r-verdict.good { border-left-color: var(--green); background: #EAF6F0; color: #14563A; }
+  #mdl-report .r-verdict.bad { border-left-color: var(--red); background: #FCEBEC; color: #8F0009; }
+
+  /* Tablolar — lacivert başlık, zebra satır, altın toplam */
+  #mdl-report table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 8.4px; margin: 4px 0 8px; border: 1px solid var(--line); }
+  #mdl-report th { background: var(--navy-deep); color: #fff; font-weight: 600; padding: 5px 7px; text-align: right; font-family: 'IBM Plex Sans', sans-serif; border: none; }
+  #mdl-report th:first-child, #mdl-report td:first-child { text-align: left; }
+  #mdl-report td { padding: 4px 7px; text-align: right; border-top: 1px solid #EAEEF4; }
+  #mdl-report tbody tr:nth-child(even) td { background: #F7F9FC; }
+  #mdl-report tr.tot td, #mdl-report tr.total td { background: #FDF4E3 !important; font-weight: 700; border-top: 1.5px solid var(--gold); }
+  #mdl-report tr { page-break-inside: avoid; }
+  #mdl-report .r-assume td:nth-child(odd) { font-weight: 600; color: var(--navy-deep); background: #F2F5FB; width: 15%; white-space: nowrap; }
+  #mdl-report td.base { background: #FDF4E3 !important; font-weight: 700; }
+  #mdl-report td.g { color: var(--green); font-weight: 600; }
+  #mdl-report td.b { color: var(--red); font-weight: 600; }
+  #mdl-report .tsub { font-size: 8px; color: #6A7488; margin: 3px 0 6px; font-family: 'IBM Plex Sans', sans-serif; }
+
+  /* Grafik/panel/notlar */
+  #mdl-report .r-chart { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px 6px; margin: 6px 0 8px; background: #fff; page-break-inside: avoid; }
+  #mdl-report .r-chart .r-cap { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #6A7488; margin-bottom: 5px; }
+  #mdl-report .r-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 8px; color: #6A7488; margin-top: 5px; }
+  #mdl-report .r-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; vertical-align: middle; }
+  #mdl-report .r-pitch { border: 1.5px solid var(--navy-deep); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 13px; font-size: 10.5px; line-height: 1.6; margin: 7px 0; }
+  #mdl-report .r-note { font-size: 8.4px; color: #556; line-height: 1.55; background: #F7F9FC; border-left: 3px solid #C6D2E6; padding: 8px 11px; border-radius: 0 6px 6px 0; }
+  #mdl-report .r-su { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  #mdl-report .pagebreak { page-break-before: always; }
+  #mdl-report svg { max-width: 100%; height: auto; display: block; }
+  #mdl-report svg text { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; fill: #5A6478; }
+
+  /* Alt bilgi */
+  #mdl-report .r-foot { margin-top: 16px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 8px; color: #8892A4; display: flex; justify-content: space-between; }
+  #mdl-report .r-foot b { color: var(--navy-deep); }
 }

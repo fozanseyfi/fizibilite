@@ -446,15 +446,23 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
   let rows = '';
   m.years.forEach((yy) => { rows += `<tr><td>${yy.y}</td><td>${fmt((yy.s.mah + yy.s.shift) / 1000, 1)}</td><td>${fmt(yy.L.bedelli / 1000, 1)}</td><td>${fmt(yy.L.bedelsiz / 1000, 1)}</td><td>${fmt(yy.buy, 2)}</td><td>${fmt(yy.fx, 1)}</td><td>${fmt(yy.cfTL)}</td><td>${fmt(yy.cf)}</td></tr>`; });
   return `<div class="r-cover"><div class="r-eyebrow">C&I Saatlik Mahsuplaşma · Ön Fizibilite Raporu · EPDK Karar 14531</div><h1>${esc(meta.title)}</h1>`
+    + `<div class="r-sub">${fmt(i.kwp)} kWp${i.bessOn ? ' + ' + fmt(i.bKwh) + ' kWh BESS' : ''} · ${fmt(i.consY / 1000, 0)} MWh/yıl tüketim · ${rejim} · ${fmt(i.life)} yıl analiz</div>`
     + `<div class="r-facts"><div class="r-fact"><b>Tarih</b><span>${esc(meta.date)}</span></div>`
     + (meta.prep ? `<div class="r-fact"><b>Hazırlayan</b><span>${esc(meta.prep)}</span></div>` : '')
     + `<div class="r-fact"><b>Rejim</b><span>${rejim}</span></div>`
-    + `<div class="r-fact"><b>Kurulu güç</b><span>${fmt(i.kwp)} kWp${i.bessOn ? ' + ' + fmt(i.bKwh) + ' kWh BESS' : ''}</span></div>`
-    + `<div class="r-fact"><b>Para birimi</b><span>USD · TL tarife kur projeksiyonuyla</span></div></div></div>`
+    + `<div class="r-fact"><b>Tüketim profili</b><span>${esc(meta.profileLabel)}</span></div>`
+    + `<div class="r-fact"><b>Para birimi</b><span>USD · TL tarife kur projeksiyonuyla</span></div></div>`
+    + `<div class="r-stats">`
+    + `<div class="r-stat"><div class="l">NPV</div><div class="v gold">${usd(m.npv)}</div></div>`
+    + `<div class="r-stat"><div class="l">Proje IRR</div><div class="v">${pct(m.irr * 100, 1)}</div></div>`
+    + `<div class="r-stat"><div class="l">Geri Ödeme</div><div class="v">${Number.isFinite(m.pb) ? fmt(m.pb, 1) + ' yıl' : '—'}</div></div>`
+    + `<div class="r-stat"><div class="l">1. Yıl Net Fayda</div><div class="v">${usd(y1.cf)}</div></div>`
+    + `<div class="r-stat"><div class="l">Öz Tüketim</div><div class="v">${pct(selfC, 0)}</div></div>`
+    + `</div></div>`
     + `<div class="r-block"><h2><span class="rn">01</span>Yönetici Özeti</h2>`
     + `<div class="r-kpis">${kpi('CAPEX', usd(m.capex))}${kpi('NPV', usd(m.npv), m.npv >= 0 ? 'good' : 'bad')}${kpi('Proje IRR', pct(m.irr * 100, 1), m.irr > i.r / 100 ? 'good' : 'bad')}${kpi('Basit geri ödeme', fmt(m.pb, 2) + ' yıl')}</div>`
     + `<div class="r-kpis">${kpi('1. yıl net fayda', usd(y1.cf), 'good')}${kpi('Öz tüketim', pct(selfC, 1))}${kpi('İskontolu geri ödeme', Number.isFinite(m.pbD) ? fmt(m.pbD, 2) + ' yıl' : '—')}${i.lOn ? kpi('Equity IRR', pct(m.eIRR * 100, 1), 'good') : kpi('Otonomi', pct((y1.s.mah + y1.s.shift) / i.consY * 100, 1))}</div>`
-    + `<p class="r-note">${m.npv >= 0 ? `Proje bu varsayımlarla USD bazında değer yaratıyor: iç verim oranı (%${fmt(m.irr * 100, 1)}) iskonto oranını (%${fmt(i.r, 1)}) aşıyor, basit geri ödeme ${fmt(m.pb, 2)} yıl. Yıl-1 öz tüketim oranı %${fmt(selfC, 0)}.` : `Proje bu varsayımlarla negatif NPV veriyor (${usd(m.npv)}); sistem boyutunu tüketim profiline yaklaştırmak, BESS ile öz tüketimi artırmak veya CAPEX/tarife varsayımlarını gözden geçirmek önerilir.`}</p></div>`
+    + `<div class="r-verdict ${m.npv >= 0 ? 'good' : 'bad'}">${m.npv >= 0 ? `✓ Proje bu varsayımlarla USD bazında değer yaratıyor: iç verim oranı (%${fmt(m.irr * 100, 1)}) iskonto oranını (%${fmt(i.r, 1)}) aşıyor, basit geri ödeme ${fmt(m.pb, 2)} yıl. Yıl-1 öz tüketim oranı %${fmt(selfC, 0)}.` : `✗ Proje bu varsayımlarla negatif NPV veriyor (${usd(m.npv)}); sistem boyutunu tüketim profiline yaklaştırmak, BESS ile öz tüketimi artırmak veya CAPEX/tarife varsayımlarını gözden geçirmek önerilir.`}</div></div>`
     + `<div class="r-block"><h2><span class="rn">02</span>Girdiler ve Varsayımlar</h2><table class="r-assume"><tbody>`
     + `<tr><td>GES</td><td>${fmt(i.kwp)} kWp · ${fmt(i.spec)} kWh/kWp/yıl · ${i.orient === 'ew' ? 'doğu-batı yerleşim' : 'güney yerleşim'} · degradasyon ${pct(i.degr, 1)}/yıl · ${fmt(i.life)} yıl</td></tr>`
     + `<tr><td>Tüketim</td><td>${fmt(i.consY / 1000, 0)} MWh/yıl · profil: ${esc(meta.profileLabel)} · aylık dağılım düzenlenebilir yüzde</td></tr>`
@@ -471,7 +479,8 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
     + `<div class="r-block"><h2><span class="rn">05</span>Yıllık Nakit Akışı (${fmt(i.life)} yıl)</h2>`
     + `<table><thead><tr><th>Yıl</th><th>Mahsup (MWh)</th><th>Bedelli (MWh)</th><th>Bedelsiz (MWh)</th><th>Alış ₺/kWh</th><th>Kur ₺/$</th><th>Net CF (TL)</th><th>Net CF ($)</th></tr></thead><tbody>${rows}</tbody></table>`
     + `<div class="r-chart"><div class="r-cap">Kümülatif iskontolu nakit akışı (USD) — sıfırı geçtiği an iskontolu geri ödeme</div><svg viewBox="0 0 900 240" width="100%">${cumChart(i, m)}</svg></div></div>`
-    + `<div class="r-block"><h2><span class="rn">06</span>Metodoloji ve Uyarılar</h2>`
+    + `<div class="r-block"><h2><span class="rn">06</span>Senaryo Matrisi — Kötümser / Baz / İyimser</h2>${scenMatrixCi(i)}</div>`
+    + `<div class="r-block"><h2><span class="rn">07</span>Metodoloji ve Uyarılar</h2>`
     + `<p class="r-note">Motor, her işletme yılını 12 ay × takvim günü (hafta içi/sonu) deseniyle saatlik simüle eder; mahsup = Σ min(üretim, tüketim). Ay içi üretim, aylık ortalamalar arası interpolasyonla gün gün eğimlendirilir (ay toplamı korunur). Bedelli üretim limiti = önceki yıl tüketimi × 2; bedelli satış = min(yıllık fazla, limit − mahsup); kalan miktar YEKDEM'e bedelsiz yazılır (EPDK Karar 14531, MADDE 7 ve 9). BESS günlük döngüsel dispatch: fazladan şarj, çekişe RTE ile deşarj — arbitraj modellenmez. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır; hava durumu rastgeleliği bilinçli modellenmez (P50). Bu bir ön fizibilitedir; tarife, bedelli limit ve şebeke bağlantı koşulları güncel mevzuat ve ilgili şebeke işletmecisinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>`
     + `<div class="r-foot"><span>© 2026 <b>Fizibilite Platformu</b> · Furkan Ozan Seyfi</span><span>EPDK Karar 14531 · ${esc(meta.date)}</span></div></div>`;
 }

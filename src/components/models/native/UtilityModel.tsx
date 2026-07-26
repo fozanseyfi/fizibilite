@@ -440,7 +440,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
       </div>
 
       <PrintReport open={printing} onClose={() => setPrinting(false)}>
-        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, date: new Date().toLocaleDateString('tr-TR') }) }} />
+        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(inputs, p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }) }} />
       </PrintReport>
     </>
   );

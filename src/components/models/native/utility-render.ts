@@ -354,7 +354,7 @@ function assumpTable(p: P): string {
     ['Özkaynak beklentisi', `%${fmt(p.ke * 100, 1)}`],
     ['İskonto oranı (r)', `${pct(p.r * 100, 2)}${p.useW ? ' = WACC' : ''}`],
   ];
-  let h = '<table><tbody>';
+  let h = '<table class="r-assume"><tbody>';
   for (let i = 0; i < rows.length; i += 2) {
     const a = rows[i], b = rows[i + 1];
     h += `<tr><td>${a[0]}</td><td>${a[1]}</td><td>${b ? b[0] : ''}</td><td>${b ? b[1] : ''}</td></tr>`;
@@ -363,31 +363,54 @@ function assumpTable(p: P): string {
 }
 
 export interface ReportMeta { title: string; prep: string; date: string; }
-/** #mdl-report gövdesi — PDF raporun tüm içeriği (tek HTML string). */
-export function reportUtility(p: P, m: UtilityModel, hw: HuaweiResult, meta: ReportMeta): string {
+/** #mdl-report gövdesi — kurumsal yönetici özeti formatında PDF raporu (tek HTML string). */
+export function reportUtility(i: UtilityInputs, p: P, m: UtilityModel, hw: HuaweiResult, meta: ReportMeta): string {
   const tl = p.cur === 'tl';
   const vd = verdict(p, m);
-  const capacity = p.bessOn ? `${fmt(p.mw)} MWp + ${fmt(p.bMWh)} MWh` : `${fmt(p.mw)} MWp`;
-  const kpiRow = (list: Kpi[]) => `<div class="r-kpis">${list.map((k) => `<div class="r-kpi"><div class="l">${k.label}</div><div class="v">${k.val}</div></div>`).join('')}</div>`;
-  const cover = `<div class="r-cover"><div class="r-eyebrow">Solar + Storage · Proje Finansmanı Fizibilite Raporu</div><h1>${esc(meta.title)}</h1>`
+  const capacity = p.bessOn ? `${fmt(p.mw)} MWp + ${fmt(p.bMWh)} MWh BESS` : `${fmt(p.mw)} MWp`;
+  const kpiRow = (list: Kpi[]) => `<div class="r-kpis">${list.map((k) => `<div class="r-kpi${k.cls === 'good' ? ' good' : k.cls === 'bad' ? ' bad' : ''}"><div class="l">${k.label}</div><div class="v">${k.val}</div></div>`).join('')}</div>`;
+  let n = 0;
+  const sect = (title: string) => { n++; return `<h2><span class="rn">${String(n).padStart(2, '0')}</span>${title}</h2>`; };
+
+  const cover = `<div class="r-cover"><div class="r-eyebrow">Solar + Storage · Proje Finansmanı · Ön Fizibilite Raporu</div><h1>${esc(meta.title)}</h1>`
+    + `<div class="r-sub">${capacity} · ${p.life} yıl işletme · kaldıraç %${fmt(p.debtR * 100)} · ${p.style === 'sculpt' ? 'DSCR-sculpted borç' : p.style === 'ann' ? 'anüite borç' : 'eşit anapara borç'}</div>`
     + `<div class="r-facts">`
-    + `<div class="r-fact"><b>Kurulu Güç</b><span>${capacity}</span></div>`
-    + `<div class="r-fact"><b>Hazırlayan</b><span>${esc(meta.prep || '—')}</span></div>`
     + `<div class="r-fact"><b>Tarih</b><span>${esc(meta.date)}</span></div>`
-    + `<div class="r-fact"><b>Para birimi</b><span>${tl ? 'TL gelir + kur' : 'USD'}</span></div>`
-    + `<div class="r-fact"><b>İskonto oranı</b><span>${pct(p.r * 100, 2)}</span></div>`
+    + (meta.prep ? `<div class="r-fact"><b>Hazırlayan</b><span>${esc(meta.prep)}</span></div>` : '')
+    + `<div class="r-fact"><b>Para birimi</b><span>${tl ? 'USD · TL gelir kur projeksiyonuyla' : 'USD'}</span></div>`
+    + `<div class="r-fact"><b>İskonto oranı</b><span>${pct(p.r * 100, 2)}${p.useW ? ' (vergi-sonrası WACC)' : ''}</span></div>`
+    + `<div class="r-fact"><b>Üretim senaryosu</b><span>${p.scen === 'p90' ? 'P90 (muhafazakâr)' : 'P50 (beklenen)'}</span></div>`
+    + `</div>`
+    + `<div class="r-stats">`
+    + `<div class="r-stat"><div class="l">NPV</div><div class="v gold">${musd(m.npv)}</div></div>`
+    + `<div class="r-stat"><div class="l">Proje IRR</div><div class="v">${pct(m.irr * 100, 1)}</div></div>`
+    + `<div class="r-stat"><div class="l">Equity IRR</div><div class="v">${pct(m.eIRR * 100, 1)}</div></div>`
+    + `<div class="r-stat"><div class="l">Min DSCR</div><div class="v">${Number.isFinite(m.minDSCR) ? fmt(m.minDSCR, 2) : '—'}</div></div>`
+    + `<div class="r-stat"><div class="l">Geri Ödeme</div><div class="v">${Number.isFinite(m.pbS) ? fmt(m.pbS, 1) + ' yıl' : '—'}</div></div>`
     + `</div></div>`;
-  const results = `<h2>Temel Sonuçlar</h2>${kpiRow(kpis(p, m))}<div class="r-verdict">${vd.text}</div>`;
-  const su = `<h2>Kaynak–Kullanım</h2><div class="r-su">`
+
+  const results = `<div class="r-block">${sect('Yönetici Özeti')}${kpiRow(kpis(p, m))}<div class="r-verdict ${vd.cls}">${vd.text}</div>`
+    + `<p class="r-note">NPV, IRR ve LCOE kaldıraçsız ve EPC CAPEX bazlıdır; iskonto oranı ${p.useW ? 'vergi-sonrası WACC' : 'manuel'} (${pct(p.r * 100, 2)}). IDC, kredi ücreti, DSRA ve KDV taşıma dahil toplam finanse edilen tutar Kaynak–Kullanım bölümündedir.</p></div>`;
+
+  const su = `<div class="r-block">${sect('Kaynak–Kullanım')}<div class="r-su">`
     + `<table><thead><tr><th>Kullanımlar</th><th>Tutar</th></tr></thead><tbody>${usesRows(p, m).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}<tr class="tot"><td>Toplam</td><td>${musd(m.totalUses)}</td></tr></tbody></table>`
     + `<table><thead><tr><th>Kaynaklar</th><th>Tutar</th></tr></thead><tbody>${sourcesRows(p, m).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}<tr class="tot"><td>Toplam</td><td>${musd(m.totalUses)}</td></tr></tbody></table>`
-    + `</div>`;
-  const assum = `<h2>Temel Varsayımlar</h2>${assumpTable(p)}`;
-  const cf = `<div class="pagebreak"></div><h2>İşletme Dönemi Nakit Akışı — ${p.life} yıl</h2><table>${cfTableFull(p, m)}</table>`;
-  const debt = `<h2>Borç Takvimi</h2><table>${debtTableHtml(p, m)}</table>`;
+    + `</div></div>`;
+
+  const assum = `<div class="r-block">${sect('Girdiler ve Varsayımlar')}${assumpTable(p)}</div>`;
+
+  const scen = `<div class="r-block">${sect('Senaryo Matrisi — Kötümser / Baz / İyimser')}${scenMatrix(i, p)}</div>`;
+
+  const cf = `<div class="pagebreak"></div>${sect(`İşletme Dönemi Nakit Akışı — ${p.life} yıl`)}<table>${cfTableFull(p, m)}</table>`;
+  const debt = `${sect('Borç Takvimi')}<table>${debtTableHtml(p, m)}</table>`;
+
   const hwSec = hw.dCapex > 0
-    ? `<div class="pagebreak"></div><h2>Huawei Değer Analizi</h2><div class="r-pitch">${pitchText(p, m, hw)}</div>${kpiRow(hwKpis(m, hw, p.style))}`
+    ? `<div class="pagebreak"></div><div class="r-block">${sect('Huawei Değer Analizi')}<div class="r-pitch">${pitchText(p, m, hw)}</div>${kpiRow(hwKpis(m, hw, p.style))}</div>`
     : '';
-  const foot = `<p class="r-note">Bu rapor Fizibilite Platformu tarafından otomatik üretilmiştir. Sonuçlar girilen varsayımlara dayanır ve bağlayıcı yatırım tavsiyesi değildir. · ${esc(meta.date)}</p>`;
-  return cover + results + su + assum + cf + debt + hwSec + foot;
+
+  const method = `<div class="r-block">${sect('Metodoloji ve Uyarılar')}`
+    + `<p class="r-note">Model tam proje finansmanı mekaniğiyle çalışır: inşaat dönemi IDC (aylık ortalama çekiliş bakiyesi üzerinden), kredi tutarının döngüsel çözümü (kredi → IDC/DSRA → toplam maliyet → kredi), ${p.style === 'sculpt' ? 'DSCR-sculpted' : p.style === 'ann' ? 'anüite' : 'eşit anapara'} borç takvimi, DSRA fonlaması ve iadesi, vergi tatili ve doğrusal amortisman. ${tl ? 'TL gelirler SAGP (enflasyon farkı) kur patikasıyla USD’ye çevrilir. ' : ''}NPV/IRR kaldıraçsız-vergi-sonrası serbest nakit akışlarıyla; equity IRR kaldıraçlı nakit akışlarıyla hesaplanır. Bu bir ön fizibilitedir; bağlayıcı yatırım tavsiyesi değildir — nihai karar bağımsız mühendis üretim raporu ve kredi dokümantasyonuyla verilmelidir.</p>`
+    + `<div class="r-foot"><span>© 2026 <b>Fizibilite Platformu</b> · Furkan Ozan Seyfi</span><span>${esc(meta.date)}</span></div></div>`;
+
+  return cover + results + su + assum + scen + cf + debt + hwSec + method;
 }
