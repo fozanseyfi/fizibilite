@@ -1,16 +1,16 @@
 import { notFound } from 'next/navigation';
 import { getProject } from '@/lib/db';
 import { UtilityModel } from '@/components/models/native/UtilityModel';
-import { ModelEmbed } from '@/components/models/ModelEmbed';
+import { CiModel } from '@/components/models/native/CiModel';
 import type { UtilityInputs } from '@/lib/models/utility/engine';
+import type { CiInputs } from '@/lib/models/ci/engine';
 
 export const dynamic = 'force-dynamic';
 
 interface StoredConfig {
   kind: 'utility' | 'ci';
   name: string;
-  inputs?: UtilityInputs;
-  snapshot?: Record<string, string | number | boolean>;
+  inputs?: UtilityInputs | CiInputs;
 }
 
 export default function ProjectPage({ params }: { params: { id: string } }) {
@@ -18,11 +18,10 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   if (!row) notFound();
   const config = JSON.parse(row.configJson) as StoredConfig;
 
-  // Utility → native React modeli (tipli girdilerle)
-  if (config.kind === 'utility' && config.inputs) {
-    return <UtilityModel projectId={params.id} initialInputs={config.inputs} />;
+  // C&I → native React modeli (tipli girdilerle; girdi yoksa varsayılan)
+  if (config.kind === 'ci') {
+    return <CiModel projectId={params.id} initialInputs={config.inputs as CiInputs | undefined} />;
   }
-  // C&I → şimdilik gömülü model (native port sıradaki adım)
-  const kind = config.kind === 'ci' ? 'ci' : 'utility';
-  return <ModelEmbed kind={kind} projectId={params.id} initialSnapshot={config.snapshot ?? null} />;
+  // Utility → native React modeli
+  return <UtilityModel projectId={params.id} initialInputs={config.inputs as UtilityInputs | undefined} />;
 }

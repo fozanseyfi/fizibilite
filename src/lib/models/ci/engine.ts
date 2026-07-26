@@ -320,6 +320,18 @@ export function ciMonthCons(inputs: CiInputs, mi: number): number {
 export function ciCalDays(mi: number): { wd: number; we: number } {
   return calDays(mi);
 }
+/** Ay içi üretim eğim faktörü (gün gün; ay ortalaması 1). Net grafiğin gün görünümü için. */
+export function ciDayFactor(mi: number, d: number): number {
+  return DAYF[mi][d] ?? 1;
+}
+/** Bir günün 24 saatlik tüketim dağılımı (kWh) — grafik için. */
+export function ciDayCons(inputs: CiInputs, mi: number, dt: 'wd' | 'we'): number[] {
+  return dayCons(normalizeCi(inputs), mi, dt);
+}
+/** Yıl-1 saatlik rejim aylık toplamları (grafik/tablolar için). */
+export function ciYear1Monthly(inputs: CiInputs): MonthAgg[] {
+  return simYear(normalizeCi(inputs), 1).monthly;
+}
 
 /** Yıl-1 saatlik vs aylık rejim karşılaştırması. */
 export function ciCompareYear1(inputs: CiInputs) {
