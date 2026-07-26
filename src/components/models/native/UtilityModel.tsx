@@ -94,6 +94,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
   const router = useRouter();
   const [inputs, setInputs] = useState<UtilityInputs>(() => ({ ...defaultUtilityInputs(), ...(initialInputs ?? {}) }));
   const [tab, setTab] = useState<'fiz' | 'hw' | 'sum'>('fiz');
+  const [scens, setScens] = useState<R.TechScen[]>(() => R.techPresets({ ...defaultUtilityInputs(), ...(initialInputs ?? {}) }));
   const [saving, setSaving] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -104,6 +105,9 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
   const p = useMemo(() => R.paramsOf(inputs), [inputs]);
   const m = useMemo(() => computeUtility(inputs), [inputs]);
   const hw = useMemo(() => computeUtilityHuawei(inputs, m), [inputs, m]);
+  const techOut = useMemo(() => R.techOutHtml(inputs, scens, m), [inputs, scens, m]);
+  const setScen = (idx: number, f: 'name' | 'spec' | 'capex' | 'opex' | 'dcac', v: string) =>
+    setScens((a) => a.map((s, k) => (k === idx ? { ...s, [f]: v } : s)));
   const tl = inputs.cur === 'tl';
   const vd = R.verdict(p, m);
 
@@ -335,6 +339,36 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
               <div className="step-body single"><div className="senswrap" dangerouslySetInnerHTML={{ __html: R.beHtml(inputs, p, m) }} /></div>
             </div>
 
+            {/* Teknoloji senaryoları — Tracker / Bifacial / İnverter */}
+            <div className="step">
+              <div className="step-head"><span className="step-no">SENARYO</span><h2>Teknoloji Karşılaştırması — Sabit / Bifacial / Tracker / DC-AC</h2><span className="why">Aynı finansman yapısı altında teknoloji seçiminin KPI etkisi.</span></div>
+              <div className="step-body single">
+                <div className="tablewrap"><table>
+                  <thead><tr><th style={{ textAlign: 'left' }}>Parametre</th>{scens.map((s, k) => (
+                    <th key={k}>{s.live ? s.name : <input type="text" value={s.name} onChange={(e) => setScen(k, 'name', e.target.value)} style={{ width: 100, fontFamily: 'var(--sans)', fontSize: 11, fontWeight: 600, border: '1px solid var(--line)', borderRadius: 6, padding: '3px 5px', background: '#fff' }} />}</th>
+                  ))}</tr></thead>
+                  <tbody>
+                    {([['Spesifik üretim (kWh/kWp)', 'spec', 10], ['CAPEX ($/kWp)', 'capex', 5], ['OPEX ($/MWp-yıl)', 'opex', 250], ['DC/AC oranı', 'dcac', 0.05]] as ['' | string, 'spec' | 'capex' | 'opex' | 'dcac', number][]).map(([lab, f, st]) => (
+                      <tr key={f}><td style={{ textAlign: 'left' }}>{lab}</td>
+                        {scens.map((s, k) => {
+                          const baz = R.techBaz(f, inputs);
+                          return s.live
+                            ? <td key={k} style={{ color: 'var(--ink-soft)' }}>{f === 'capex' ? nf(baz, 1) : f === 'dcac' ? nf(baz, 2) : nf(baz)} <span style={{ fontSize: 9 }}>(canlı)</span></td>
+                            : <td key={k}>
+                              <input type="number" value={s[f]} step={st} placeholder={s.custom ? (f === 'dcac' ? nf(baz, 2) : nf(baz)) : ''} onChange={(e) => setScen(k, f, e.target.value)} style={{ width: 78, fontFamily: 'var(--mono)', fontSize: 11.5, border: '1px solid var(--line)', borderRadius: 6, padding: '3px 5px' }} />
+                              <br /><span dangerouslySetInnerHTML={{ __html: R.techBadge(s, f, inputs) }} />
+                            </td>;
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table></div>
+                <button type="button" className="btn-mini" onClick={() => setScens(R.techPresets(inputs))}>↺ Varsayılan senaryolara dön (canlı girdilerden türet)</button>
+                <div className="tablewrap" style={{ marginTop: 12 }}><table dangerouslySetInnerHTML={{ __html: techOut }} /></div>
+                <p className="tsub" style={{ marginBottom: 0 }}>Baz sütunu Adım 1–2–3 girdilerini canlı izler; diğer sütunlar düzenlenebilir. Yeşil hücre: satırın en iyi değeri. Parantez: baza göre fark. Tipik teknoloji farkları sahaya göre değişir — kesin değerler PVsyst karşılaştırmasından alınmalıdır.</p>
+              </div>
+            </div>
+
             {/* Senaryo matrisi */}
             <div className="step">
               <div className="step-head"><span className="step-no">ANALİZ</span><h2>Senaryo Matrisi — Kötümser / Baz / İyimser</h2><span className="why">Üç kaldıraç (fiyat, üretim, CAPEX) aynı anda hareket eder — yatırım komitesinin ilk baktığı tablo.</span></div>
@@ -440,7 +474,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
       </div>
 
       <PrintReport open={printing} onClose={() => setPrinting(false)}>
-        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(inputs, p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }) }} />
+        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(inputs, p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }, scens) }} />
       </PrintReport>
     </>
   );

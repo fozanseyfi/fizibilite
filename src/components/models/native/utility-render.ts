@@ -275,6 +275,91 @@ export function scenMatrix(i: UtilityInputs, p: P): string {
   return h;
 }
 
+// ---------------- teknoloji senaryoları (Tracker / Bifacial / İnverter) ----------------
+// HTML'deki scenPresets/effV/renderScenOut'un birebir portu. Baz sütunu Adım 1–2–3
+// girdilerini canlı izler; diğer sütunlar düzenlenebilir, boş hücre baza döner.
+export interface TechScen { name: string; live?: boolean; custom?: boolean; spec: string; capex: string; opex: string; dcac: string; }
+type TechField = 'spec' | 'capex' | 'opex' | 'dcac';
+const r0s = (x: number) => String(Math.round(x));
+export function techPresets(i: UtilityInputs): TechScen[] {
+  return [
+    { name: 'Baz', live: true, spec: '', capex: '', opex: '', dcac: '' },
+    { name: 'Tracker', spec: r0s(i.spec * 1.17), capex: String(Math.round((i.capexUnit + 75) * 10) / 10), opex: r0s(i.opexUnit * 1.15), dcac: String(i.dcac) },
+    { name: 'Fixed-Bifacial', spec: r0s(i.spec * 1.07), capex: String(Math.round((i.capexUnit + 15) * 10) / 10), opex: r0s(i.opexUnit), dcac: String(i.dcac) },
+    { name: 'Tracker-Bifacial', spec: r0s(i.spec * 1.25), capex: String(Math.round((i.capexUnit + 90) * 10) / 10), opex: r0s(i.opexUnit * 1.15), dcac: String(i.dcac) },
+    { name: 'Merkezi İnverter', spec: r0s(i.spec * 0.985), capex: String(Math.round((i.capexUnit - 10) * 10) / 10), opex: r0s(i.opexUnit * 1.05), dcac: String(i.dcac) },
+    { name: 'String İnverter', spec: r0s(i.spec * 1.015), capex: String(Math.round((i.capexUnit + 10) * 10) / 10), opex: r0s(i.opexUnit * 0.95), dcac: String(i.dcac) },
+    { name: 'Senaryo', custom: true, spec: '', capex: '', opex: '', dcac: '' },
+  ];
+}
+export function techBaz(f: TechField, i: UtilityInputs): number {
+  return f === 'spec' ? i.spec : f === 'capex' ? i.capexUnit : f === 'opex' ? i.opexUnit : i.dcac;
+}
+/** Etkin değer — boş/geçersiz hücre baza döner. */
+export function techEff(s: TechScen, f: TechField, i: UtilityInputs): number {
+  const baz = techBaz(f, i);
+  if (s.live) return baz;
+  const v = parseFloat(String(s[f]).replace(',', '.'));
+  return isFinite(v) && v > 0 ? v : baz;
+}
+/** Baza göre % fark rozeti (HTML string). */
+export function techBadge(s: TechScen, f: TechField, i: UtilityInputs): string {
+  const baz = techBaz(f, i);
+  const raw = parseFloat(String(s[f]).replace(',', '.'));
+  if (s.custom && !(isFinite(raw) && raw > 0)) return '<span style="font-size:9.5px;color:#B8C0D0">boş → baz</span>';
+  const val = techEff(s, f, i);
+  if (!isFinite(val) || !isFinite(baz) || baz === 0) return '';
+  const d = (val / baz - 1) * 100;
+  if (Math.abs(d) < 0.05) return '<span style="font-size:9.5px;color:var(--ink-soft)">(±0)</span>';
+  return `<span style="font-size:9.5px;color:${d > 0 ? 'var(--navy)' : 'var(--green)'}">(${d > 0 ? '+' : '−'}${fmt(Math.abs(d), 1)}%)</span>`;
+}
+function techModel(i: UtilityInputs, s: TechScen, base: UtilityModel): UtilityModel {
+  if (s.live) return base;
+  return computeUtility({ ...i, spec: techEff(s, 'spec', i), capexUnit: techEff(s, 'capex', i), opexUnit: techEff(s, 'opex', i), dcac: techEff(s, 'dcac', i) });
+}
+/** KPI çıktı tablosu (thead+tbody) — yeşil hücre satırın en iyisi, parantez baza göre fark. */
+export function techOutHtml(i: UtilityInputs, scens: TechScen[], base: UtilityModel): string {
+  const ms = scens.map((s) => techModel(i, s, base));
+  interface Row { lab: string; get: (x: UtilityModel) => number; fmtF: (v: number) => string; best: 'max' | 'min'; delta?: boolean; pp?: boolean; }
+  const rows: Row[] = [
+    { lab: '1. yıl üretim (GWh)', get: (x) => x.E1 / 1000, fmtF: (v) => fmt(v, 1), best: 'max' },
+    { lab: 'Toplam yatırım — uses (M$)', get: (x) => x.totalUses / 1e6, fmtF: (v) => fmt(v, 2), best: 'min' },
+    { lab: 'NPV (M$)', get: (x) => x.npv / 1e6, fmtF: (v) => fmt(v, 2), best: 'max', delta: true },
+    { lab: 'Proje IRR', get: (x) => x.irr * 100, fmtF: (v) => '%' + fmt(v, 2), best: 'max', delta: true, pp: true },
+    { lab: 'Equity IRR', get: (x) => x.eIRR * 100, fmtF: (v) => '%' + fmt(v, 2), best: 'max', pp: true },
+    { lab: 'LCOE ($/MWh)', get: (x) => x.lcoe, fmtF: (v) => fmt(v, 1), best: 'min' },
+    { lab: i.style === 'sculpt' ? 'LLCR' : 'Min DSCR', get: (x) => (i.style === 'sculpt' ? x.llcr : x.minDSCR), fmtF: (v) => fmt(v, 2), best: 'max' },
+    { lab: 'Basit payback (yıl)', get: (x) => x.pbS, fmtF: (v) => fmt(v, 2), best: 'min' },
+  ];
+  let h = '<thead><tr><th style="text-align:left">KPI</th>' + scens.map((s) => `<th>${s.name}</th>`).join('') + '</tr></thead><tbody>';
+  rows.forEach((rw) => {
+    const vals = ms.map(rw.get);
+    const finite = vals.filter((v) => isFinite(v));
+    const bestV = rw.best === 'max' ? Math.max(...finite) : Math.min(...finite);
+    h += `<tr><td style="text-align:left">${rw.lab}</td>`;
+    vals.forEach((v, k) => {
+      const isBest = isFinite(v) && Math.abs(v - bestV) < 1e-9;
+      let cell = isFinite(v) ? rw.fmtF(v) : '–';
+      if (rw.delta && k > 0 && isFinite(v) && isFinite(vals[0])) {
+        const d = v - vals[0];
+        cell += ` <span style="font-size:10px;color:${d >= 0 ? 'var(--green)' : 'var(--red)'}">(${d >= 0 ? '+' : ''}${fmt(d, 2)}${rw.pp ? ' pp' : ''})</span>`;
+      }
+      h += `<td${isBest ? ' style="background:var(--green-soft);color:var(--green);font-weight:600"' : ''}>${cell}</td>`;
+    });
+    h += '</tr>';
+  });
+  return h + '</tbody>';
+}
+/** Rapor sürümü: parametre tablosu + KPI tablosu. */
+export function techRepHtml(i: UtilityInputs, scens: TechScen[], base: UtilityModel): string {
+  let ah = '<table><thead><tr><th style="text-align:left">Parametre</th>' + scens.map((s) => `<th>${s.name}</th>`).join('') + '</tr></thead><tbody>';
+  ([['Spesifik üretim (kWh/kWp)', 'spec', 0], ['CAPEX ($/kWp)', 'capex', 1], ['OPEX ($/MWp-yıl)', 'opex', 0], ['DC/AC', 'dcac', 2]] as [string, TechField, number][]).forEach(([lab, f, dd]) => {
+    ah += `<tr><td>${lab}</td>` + scens.map((s) => `<td>${fmt(techEff(s, f, i), dd)}</td>`).join('') + '</tr>';
+  });
+  ah += '</tbody></table>';
+  return ah + '<div style="height:6px"></div><table>' + techOutHtml(i, scens, base) + '</table>';
+}
+
 // ---------------- kümülatif grafik noktaları ----------------
 export function cumPoints(m: UtilityModel): number[] {
   const pts = [-m.baseCost]; let cum = -m.baseCost;
@@ -364,7 +449,7 @@ function assumpTable(p: P): string {
 
 export interface ReportMeta { title: string; prep: string; date: string; }
 /** #mdl-report gövdesi — kurumsal yönetici özeti formatında PDF raporu (tek HTML string). */
-export function reportUtility(i: UtilityInputs, p: P, m: UtilityModel, hw: HuaweiResult, meta: ReportMeta): string {
+export function reportUtility(i: UtilityInputs, p: P, m: UtilityModel, hw: HuaweiResult, meta: ReportMeta, scens?: TechScen[]): string {
   const tl = p.cur === 'tl';
   const vd = verdict(p, m);
   const capacity = p.bessOn ? `${fmt(p.mw)} MWp + ${fmt(p.bMWh)} MWh BESS` : `${fmt(p.mw)} MWp`;
@@ -401,6 +486,8 @@ export function reportUtility(i: UtilityInputs, p: P, m: UtilityModel, hw: Huawe
 
   const scen = `<div class="r-block">${sect('Senaryo Matrisi — Kötümser / Baz / İyimser')}${scenMatrix(i, p)}</div>`;
 
+  const tech = scens ? `<div class="r-block">${sect('Teknoloji Senaryo Karşılaştırması — Sabit / Bifacial / Tracker')}${techRepHtml(i, scens, m)}</div>` : '';
+
   const cf = `<div class="pagebreak"></div>${sect(`İşletme Dönemi Nakit Akışı — ${p.life} yıl`)}<table>${cfTableFull(p, m)}</table>`;
   const debt = `${sect('Borç Takvimi')}<table>${debtTableHtml(p, m)}</table>`;
 
@@ -412,5 +499,5 @@ export function reportUtility(i: UtilityInputs, p: P, m: UtilityModel, hw: Huawe
     + `<p class="r-note">Model tam proje finansmanı mekaniğiyle çalışır: inşaat dönemi IDC (aylık ortalama çekiliş bakiyesi üzerinden), kredi tutarının döngüsel çözümü (kredi → IDC/DSRA → toplam maliyet → kredi), ${p.style === 'sculpt' ? 'DSCR-sculpted' : p.style === 'ann' ? 'anüite' : 'eşit anapara'} borç takvimi, DSRA fonlaması ve iadesi, vergi tatili ve doğrusal amortisman. ${tl ? 'TL gelirler SAGP (enflasyon farkı) kur patikasıyla USD’ye çevrilir. ' : ''}NPV/IRR kaldıraçsız-vergi-sonrası serbest nakit akışlarıyla; equity IRR kaldıraçlı nakit akışlarıyla hesaplanır. Bu bir ön fizibilitedir; bağlayıcı yatırım tavsiyesi değildir — nihai karar bağımsız mühendis üretim raporu ve kredi dokümantasyonuyla verilmelidir.</p>`
     + `<div class="r-foot"><span>© 2026 <b>Fizibilite Platformu</b> · Furkan Ozan Seyfi</span><span>${esc(meta.date)}</span></div></div>`;
 
-  return cover + results + su + assum + scen + cf + debt + hwSec + method;
+  return cover + results + su + assum + scen + tech + cf + debt + hwSec + method;
 }
