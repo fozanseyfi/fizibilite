@@ -13,6 +13,7 @@ import {
 } from '@/lib/models/ci/presets';
 import { Tipbox, Tip, NumF, TxtF, SelF, ChkF, Modal, PrintReport } from '@/components/models/native/mdl-kit';
 import * as R from '@/components/models/native/ci-render';
+import { nf, usd, pct } from '@/lib/models/fmt';
 
 // ---- % grid yardımcıları (HTML buildPctGrid / rescaleZones portu) ----
 function setPctCell(arr: number[], k: number, raw: number): number[] {
@@ -87,7 +88,7 @@ function Html({ html, className }: { html: string; className?: string }) { retur
 export function CiModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: CiInputs }) {
   const router = useRouter();
   const [inputs, setInputs] = useState<CiInputs>(() => ({ ...defaultCiInputs(), ...(initialInputs ?? {}) }));
-  const [tab, setTab] = useState<'fiz' | 'hours' | 'bill' | 'cmp'>('fiz');
+  const [tab, setTab] = useState<'fiz' | 'hours' | 'bill' | 'cmp' | 'sum'>('fiz');
   const [adv, setAdv] = useState(false);
   const [cg, setCg] = useState<R.ConsChartState>({ level: 'y', mi: 5, dt: 'wd' });
   const [nv, setNv] = useState<R.NetChartState>({ mi: 5, view: 'd', wd: true, we: true });
@@ -176,6 +177,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               {chip(tab === 'hours', '2 · Saatlik Veri', () => setTab('hours'))}
               {chip(tab === 'bill', '3 · Fatura Analizi', () => setTab('bill'))}
               {chip(tab === 'cmp', '4 · Saatlik vs Aylık', () => setTab('cmp'))}
+              {chip(tab === 'sum', '5 · Sonuçlar', () => setTab('sum'))}
             </nav>
           </div>
         </div>
@@ -501,6 +503,64 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 <p className="tsub">{R.compareNote(inputs)}</p>
               </Card>
             </Step>
+          </div>
+
+          {/* ==================== TAB 5: SONUÇLAR ==================== */}
+          <div className={`tab ${tab === 'sum' ? 'active' : ''}`}>
+            {(() => {
+              const y1 = m.years[0];
+              const vd = R.ciVerdict(inputs, m);
+              const selfC = y1.s.prod > 0 ? (y1.s.mah + y1.s.shift) / y1.s.prod * 100 : 0;
+              return (
+                <>
+                  <div className="exec-hero">
+                    <div className="eh-top">
+                      <div>
+                        <div className="eh-eyebrow">Yönetici Özeti · Otomatik Oluşturulur</div>
+                        <h2>{inputs.pname || 'C&I GES Projesi'}</h2>
+                        <div className="eh-sub">{nf(inputs.kwp)} kWp{inputs.bessOn ? ` + ${nf(inputs.bKwh)} kWh BESS` : ''} · {nf(inputs.consY / 1000)} MWh/yıl tüketim · {mesken ? 'aylık rejim (mesken)' : 'saatlik rejim (EPDK 14531)'} · {inputs.life} yıl · iskonto {pct(inputs.r, 1)} USD</div>
+                      </div>
+                      <span className={`exec-badge ${vd.cls}`}>{vd.cls === 'good' ? '✓ Değer yaratıyor' : '✗ NPV negatif'}</span>
+                    </div>
+                    <div className="exec-stats">
+                      <div className="exec-stat"><div className="l">NPV</div><div className="v gold">{usd(m.npv)}</div><div className="h">USD, {inputs.life} yıl</div></div>
+                      <div className="exec-stat"><div className="l">Proje IRR</div><div className="v">{pct(m.irr * 100, 1)}</div><div className="h">USD bazlı</div></div>
+                      <div className="exec-stat"><div className="l">Geri Ödeme</div><div className="v">{Number.isFinite(m.pb) ? `${nf(m.pb, 1)} yıl` : '—'}</div><div className="h">basit · iskontolu {Number.isFinite(m.pbD) ? nf(m.pbD, 1) : '—'} yıl</div></div>
+                      <div className="exec-stat"><div className="l">1. Yıl Net Fayda</div><div className="v">{usd(y1.cf)}</div><div className="h">tasarruf + satış − OPEX</div></div>
+                      <div className="exec-stat"><div className="l">CAPEX</div><div className="v">{usd(m.capex)}</div><div className="h">öz tüketim {pct(selfC, 0)}</div></div>
+                    </div>
+                  </div>
+
+                  <div className="exec-sect">Temel Göstergeler</div>
+                  <Kpis list={R.ciKpis(inputs, m)} />
+                  <div className={`verdict ${vd.cls}`} dangerouslySetInnerHTML={{ __html: vd.text }} />
+
+                  <div className="exec-sect">Grafikler</div>
+                  <div className="exec-grid2">
+                    <Card title="Aylık Dağılım" small="mahsup / bedelli / çekiş (MWh, yıl-1)">
+                      <svg viewBox="0 0 900 250" width="100%" dangerouslySetInnerHTML={{ __html: R.monthlyChart(m) }} />
+                      <div className="legend">
+                        <span><i style={{ background: '#1E7F4F' }} />Mahsuplaşan</span>
+                        <span><i style={{ background: '#E8A020' }} />Fazla (bedelli)</span>
+                        <span><i style={{ background: '#C9D3E4' }} />Çekiş</span>
+                        <span><i style={{ background: '#C7000B' }} />Bedelsiz</span>
+                      </div>
+                    </Card>
+                    <Card title="Kümülatif İskontolu Nakit Akışı" small="(USD) · sıfır geçişi = iskontolu geri ödeme">
+                      <svg viewBox="0 0 900 240" width="100%" dangerouslySetInnerHTML={{ __html: R.cumChart(inputs, m) }} />
+                    </Card>
+                  </div>
+
+                  <div className="exec-sect">Yıl-1 Enerji Dengesi</div>
+                  <Card>
+                    <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.balHtml(inputs, m) }} /></div>
+                  </Card>
+
+                  <div className="exec-sect">Senaryo Matrisi — Kötümser / Baz / İyimser</div>
+                  <div className="senswrap" dangerouslySetInnerHTML={{ __html: R.scenMatrixCi(inputs) }} />
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>

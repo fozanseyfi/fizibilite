@@ -9,7 +9,7 @@ import { computeUtility, computeUtilityHuawei, type UtilityInputs } from '@/lib/
 import { defaultUtilityInputs } from '@/lib/models/utility/defaults';
 import { Tipbox, NumF, TxtF, SelF, ChkF, SeriesChart, PrintReport } from '@/components/models/native/mdl-kit';
 import * as R from '@/components/models/native/utility-render';
-import { musd } from '@/lib/models/fmt';
+import { musd, pct, nf } from '@/lib/models/fmt';
 
 const T = {
   mw: 'Santralin DC kurulu gücü (panellerin toplam gücü). Modeldeki her şey bununla ölçeklenir: CAPEX = MWp×1000×$/kWp, üretim E₁ = MWp×1000×spesifik üretim×…',
@@ -93,7 +93,7 @@ function Note({ children }: { children: React.ReactNode }) { return <div classNa
 export function UtilityModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: UtilityInputs }) {
   const router = useRouter();
   const [inputs, setInputs] = useState<UtilityInputs>(() => ({ ...defaultUtilityInputs(), ...(initialInputs ?? {}) }));
-  const [tab, setTab] = useState<'fiz' | 'hw'>('fiz');
+  const [tab, setTab] = useState<'fiz' | 'hw' | 'sum'>('fiz');
   const [saving, setSaving] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -150,6 +150,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
             <nav role="tablist">
               <button className={tab === 'fiz' ? 'active' : ''} onClick={() => setTab('fiz')}>1 · Fizibilite Modeli</button>
               <button className={tab === 'hw' ? 'active' : ''} onClick={() => setTab('hw')}>2 · Huawei Değer Analizi</button>
+              <button className={tab === 'sum' ? 'active' : ''} onClick={() => setTab('sum')}>3 · Sonuçlar</button>
             </nav>
           </div>
         </div>
@@ -378,6 +379,62 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
               <h3>Huawei farkının kümülatif net değeri (iskontolu, vergi sonrası)</h3>
               <SeriesChart points={R.hwPoints(hw, p.r)} color="#C7000B" />
             </div>
+          </div>
+
+          {/* ==================== TAB 3 SONUÇLAR ==================== */}
+          <div className={`tab ${tab === 'sum' ? 'active' : ''}`}>
+            <div className="exec-hero">
+              <div className="eh-top">
+                <div>
+                  <div className="eh-eyebrow">Yönetici Özeti · Otomatik Oluşturulur</div>
+                  <h2>{inputs.pname || 'Utility GES Projesi'}</h2>
+                  <div className="eh-sub">{nf(inputs.mw)} MWp{inputs.bessOn ? ` + ${nf(inputs.bMWh)} MWh BESS` : ''} · {inputs.life} yıl işletme · kaldıraç %{nf(inputs.debt)} · iskonto {pct(p.r * 100, 2)}{inputs.useWacc ? ' (vergi-sonrası WACC)' : ''}</div>
+                </div>
+                <span className={`exec-badge ${vd.cls}`}>{vd.cls === 'good' ? '✓ Finanse edilebilir' : '⚠ Varsayımları gözden geçir'}</span>
+              </div>
+              <div className="exec-stats">
+                <div className="exec-stat"><div className="l">NPV</div><div className="v gold">{musd(m.npv)}</div><div className="h">kaldıraçsız, vergi sonrası</div></div>
+                <div className="exec-stat"><div className="l">Proje IRR</div><div className="v">{pct(m.irr * 100, 1)}</div><div className="h">kaldıraçsız</div></div>
+                <div className="exec-stat"><div className="l">Equity IRR</div><div className="v">{pct(m.eIRR * 100, 1)}</div><div className="h">DSRA iadesi dahil</div></div>
+                <div className="exec-stat"><div className="l">Geri Ödeme</div><div className="v">{Number.isFinite(m.pbS) ? `${nf(m.pbS, 1)} yıl` : '—'}</div><div className="h">basit · iskontolu {Number.isFinite(m.pbD) ? nf(m.pbD, 1) : '—'} yıl</div></div>
+                <div className="exec-stat"><div className="l">Toplam Yatırım</div><div className="v">{musd(m.totalUses)}</div><div className="h">IDC + ücret + DSRA dahil</div></div>
+              </div>
+            </div>
+
+            <div className="exec-sect">Temel Göstergeler</div>
+            <Kpis list={R.kpis(p, m)} />
+            <div className={`verdict ${vd.cls}`} dangerouslySetInnerHTML={{ __html: vd.text }} />
+
+            <div className="exec-sect">Kaynak–Kullanım</div>
+            <div className="su">
+              <div className="sucard"><h4>Kullanımlar (Uses)</h4><table><tbody>
+                {R.usesRows(p, m).map(([k, v], i) => <tr key={i}><td>{k}</td><td>{v}</td></tr>)}
+                <tr className="total"><td>Toplam kullanım</td><td>{musd(m.totalUses)}</td></tr>
+              </tbody></table></div>
+              <div className="sucard"><h4>Kaynaklar (Sources)</h4><table><tbody>
+                {R.sourcesRows(p, m).map(([k, v], i) => <tr key={i}><td>{k}</td><td>{v}</td></tr>)}
+                <tr className="total"><td>Toplam kaynak</td><td>{musd(m.totalUses)}</td></tr>
+              </tbody></table></div>
+            </div>
+
+            <div className="exec-sect">Kümülatif İskontolu Nakit Akışı</div>
+            <div className="chartcard">
+              <h3>Kaldıraçsız serbest nakit akışı — sıfırı geçtiği yıl iskontolu geri ödemedir</h3>
+              <SeriesChart points={R.cumPoints(m)} color="#18428F" />
+            </div>
+
+            {hw.dCapex > 0 && (
+              <>
+                <div className="exec-sect">Huawei Değer Analizi</div>
+                <div className="chartcard">
+                  <h3>Fark yatırımının kümülatif net değeri (iskontolu, vergi sonrası) — ΔNPV {R.hwKpis(m, hw, inputs.style)[2].val}</h3>
+                  <SeriesChart points={R.hwPoints(hw, p.r)} color="#C7000B" />
+                </div>
+              </>
+            )}
+
+            <div className="exec-sect">Senaryo Matrisi — Kötümser / Baz / İyimser</div>
+            <div className="senswrap" dangerouslySetInnerHTML={{ __html: R.scenMatrix(inputs, p) }} />
           </div>
         </div>
       </div>

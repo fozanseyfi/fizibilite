@@ -169,6 +169,30 @@
 .mdl .hlbl { font-family: var(--mono); font-size: 9.5px; color: #98A2B6; text-align: center; }
 @media (max-width: 760px) { .mdl .hgrid { grid-template-columns: repeat(6, 1fr); } }
 
+/* ---- Sonuçlar (yönetici özeti) sekmesi ---- */
+.mdl .exec-hero { background: linear-gradient(135deg, var(--navy-deep) 0%, #14397E 60%, #18428F 100%); color: #fff; border-radius: var(--radius); padding: 26px 28px 22px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.mdl .exec-hero .eh-top { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.mdl .exec-hero .eh-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+.mdl .exec-hero h2 { font-family: var(--disp); font-weight: 800; font-size: 24px; letter-spacing: -.01em; line-height: 1.2; }
+.mdl .exec-hero .eh-sub { color: #B7C4DE; font-size: 13.5px; margin-top: 4px; }
+.mdl .exec-badge { margin-left: auto; font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 99px; white-space: nowrap; align-self: center; }
+.mdl .exec-badge.good { background: rgba(30, 127, 79, .25); color: #7BE3B0; border: 1px solid rgba(123, 227, 176, .45); }
+.mdl .exec-badge.bad { background: rgba(199, 0, 11, .22); color: #FF9AA0; border: 1px solid rgba(255, 154, 160, .45); }
+.mdl .exec-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px 0; margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, .16); padding-top: 16px; }
+.mdl .exec-stat { padding: 0 20px 0 0; }
+.mdl .exec-stat + .exec-stat { border-left: 1px solid rgba(255, 255, 255, .12); padding-left: 20px; }
+.mdl .exec-stat .l { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #9FB0D0; }
+.mdl .exec-stat .v { font-family: var(--mono); font-weight: 600; font-size: 23px; margin-top: 5px; color: #fff; letter-spacing: -.01em; }
+.mdl .exec-stat .v.gold { color: var(--gold); }
+.mdl .exec-stat .h { font-size: 11px; color: #8FA1C4; margin-top: 3px; }
+.mdl .exec-sect { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--navy); margin: 26px 0 12px; display: flex; align-items: center; gap: 12px; }
+.mdl .exec-sect::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.mdl .exec-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 900px) {
+  .mdl .exec-grid2 { grid-template-columns: 1fr; }
+  .mdl .exec-stat + .exec-stat { border-left: none; padding-left: 0; }
+}
+
 /* ---- tooltip (floating) — id tabanlı, scope gerektirmez ---- */
 .mdl .tipq { border-bottom: 1px dotted #8FA1C4; cursor: help; outline: none; }
 #mdl-tipbox { position: fixed; display: none; background: #0E2A5E; color: #fff; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12.5px; font-weight: 400; line-height: 1.55; letter-spacing: 0; text-transform: none; padding: 10px 13px; border-radius: 9px; z-index: 3000; pointer-events: none; box-shadow: 0 10px 28px rgba(14,42,94,.35); max-width: 380px; }
