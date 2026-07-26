@@ -222,12 +222,13 @@
   body.mdl-printing > *:not(#mdl-report) { display: none !important; }
   body.mdl-printing #mdl-report { display: block; }
   body.mdl-printing { background: #fff; font-size: 10.5px; color: #1A2436; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
-  #mdl-report { --navy: #18428F; --navy-deep: #0E2A5E; --gold: #E8A020; --green: #1E7F4F; --red: #C7000B; --line: #D9E0EC; line-height: 1.5; }
+  /* Kurumsal palet: lacivert + gri; renk yalnız küçük fark işaretlerinde (soluk yeşil/kırmızı). */
+  #mdl-report { --navy: #1E3A6E; --navy-deep: #0E2A5E; --gold: #8892A4; --green: #3D6B54; --red: #9A3B40; --line: #D9E0EC; line-height: 1.5; }
   #mdl-report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-  /* Kapak / başlık bandı */
-  #mdl-report .r-cover { background: linear-gradient(135deg, var(--navy-deep) 0%, #14397E 70%, #18428F 100%); color: #fff; padding: 24px 26px 20px; border-radius: 12px; border-bottom: 4px solid var(--gold); margin-bottom: 16px; }
-  #mdl-report .r-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  /* Kapak / başlık bandı — düz lacivert, süssüz */
+  #mdl-report .r-cover { background: var(--navy-deep); color: #fff; padding: 24px 26px 20px; border-radius: 8px; margin-bottom: 18px; }
+  #mdl-report .r-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: #8FA3C9; margin-bottom: 8px; }
   #mdl-report .r-cover h1 { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 25px; letter-spacing: -.01em; line-height: 1.15; color: #fff; margin: 0; }
   #mdl-report .r-cover .r-sub { color: #B7C4DE; font-size: 10.5px; margin-top: 4px; }
   #mdl-report .r-cover .r-facts { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-top: 13px; padding-top: 11px; border-top: 1px solid rgba(255,255,255,.22); }
@@ -237,40 +238,34 @@
   #mdl-report .r-cover .r-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 13px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.22); }
   #mdl-report .r-cover .r-stat .l { font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; letter-spacing: .1em; text-transform: uppercase; color: #9FB0D0; }
   #mdl-report .r-cover .r-stat .v { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: #fff; margin-top: 3px; letter-spacing: -.01em; }
-  #mdl-report .r-cover .r-stat .v.gold { color: var(--gold); }
+  #mdl-report .r-cover .r-stat .v.gold { color: #fff; }
 
-  /* Numaralı bölüm başlıkları */
-  #mdl-report h2 { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13px; color: var(--navy-deep); margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 2px solid var(--gold); page-break-after: avoid; }
-  #mdl-report h2 .rn { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--gold); margin-right: 8px; }
+  /* Numaralı bölüm başlıkları — ince gri çizgi */
+  #mdl-report h2 { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13px; color: var(--navy-deep); margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #C9D2E2; page-break-after: avoid; }
+  #mdl-report h2 .rn { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8892A4; margin-right: 8px; }
   #mdl-report .r-block { page-break-inside: avoid; }
 
-  /* KPI kartları — renkli sol şerit */
+  /* KPI kartları — sade, tek ton */
   #mdl-report .r-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0; }
-  #mdl-report .r-kpi { border: 1px solid var(--line); border-left: 3px solid var(--navy); border-radius: 7px; padding: 8px 10px; background: #FAFBFD; }
-  #mdl-report .r-kpi.good { border-left-color: var(--green); }
-  #mdl-report .r-kpi.bad { border-left-color: var(--red); }
+  #mdl-report .r-kpi { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: #fff; }
   #mdl-report .r-kpi .l { font-family: 'IBM Plex Mono', monospace; font-size: 7px; letter-spacing: .08em; text-transform: uppercase; color: #6A7488; margin-bottom: 3px; }
   #mdl-report .r-kpi .v { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--navy-deep); }
-  #mdl-report .r-kpi.good .v { color: var(--green); }
-  #mdl-report .r-kpi.bad .v { color: var(--red); }
+  #mdl-report .r-kpi.good .v, #mdl-report .r-kpi.bad .v { color: var(--navy-deep); }
 
-  /* Karar bandı */
-  #mdl-report .r-verdict { border-left: 3px solid var(--gold); background: #FDF7EA; padding: 8px 12px; font-size: 10.5px; margin: 8px 0; border-radius: 0 6px 6px 0; font-weight: 600; }
-  #mdl-report .r-verdict.good { border-left-color: var(--green); background: #EAF6F0; color: #14563A; }
-  #mdl-report .r-verdict.bad { border-left-color: var(--red); background: #FCEBEC; color: #8F0009; }
+  /* Karar bandı — nötr zemin, lacivert şerit */
+  #mdl-report .r-verdict { border-left: 3px solid var(--navy-deep); background: #F5F7FA; padding: 8px 12px; font-size: 10.5px; margin: 8px 0; border-radius: 0 4px 4px 0; font-weight: 600; color: #1A2436; }
+  #mdl-report .r-verdict.good, #mdl-report .r-verdict.bad { border-left-color: var(--navy-deep); background: #F5F7FA; color: #1A2436; }
 
-  /* Tablolar — lacivert başlık, zebra satır, altın toplam */
-  #mdl-report table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 8.4px; margin: 4px 0 8px; border: 1px solid var(--line); }
-  #mdl-report th { background: var(--navy-deep); color: #fff; font-weight: 600; padding: 5px 7px; text-align: right; font-family: 'IBM Plex Sans', sans-serif; border: none; }
+  /* Tablolar — beyaz başlık + lacivert alt çizgi, dolgu yok */
+  #mdl-report table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 8.4px; margin: 4px 0 8px; }
+  #mdl-report th { background: #fff; color: var(--navy-deep); font-weight: 700; padding: 5px 7px; text-align: right; font-family: 'IBM Plex Sans', sans-serif; border: none; border-bottom: 1.5px solid var(--navy-deep); }
   #mdl-report th:first-child, #mdl-report td:first-child { text-align: left; }
   #mdl-report td { padding: 4px 7px; text-align: right; border-top: 1px solid #EAEEF4; }
-  #mdl-report tbody tr:nth-child(even) td { background: #F7F9FC; }
-  #mdl-report tr.tot td, #mdl-report tr.total td { background: #FDF4E3 !important; font-weight: 700; border-top: 1.5px solid var(--gold); }
+  #mdl-report tr.tot td, #mdl-report tr.total td { font-weight: 700; border-top: 2px solid var(--navy-deep); }
   #mdl-report tr { page-break-inside: avoid; }
-  #mdl-report .r-assume td:nth-child(odd) { font-weight: 600; color: var(--navy-deep); background: #F2F5FB; width: 15%; white-space: nowrap; }
-  #mdl-report td.base { background: #FDF4E3 !important; font-weight: 700; }
-  #mdl-report td.g { color: var(--green); font-weight: 600; }
-  #mdl-report td.b { color: var(--red); font-weight: 600; }
+  #mdl-report .r-assume td:nth-child(odd) { font-weight: 600; color: var(--navy-deep); width: 15%; white-space: nowrap; }
+  #mdl-report td.base { font-weight: 700; background: #F5F7FA; }
+  #mdl-report td.g, #mdl-report td.b { font-weight: 600; }
   #mdl-report .tsub { font-size: 8px; color: #6A7488; margin: 3px 0 6px; font-family: 'IBM Plex Sans', sans-serif; }
 
   /* Grafik/panel/notlar */
@@ -278,7 +273,7 @@
   #mdl-report .r-chart .r-cap { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #6A7488; margin-bottom: 5px; }
   #mdl-report .r-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 8px; color: #6A7488; margin-top: 5px; }
   #mdl-report .r-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; vertical-align: middle; }
-  #mdl-report .r-pitch { border: 1.5px solid var(--navy-deep); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 13px; font-size: 10.5px; line-height: 1.6; margin: 7px 0; }
+  #mdl-report .r-pitch { border: 1px solid var(--line); border-left: 3px solid var(--navy-deep); border-radius: 6px; padding: 10px 13px; font-size: 10.5px; line-height: 1.6; margin: 7px 0; }
   #mdl-report .r-note { font-size: 8.4px; color: #556; line-height: 1.55; background: #F7F9FC; border-left: 3px solid #C6D2E6; padding: 8px 11px; border-radius: 0 6px 6px 0; }
   #mdl-report .r-su { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   #mdl-report .pagebreak { page-break-before: always; }
