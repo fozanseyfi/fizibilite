@@ -102,7 +102,7 @@ export function sFin(p: P, m: UtilityModel): string {
 export function sRes(p: P, m: UtilityModel): string {
   const r = p.r;
   const pvFCF = m.npv + m.baseCost;
-  const pvCost = m.lcoe * m.pvE - m.baseCost;
+  const pvCost = m.lcoe * m.pvE - p.pvCapex; // LCOE artık PV bazlı (BESS hariç)
   const f1 = m.fcfs[0], f10 = m.fcfs[Math.min(9, p.life - 1)], fL = m.fcfs[p.life - 1];
   const d1 = f1 / (1 + r), d10 = f10 / Math.pow(1 + r, Math.min(10, p.life)), dL = fL / Math.pow(1 + r, p.life);
   const irrChk = m.fcfs.reduce((s, v, i) => s + v / Math.pow(1 + m.irr, i + 1), 0);
@@ -117,9 +117,9 @@ export function sRes(p: P, m: UtilityModel): string {
     + `<b>IRR — İç Verim Oranı</b><br>`
     + `5) NPV'yi sıfırlayan oran: r = <b>${pct(m.irr * 100, 2)}</b> → kontrol: Σ FCF/(1+${fmt(m.irr * 100, 2)}%)<sup>t</sup> = ${musd(irrChk)} ≈ ${musd(m.baseCost)} CAPEX ✓<br>`
     + `<b>LCOE — Birim Enerji Maliyeti</b><br>`
-    + `6) Maliyetlerin BD'si = Σ (OPEX + bakım CAPEX)/(1+r)<sup>t</sup> = <b>${musd(pvCost)}</b><br>`
-    + `7) Üretimin BD'si = Σ Eₜ/(1+r)<sup>t</sup> = <b>${fmt(m.pvE)} MWh</b><br>`
-    + `8) LCOE = (${musd(m.baseCost)} + ${musd(pvCost)}) ÷ ${fmt(m.pvE)} = <b>${fmt(m.lcoe, 1)} $/MWh</b> ${m.lcoe < price1 ? '&lt;' : '&gt;'} 1. yıl satış fiyatı ${fmt(price1, 1)} $/MWh ${m.lcoe < price1 ? '→ her MWh değer yaratıyor' : '→ fiyat maliyeti karşılamıyor'}<br>`
+    + `6) PV maliyetlerinin BD'si = Σ (PV OPEX + PV bakım)/(1+r)<sup>t</sup> = <b>${musd(pvCost)}</b>${p.bessOn ? ' <span style="color:var(--ink-soft)">(BESS ayrı → LCOS)</span>' : ''}<br>`
+    + `7) PV üretiminin BD'si = Σ Eₜ/(1+r)<sup>t</sup> = <b>${fmt(m.pvE)} MWh</b><br>`
+    + `8) LCOE = (${musd(p.pvCapex)} PV CAPEX + ${musd(pvCost)}) ÷ ${fmt(m.pvE)} = <b>${fmt(m.lcoe, 1)} $/MWh</b> ${m.lcoe < price1 ? '&lt;' : '&gt;'} 1. yıl satış fiyatı ${fmt(price1, 1)} $/MWh ${m.lcoe < price1 ? '→ her MWh değer yaratıyor' : '→ fiyat maliyeti karşılamıyor'}<br>`
     + `<b>LLCR / PLCR — Borç Karşılama</b><br>`
     + `9) BD(CFADS, yıl 1–${Math.min(p.tenor, p.life)}, %${fmt(p.kd * 100, 2)} kredi faiziyle) = ${musd(llcrNum)} → ÷ ${musd(m.debt)} kredi = LLCR <b>${fmt(m.llcr, 2)}</b><br>`
     + `10) Aynı hesap tüm ömür (1–${p.life}) = ${musd(plcrNum)} → ÷ ${musd(m.debt)} = PLCR <b>${fmt(m.plcr, 2)}</b><br>`
@@ -247,6 +247,32 @@ export function beHtml(i: UtilityInputs, p: P, m: UtilityModel): string {
     + rowNPV('NPV = 0 · üretim', mE, (mm) => fmt(p.spec * mm) + ' kWh/kWp')
     + rowNPV('NPV = 0 · CAPEX', mC, (mm) => fmt(p.capexUnit * mm, 1) + ' $/kWp')
     + debtRows + `</tbody></table>`;
+}
+
+// ---------------- senaryo matrisi (Kötümser / Baz / İyimser) ----------------
+export function scenMatrix(i: UtilityInputs, p: P): string {
+  const cap = p.pvCapex;
+  const scen = [
+    { name: 'Kötümser', pm: 0.90, em: 0.95, dc: 0.10 * cap },
+    { name: 'Baz', pm: 1, em: 1, dc: 0 },
+    { name: 'İyimser', pm: 1.10, em: 1.05, dc: -0.05 * cap },
+  ];
+  const runs = scen.map((s) => ({ s, m: computeUtility(i, { priceMult: s.pm, prodMult: s.em, dCapex: s.dc }) }));
+  const r = p.r;
+  const cell = (val: string, cls: string) => `<td class="${cls}">${val}</td>`;
+  const row = (label: string, fn: (m: UtilityModel) => string, clsFn: (m: UtilityModel) => string) =>
+    `<tr><td style="text-align:left">${label}</td>${runs.map(({ s, m }) => cell(fn(m), s.name === 'Baz' ? 'base' : clsFn(m))).join('')}</tr>`;
+  const neutral = () => '';
+  let h = `<table class="senstable" style="width:100%"><tbody><tr><th style="text-align:left">Metrik</th>${scen.map((s) => `<th>${s.name}</th>`).join('')}</tr>`;
+  h += row('NPV', (m) => musd(m.npv), (m) => (m.npv >= 0 ? 'g' : 'b'));
+  h += row('Proje IRR', (m) => pct(m.irr * 100, 1), (m) => (m.irr >= r ? 'g' : 'b'));
+  h += row('Equity IRR', (m) => pct(m.eIRR * 100, 1), neutral);
+  h += row('Min DSCR', (m) => (Number.isFinite(m.minDSCR) ? fmt(m.minDSCR, 2) : '—'), (m) => (m.minDSCR >= 1.2 ? 'g' : 'b'));
+  h += row('LCOE ($/MWh)', (m) => fmt(m.lcoe, 1), neutral);
+  h += row('Basit geri ödeme', (m) => (Number.isFinite(m.pbS) ? fmt(m.pbS, 1) + ' yıl' : '—'), neutral);
+  h += `</tbody></table>`;
+  h += `<p class="tsub" style="margin-top:10px">Kötümser: fiyat −%10, üretim −%5, CAPEX +%10 · İyimser: fiyat +%10, üretim +%5, CAPEX −%5. Her sütun, modelin (borç sculpting dahil) tam yeniden çözümüdür — duyarlılıktan farkı, üç kaldıracın aynı anda hareket etmesidir.</p>`;
+  return h;
 }
 
 // ---------------- kümülatif grafik noktaları ----------------

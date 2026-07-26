@@ -423,6 +423,10 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 <svg viewBox="0 0 900 240" width="100%" dangerouslySetInnerHTML={{ __html: R.cumChart(inputs, m) }} />
               </Card>
             </Step>
+
+            <Step no="ANALİZ" title="Senaryo Matrisi — Kötümser / Baz / İyimser" why="Tarife, üretim ve CAPEX aynı anda hareket eder — projenin dayanıklılığı.">
+              <div className="senswrap" dangerouslySetInnerHTML={{ __html: R.scenMatrixCi(inputs) }} />
+            </Step>
           </div>
 
           {/* ==================== TAB 2: SAATLIK VERI ==================== */}

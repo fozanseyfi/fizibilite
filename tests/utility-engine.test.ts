@@ -23,10 +23,12 @@ describe('Utility engine — HTML baz senaryosuyla birebir', () => {
     expect(m.dsra).toBeCloseTo(1348709, -4);
   });
 
-  it('KPI: NPV ~29,28 M$, IRR %16,1, LCOE 36,7', () => {
-    expect(m.npv / 1e6).toBeCloseTo(29.28, 1);
+  // Not: NPV/LCOE, vergi-sonrası WACC (iskonto ~%8,44) ve PV-bazlı LCOE düzeltmesiyle
+  // güncellendi. IRR, DSCR, LLCR, payback iskonto oranından bağımsız → değişmedi.
+  it('KPI: NPV ~39,45 M$, IRR %16,1, LCOE ~33,4', () => {
+    expect(m.npv / 1e6).toBeCloseTo(39.45, 1);
     expect(m.irr * 100).toBeCloseTo(16.08, 0);
-    expect(m.lcoe).toBeCloseTo(36.7, 0);
+    expect(m.lcoe).toBeCloseTo(33.41, 1);
   });
 
   it('borç oranları: minDSCR 1,30, avgDSCR ~1,43, LLCR 1,92, PLCR 2,77', () => {
@@ -53,13 +55,13 @@ describe('Utility engine — Huawei artımlı analiz', () => {
     expect(hw.annual1).toBeCloseTo(223167, -3);
   });
 
-  it('ΔNPV ~1.775.638 $, artımlı IRR ~%84,4', () => {
-    expect(hw.dNPV).toBeCloseTo(1775638, -4);
+  it('ΔNPV ~2.050.851 $, artımlı IRR ~%84,4', () => {
+    expect(hw.dNPV).toBeCloseTo(2050851, -4);
     expect(hw.dIRR * 100).toBeCloseTo(84.4, 0);
   });
 
-  it('Huawei LCOE 36,7 → 35,7, LLCR 1,92 → 1,95', () => {
-    expect(hw.hwModel.lcoe).toBeCloseTo(35.7, 0);
+  it('Huawei LCOE ~33,4 → ~32,5, LLCR 1,92 → 1,95', () => {
+    expect(hw.hwModel.lcoe).toBeCloseTo(32.5, 1);
     expect(hw.hwModel.llcr).toBeCloseTo(1.95, 1);
   });
 });

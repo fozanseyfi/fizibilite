@@ -286,17 +286,20 @@ function fullModelP(p: CParams): CiModel {
 
 // ============================ NORMALIZE + PUBLIC API ============================
 export function normalizeCi(i: CiInputs): CParams {
+  // Savunmacı kelepçeler: boş/uç girdiler (ör. RTE=0 → sıfıra bölme) motoru
+  // NaN'a düşürmesin. Değerler makul bantlara sıkıştırılır.
+  const cl = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, Number.isFinite(x) ? x : lo));
   return {
     pname: i.pname || 'C&I GES Projesi', prep: i.prep,
-    abone: i.abone, consY: i.consY, consPrev: i.consPrev,
-    mPct: i.monthly, weRatio: i.weRatio / 100, wd: i.wd, we: i.we,
-    kwp: i.kwp, spec: i.spec, orient: i.orient, degr: i.degr / 100, life: Math.max(5, Math.round(i.life)),
-    skb: i.skb,
-    pBuy: i.pBuy, pSell: i.pSell, esc1: i.esc1 / 100, esc2: i.esc2 / 100, preal: i.preal / 100,
-    fx0: i.fx0, piUS: i.piUS / 100, fxMode: i.fxMode, fxMan: i.fxMan / 100,
-    bessOn: i.bessOn, bKwh: i.bKwh, bKw: i.bKw, bRte: i.bRte / 100, bDegr: i.bDegr / 100, bCapex: i.bCapex, bOpex: i.bOpex,
-    capexU: i.capexU, opexU: i.opexU, r: i.r / 100,
-    lOn: i.lOn, lRatio: Math.min(i.lRatio, 100) / 100, lRate: i.lRate / 100, lTerm: Math.max(1, Math.round(i.lTerm)),
+    abone: i.abone, consY: cl(i.consY, 1, 1e12), consPrev: cl(i.consPrev, 1, 1e12),
+    mPct: i.monthly, weRatio: cl(i.weRatio, 0, 300) / 100, wd: i.wd, we: i.we,
+    kwp: cl(i.kwp, 0, 1e9), spec: cl(i.spec, 0, 5000), orient: i.orient, degr: cl(i.degr, 0, 10) / 100, life: cl(Math.round(i.life), 5, 40),
+    skb: cl(i.skb, 0, 1e6),
+    pBuy: cl(i.pBuy, 0, 1e6), pSell: cl(i.pSell, 0, 1e6), esc1: cl(i.esc1, -50, 500) / 100, esc2: cl(i.esc2, -50, 500) / 100, preal: cl(i.preal, -50, 50) / 100,
+    fx0: cl(i.fx0, 0.01, 1e6), piUS: cl(i.piUS, 0, 50) / 100, fxMode: i.fxMode, fxMan: cl(i.fxMan, -50, 500) / 100,
+    bessOn: i.bessOn, bKwh: cl(i.bKwh, 0, 1e9), bKw: cl(i.bKw, 0, 1e9), bRte: cl(i.bRte, 30, 100) / 100, bDegr: cl(i.bDegr, 0, 20) / 100, bCapex: cl(i.bCapex, 0, 1e6), bOpex: cl(i.bOpex, 0, 1e6),
+    capexU: cl(i.capexU, 0, 1e6), opexU: cl(i.opexU, 0, 1e6), r: cl(i.r, 0.01, 100) / 100,
+    lOn: i.lOn, lRatio: cl(i.lRatio, 0, 100) / 100, lRate: cl(i.lRate, 0, 200) / 100, lTerm: cl(Math.round(i.lTerm), 1, 40),
   };
 }
 

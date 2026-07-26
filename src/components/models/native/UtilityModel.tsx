@@ -317,6 +317,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
                 </div>
                 <Kpis list={R.kpis(p, m)} />
                 <div className={`verdict ${vd.cls}`} dangerouslySetInnerHTML={{ __html: vd.text }} />
+                <Note>NPV, IRR ve LCOE <b>kaldıraçsız</b> ve <b>EPC CAPEX</b> bazlıdır (finansmandan bağımsız varlık değeri); iskonto oranı <b>vergi-sonrası WACC</b>’tir. IDC, kredi ücreti, DSRA ve KDV taşıma dahil <b>toplam finanse edilen tutar</b> yukarıdaki Kaynak–Kullanım tablosundadır.</Note>
                 <Card label="Ana denklemler · girilen değerlerle" html={R.sRes(p, m)} />
               </div>
             </div>
@@ -331,6 +332,12 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
             <div className="step">
               <div className="step-head"><span className="step-no">ANALİZ</span><h2>Kırılma Noktası (Breakeven) Analizi</h2><span className="why">Bankanın klasik sorusu: hangi seviyede bozulur?</span></div>
               <div className="step-body single"><div className="senswrap" dangerouslySetInnerHTML={{ __html: R.beHtml(inputs, p, m) }} /></div>
+            </div>
+
+            {/* Senaryo matrisi */}
+            <div className="step">
+              <div className="step-head"><span className="step-no">ANALİZ</span><h2>Senaryo Matrisi — Kötümser / Baz / İyimser</h2><span className="why">Üç kaldıraç (fiyat, üretim, CAPEX) aynı anda hareket eder — yatırım komitesinin ilk baktığı tablo.</span></div>
+              <div className="step-body single"><div className="senswrap" dangerouslySetInnerHTML={{ __html: R.scenMatrix(inputs, p) }} /></div>
             </div>
 
             {/* Kümülatif grafik */}

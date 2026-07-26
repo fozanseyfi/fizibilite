@@ -38,7 +38,7 @@ export const CI_TIPS: Record<string, string> = {
   b_opex: 'Yıllık bakım/garanti bedeli; OPEX artış oranıyla eskale edilir.',
   i_capex: 'GES anahtar teslim birim maliyeti (panel, inverter, konstrüksiyon, AG/OG bağlantı, proje-izin dahil). 2026 çatı bandı ~25.000–32.000 TL/kWp.',
   i_opex: 'Yıllık işletme-bakım: temizlik, izleme, sigorta, küçük onarımlar. İnverter yenileme karşılığını da içerecek şekilde seçilebilir.',
-  i_r: 'TL nominal iskonto oranı: bu paranın alternatif getirisi (mevduat, para piyasası, iç verim beklentin). Tarife zamları nominal olduğundan iskonto da nominal olmalı — reel oranla karıştırma.',
+  i_r: 'USD nominal iskonto oranı — model TL faydayı her yıl kurla USD’ye çevirir ve nakit akışları USD olarak bu oranla indirgenir. USD proje getiri beklentin / alternatif USD getiri (~%8–12). Dikkat: TL faiziyle (%30–45) karıştırma; buraya USD oranı gir.',
   l_on: 'Yatırımın bir kısmının TL krediyle finanse edilmesi. Equity IRR ve özkaynak geri dönüşü buna göre hesaplanır.',
   l_ratio: 'Kredinin toplam CAPEX içindeki payı. C&I çatı projelerinde %50–70 tipik.',
   l_rate: 'TL ticari kredi faizi (yıllık). Temmuz 2026 ortamında %35–45 bandı; leasing alternatifi ayrıca değerlendirilebilir.',
@@ -406,6 +406,31 @@ export function csvAllYear(i: CiInputs): string {
     }
   }
   return csv;
+}
+
+// ============================ SENARYO MATRİSİ ============================
+export function scenMatrixCi(i: CiInputs): string {
+  const scen = [
+    { name: 'Kötümser', pm: 0.90, prm: 0.90, cm: 1.10 },
+    { name: 'Baz', pm: 1, prm: 1, cm: 1 },
+    { name: 'İyimser', pm: 1.10, prm: 1.10, cm: 0.90 },
+  ];
+  const runs = scen.map((s) => ({ s, m: computeCi({ ...i, pBuy: i.pBuy * s.pm, pSell: i.pSell * s.pm, spec: i.spec * s.prm, capexU: i.capexU * s.cm }) }));
+  const r = i.r / 100;
+  const cell = (val: string, cls: string) => `<td class="${cls}">${val}</td>`;
+  const row = (label: string, fn: (m: CiModel) => string, clsFn: (m: CiModel) => string) =>
+    `<tr><td style="text-align:left">${label}</td>${runs.map(({ s, m }) => cell(fn(m), s.name === 'Baz' ? 'base' : clsFn(m))).join('')}</tr>`;
+  const neutral = () => '';
+  const selfC = (m: CiModel) => { const y1 = m.years[0]; return y1.s.prod > 0 ? (y1.s.mah + y1.s.shift) / y1.s.prod * 100 : 0; };
+  let h = `<table class="senstable" style="width:100%"><tbody><tr><th style="text-align:left">Metrik</th>${scen.map((s) => `<th>${s.name}</th>`).join('')}</tr>`;
+  h += row('NPV', (m) => usd(m.npv), (m) => (m.npv >= 0 ? 'g' : 'b'));
+  h += row('Proje IRR', (m) => pct(m.irr * 100, 1), (m) => (m.irr >= r ? 'g' : 'b'));
+  h += row('Basit geri ödeme', (m) => (Number.isFinite(m.pb) ? fmt(m.pb, 1) + ' yıl' : '—'), neutral);
+  h += row('1. yıl net fayda', (m) => usd(m.years[0].cf), (m) => (m.years[0].cf >= 0 ? 'g' : 'b'));
+  h += row('Öz tüketim', (m) => pct(selfC(m), 1), neutral);
+  h += `</tbody></table>`;
+  h += `<p class="tsub" style="margin-top:10px">Kötümser: tarife −%10, üretim −%10, CAPEX +%10 · İyimser: tersi. Her sütun, motorun (12 ay × saatlik simülasyon) tam yeniden çözümüdür.</p>`;
+  return h;
 }
 
 // ============================ PDF RAPOR ============================

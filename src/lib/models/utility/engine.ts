@@ -310,9 +310,13 @@ function fullModelP(p: UParams, o: UtilityOpts = {}): UtilityModel {
   const irr = irrOf(baseCost, fcfs);
   const pbS = paybackOf(baseCost, fcfs);
   const pbD = paybackOf(baseCost, fcfs.map((cf, i) => cf / Math.pow(1 + r, i + 1)));
-  const pvCost = pv(sched.yrs.map((y) => y.opexPV + y.opexB + y.capexM));
-  const pvE = pv(sched.yrs.map((y) => y.E + y.disch));
-  const lcoe = (baseCost + pvCost) / pvE;
+  // LCOE = yalnız PV üretiminin maliyeti: pay = PV EPC CAPEX + PV OPEX + PV bakım
+  // (inverter yenileme); payda = yalnız PV üretimi. BESS tamamen LCOS'ta ayrı tutulur
+  // (aksi halde şebeke-arbitrajı deşarjı paydayı şişirip LCOE'yi suni düşürür).
+  const pvCapexLcoe = p.pvCapex + (o.dCapex ?? 0);
+  const pvCost = pv(sched.yrs.map((y) => y.opexPV + (y.t === p.replYear && p.replYear > 0 ? p.mw * 1000 * p.replCost : 0)));
+  const pvE = pv(sched.yrs.map((y) => y.E));
+  const lcoe = pvE > 0 ? (pvCapexLcoe + pvCost) / pvE : NaN;
   let lcos = NaN;
   if (p.bessOn) {
     const pvD = pv(sched.yrs.map((y) => y.disch));
@@ -342,7 +346,9 @@ export function normalizeUtility(i: UtilityInputs): UParams {
   const capexUnit = i.capexUnit;
   const debtR = Math.min(i.debt, 90) / 100;
   const kd = i.kd / 100, ke = i.ke / 100;
-  const wacc = debtR * kd + (1 - debtR) * ke;
+  // Vergi-sonrası WACC: faiz gideri vergiden düşülebildiği için borcun efektif
+  // maliyeti kd×(1−vergi). Kaldıraçsız-vergi-sonrası FCF'ler bu oranla iskonto edilir.
+  const wacc = debtR * kd * (1 - i.tax / 100) + (1 - debtR) * ke;
   const useW = i.useWacc;
   const cur = i.cur;
   const ppaCur = cur === 'tl' ? i.ppaCur : 'usd';
