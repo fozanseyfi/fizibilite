@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Loader2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Trash2, FileDown } from 'lucide-react';
 import { computeUtility, computeUtilityHuawei, type UtilityInputs } from '@/lib/models/utility/engine';
 import { defaultUtilityInputs } from '@/lib/models/utility/defaults';
-import { Tipbox, NumF, TxtF, SelF, ChkF, SeriesChart } from '@/components/models/native/mdl-kit';
+import { Tipbox, NumF, TxtF, SelF, ChkF, SeriesChart, PrintReport } from '@/components/models/native/mdl-kit';
 import * as R from '@/components/models/native/utility-render';
 import { musd } from '@/lib/models/fmt';
 
@@ -95,6 +95,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
   const [inputs, setInputs] = useState<UtilityInputs>(() => ({ ...defaultUtilityInputs(), ...(initialInputs ?? {}) }));
   const [tab, setTab] = useState<'fiz' | 'hw'>('fiz');
   const [saving, setSaving] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const set = <K extends keyof UtilityInputs>(k: K, v: UtilityInputs[K]) => setInputs((p) => ({ ...p, [k]: v }));
@@ -131,6 +132,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
         <div className="flex items-center gap-2">
           {err && <span className="text-xs text-destructive">{err}</span>}
           {projectId && <Button variant="outline" size="sm" onClick={del} disabled={saving} className="text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 mr-1" /> Sil</Button>}
+          <Button onClick={() => setPrinting(true)} disabled={saving} size="sm"><FileDown className="h-4 w-4 mr-1.5" /> Rapor çıktısı al</Button>
           <Button onClick={save} disabled={saving} size="sm">{saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}{projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'}</Button>
         </div>
       </div>
@@ -368,6 +370,10 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
           </div>
         </div>
       </div>
+
+      <PrintReport open={printing} onClose={() => setPrinting(false)}>
+        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, date: new Date().toLocaleDateString('tr-TR') }) }} />
+      </PrintReport>
     </>
   );
 }

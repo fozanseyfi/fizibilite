@@ -290,3 +290,78 @@ export function hwKpis(base: UtilityModel, hw: HuaweiResult, style: string): Kpi
     { cls: 'navy', label: style === 'sculpt' ? 'LLCR · Baz → Huawei' : 'Min DSCR · Baz → Huawei', val: style === 'sculpt' ? `${fmt(base.llcr, 2)} → ${fmt(hw.hwModel.llcr, 2)}` : `${fmt(base.minDSCR, 2)} → ${fmt(hw.hwModel.minDSCR, 2)}`, hint: 'Borç tarafındaki iyileşme' },
   ];
 }
+
+// ---------------- PDF RAPOR ----------------
+function esc(s: string): string {
+  return String(s).replace(/[&<>]/g, (c) => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'));
+}
+/** İşletme nakit akışı — tüm yıllar (rapor için, kısaltmasız). */
+export function cfTableFull(p: P, m: UtilityModel): string {
+  const bess = p.bessOn, tl = p.cur === 'tl';
+  let cum = -m.baseCost;
+  let h = `<thead><tr><th>Yıl</th>${tl ? '<th>Kur</th>' : ''}<th>PV MWh</th>${bess ? '<th>BESS MWh</th>' : ''}<th>Gelir $</th><th>OPEX $</th><th>EBITDA $</th><th>Vergi $</th><th>Bakım $</th><th>FCF $</th><th>DSCR</th><th>Kümülatif $</th></tr></thead><tbody>`;
+  h += `<tr><td>0</td>${tl ? '<td>' + fmt(p.fx0, 1) + '</td>' : ''}<td>—</td>${bess ? '<td>—</td>' : ''}<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>${usd(-m.baseCost)}</td><td>—</td><td>${usd(-m.baseCost)}</td></tr>`;
+  m.yrs.forEach((y) => { cum += y.fcf; h += `<tr>${opRow(y, bess, tl)}<td>${fmt(cum)}</td></tr>`; });
+  const S = m.yrs.reduce((a, y) => { a.E += y.E; a.d += y.disch; a.rev += y.revPV + y.revB; a.op += y.opexPV + y.opexB; a.eb += y.ebitda; a.tx += y.taxU; a.cx += y.capexM; a.f += y.fcf; return a; }, { E: 0, d: 0, rev: 0, op: 0, eb: 0, tx: 0, cx: 0, f: 0 });
+  h += `<tr class="tot"><td>Σ ${p.life}</td>${tl ? '<td>—</td>' : ''}<td>${fmt(S.E)}</td>${bess ? `<td>${fmt(S.d)}</td>` : ''}<td>${fmt(S.rev)}</td><td>${fmt(S.op)}</td><td>${fmt(S.eb)}</td><td>${fmt(S.tx)}</td><td>${fmt(S.cx)}</td><td>${fmt(S.f)}</td><td>—</td><td>${fmt(-m.baseCost + S.f)}</td></tr>`;
+  return h + '</tbody>';
+}
+/** Temel varsayımlar tablosu (etiket–değer, 2 sütunlu). */
+function assumpTable(p: P): string {
+  const tl = p.cur === 'tl';
+  const rows: [string, string][] = [
+    ['Kurulu güç', `${fmt(p.mw)} MWp`],
+    ['EPC CAPEX', `${fmt(p.capexUnit, 1)} $/kWp`],
+    ['Spesifik üretim', `${fmt(p.spec)} kWh/kWp`],
+    ['Üretim senaryosu', p.scen === 'p90' ? `P90 (%${fmt(p.p90r * 100, 1)})` : 'P50'],
+    ['Availability', `%${fmt(p.avail * 100, 1)}`],
+    ['Kısıntı', `%${fmt(p.curt * 100, 1)}`],
+    ['Degradasyon', `%${fmt(p.degr * 100, 2)}/yıl`],
+    ['Santral ömrü', `${p.life} yıl`],
+    ['OPEX', `${fmt(p.opexUnit)} $/MWp/yıl`],
+    ['Elektrik fiyatı', tl ? `${fmt(p.priceTL)} TL/MWh` : `${fmt(p.price, 1)} $/MWh`],
+    ['Kaldıraç (gearing)', `%${fmt(p.debtR * 100)}`],
+    ['Kredi faizi', `%${fmt(p.kd * 100, 2)}`],
+    ['Vade / grace', `${p.tenor} / ${p.grace} yıl`],
+    ['Geri ödeme', p.style === 'sculpt' ? `DSCR-sculpted (hedef ${fmt(p.target, 2)})` : p.style === 'ann' ? 'Anüite' : 'Eşit anapara'],
+    ['Kurumlar vergisi', `%${fmt(p.tax * 100)}${p.holiday > 0 ? ` (tatil ${p.holiday} yıl)` : ''}`],
+    ['Özkaynak beklentisi', `%${fmt(p.ke * 100, 1)}`],
+    ['İskonto oranı (r)', `${pct(p.r * 100, 2)}${p.useW ? ' = WACC' : ''}`],
+  ];
+  let h = '<table><tbody>';
+  for (let i = 0; i < rows.length; i += 2) {
+    const a = rows[i], b = rows[i + 1];
+    h += `<tr><td>${a[0]}</td><td>${a[1]}</td><td>${b ? b[0] : ''}</td><td>${b ? b[1] : ''}</td></tr>`;
+  }
+  return h + '</tbody></table>';
+}
+
+export interface ReportMeta { title: string; prep: string; date: string; }
+/** #mdl-report gövdesi — PDF raporun tüm içeriği (tek HTML string). */
+export function reportUtility(p: P, m: UtilityModel, hw: HuaweiResult, meta: ReportMeta): string {
+  const tl = p.cur === 'tl';
+  const vd = verdict(p, m);
+  const capacity = p.bessOn ? `${fmt(p.mw)} MWp + ${fmt(p.bMWh)} MWh` : `${fmt(p.mw)} MWp`;
+  const kpiRow = (list: Kpi[]) => `<div class="r-kpis">${list.map((k) => `<div class="r-kpi"><div class="l">${k.label}</div><div class="v">${k.val}</div></div>`).join('')}</div>`;
+  const cover = `<div class="r-cover"><div class="r-eyebrow">Solar + Storage · Proje Finansmanı Fizibilite Raporu</div><h1>${esc(meta.title)}</h1>`
+    + `<div class="r-facts">`
+    + `<div class="r-fact"><b>Kurulu Güç</b><span>${capacity}</span></div>`
+    + `<div class="r-fact"><b>Hazırlayan</b><span>${esc(meta.prep || '—')}</span></div>`
+    + `<div class="r-fact"><b>Tarih</b><span>${esc(meta.date)}</span></div>`
+    + `<div class="r-fact"><b>Para birimi</b><span>${tl ? 'TL gelir + kur' : 'USD'}</span></div>`
+    + `<div class="r-fact"><b>İskonto oranı</b><span>${pct(p.r * 100, 2)}</span></div>`
+    + `</div></div>`;
+  const results = `<h2>Temel Sonuçlar</h2>${kpiRow(kpis(p, m))}<div class="r-verdict">${vd.text}</div>`;
+  const su = `<h2>Kaynak–Kullanım</h2><div class="r-su">`
+    + `<table><thead><tr><th>Kullanımlar</th><th>Tutar</th></tr></thead><tbody>${usesRows(p, m).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}<tr class="tot"><td>Toplam</td><td>${musd(m.totalUses)}</td></tr></tbody></table>`
+    + `<table><thead><tr><th>Kaynaklar</th><th>Tutar</th></tr></thead><tbody>${sourcesRows(p, m).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}<tr class="tot"><td>Toplam</td><td>${musd(m.totalUses)}</td></tr></tbody></table>`
+    + `</div>`;
+  const assum = `<h2>Temel Varsayımlar</h2>${assumpTable(p)}`;
+  const cf = `<div class="pagebreak"></div><h2>İşletme Dönemi Nakit Akışı — ${p.life} yıl</h2><table>${cfTableFull(p, m)}</table>`;
+  const debt = `<h2>Borç Takvimi</h2><table>${debtTableHtml(p, m)}</table>`;
+  const hwSec = hw.dCapex > 0
+    ? `<div class="pagebreak"></div><h2>Huawei Değer Analizi</h2><div class="r-pitch">${pitchText(p, m, hw)}</div>${kpiRow(hwKpis(m, hw, p.style))}`
+    : '';
+  const foot = `<p class="r-note">Bu rapor Fizibilite Platformu tarafından otomatik üretilmiştir. Sonuçlar girilen varsayımlara dayanır ve bağlayıcı yatırım tavsiyesi değildir. · ${esc(meta.date)}</p>`;
+  return cover + results + su + assum + cf + debt + hwSec + foot;
+}
