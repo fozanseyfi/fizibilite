@@ -27,13 +27,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="px-4 lg:px-8 py-6 lg:py-8 max-w-[1600px] mx-auto">
               {children}
             </main>
-            <footer className="border-t border-border/60 mt-12 py-5">
-              <div className="px-4 lg:px-8 max-w-[1600px] mx-auto text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  © 2026 Fizibilite Platformu · EPDK Karar No: 14531 (30.04.2026) ·{' '}
-                  <span className="text-foreground/60">Bu rapor öneri niteliğindedir, yatırım kararı için yetkili uzman görüşü alınız.</span>
-                </div>
-                <div className="text-foreground/60">v0.3.0</div>
+            <footer className="border-t border-border/60 mt-12 py-4 no-print">
+              <div className="px-4 lg:px-8 max-w-[1600px] mx-auto flex items-center flex-wrap gap-x-2 gap-y-1 text-[13.5px] text-muted-foreground">
+                <span>© 2026 <b className="text-foreground font-semibold">Fizibilite Platformu</b></span>
+                <span className="text-border">·</span>
+                <span>Tasarım &amp; Geliştirme: <b className="text-foreground font-semibold">Furkan Ozan Seyfi</b></span>
+                <span className="ml-auto flex items-center gap-4">
+                  <a href="https://www.linkedin.com/in/fozanseyfi" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn" className="text-muted-foreground hover:text-primary transition-colors">
+                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M8 11v5M8 8v.01M12 16v-3a2 2 0 0 1 4 0v3" /></svg>
+                  </a>
+                  <a href="https://fizibilite.fozanseyfi.com/" target="_blank" rel="noopener" aria-label="Web" title="Web" className="text-muted-foreground hover:text-primary transition-colors">
+                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" /></svg>
+                  </a>
+                  <a href="mailto:fozanseyfi@gmail.com" aria-label="E-posta" title="E-posta" className="text-muted-foreground hover:text-primary transition-colors">
+                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+                  </a>
+                </span>
               </div>
             </footer>
           </div>

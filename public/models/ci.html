@@ -241,7 +241,6 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 40px}
       <button data-tab="tab-hours" role="tab">2 · Saatlik Veri</button>
       <button data-tab="tab-bill" role="tab">3 · Fatura Analizi</button>
       <button data-tab="tab-cmp" role="tab" class="">4 · Saatlik vs Aylık</button>
-      <button data-tab="tab-gloss" role="tab">5 · Sözlük</button>
     </nav>
   </div>
 </header>
@@ -684,33 +683,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 40px}
 </section>
 
 <!-- ================= TAB 4: SOZLUK ================= -->
-<section id="tab-gloss" class="tab" role="tabpanel">
-  <p class="tsub" style="margin:0 0 14px">Saatlik mahsuplaşma rejiminin temel kavramları — tanım ve formülleriyle.</p>
-  <div id="glist"><details class="gterm"><summary>Saatlik mahsuplaşma<span class="en">Hourly netting</span></summary>
-    <div class="gb"><p>Her saat için mahsup = min(üretim, tüketim). EPDK 14531 ile C&amp;I abonelerde zorunlu; saatler arası taşıma yok, gündüz fazlası akşam çekişini karşılayamaz.</p><div class="gf">mahsup[s] = min(üretim[s], tüketim[s])</div></div></details><details class="gterm"><summary>Aylık mahsuplaşma<span class="en">Monthly netting</span></summary>
-    <div class="gb"><p>Eski rejim; mesken abonelerinde devam eder. Ay toplamı üzerinden netleşir, saat uyumu aranmaz.</p><div class="gf">mahsup_ay = min(Σüretim, Σtüketim)</div></div></details><details class="gterm"><summary>Bedelli üretim limiti<span class="en">Paid production cap</span></summary>
-    <div class="gb"><p>Satışa konu edilebilecek yıllık üretim tavanı: önceki yıl tüketimi × 2. Mesken muaf. Limit üstü YEKDEM bedelsizdir ve SKB doğabilir (MADDE 7/5).</p><div class="gf">limit = önceki yıl tüketim × 2</div></div></details><details class="gterm"><summary>Öz tüketim oranı<span class="en">Self-consumption ratio</span></summary>
-    <div class="gb"><p>Üretimin tüketimle eşleşen payı: mahsup ÷ üretim. Saatlik rejimde fizibilitenin ana KPI değeri; BESS ve doğu-batı yerleşim yükseltir.</p><div class="gf">öz tüketim = mahsup / üretim</div></div></details><details class="gterm"><summary>Otonomi<span class="en">Autonomy / self-sufficiency</span></summary>
-    <div class="gb"><p>Tüketimin GES tarafından karşılanan payı: mahsup ÷ tüketim. Öz tüketimle karıştırma: payda farklı.</p><div class="gf">otonomi = mahsup / tüketim</div></div></details><details class="gterm"><summary>YEKDEM bedelsiz<span class="en">Uncompensated feed-in</span></summary>
-    <div class="gb"><p>Limit üstü ihtiyaç fazlasının 0 TL ile YEKDEM sistemine aktarılması — gelir yaratmayan üretim. Doğru boyutlandırmanın sebebi.</p></div></details><details class="gterm"><summary>SKB — Sistem kullanım bedeli<span class="en">Grid usage fee</span></summary>
-    <div class="gb"><p>Şebekeyi kullanmanın birim bedeli. Limit üstü miktar "SKB ödemeli" statüsündedir: gelir yok, bedel var.</p></div></details><details class="gterm"><summary>Fiyat terfisi (BESS)<span class="en">Price uplift</span></summary>
-    <div class="gb"><p>Depolanan fazla kWh değerinin satış fiyatı yerine alış fiyatından değerlenmesi: bataryanın mahsuplaşma rejimindeki ana değer kaynağı.</p><div class="gf">Δdeğer = kaydırılan × (alış − satış)</div></div></details></div>
-</section>
-
 </main>
-
-<footer>
-  <p>Bu kokpit, EPDK Karar No: 14531 (30.04.2026) saatlik mahsuplaşma usul ve esaslarına göre kurulmuş bir ön fizibilite aracıdır; tarife ve limit değerleri güncel mevzuattan teyit edilmelidir. Tüm hesaplar tarayıcıda çalışır, veri gönderilmez.</p>
-  <div class="brandbar">
-    <span>© 2026 <b>Fizibilite Platformu</b></span><span style="color:#C3CBDA;margin:0 4px">·</span>
-    <span>Tasarım &amp; Geliştirme: <b>Furkan Ozan Seyfi</b></span>
-    <span class="icons">
-      <a href="https://www.linkedin.com/in/fozanseyfi" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M8 11v5M8 8v.01M12 16v-3a2 2 0 0 1 4 0v3"></path></svg></a>
-      <a href="https://fizibilite.fozanseyfi.com/" target="_blank" rel="noopener" aria-label="Web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z"></path></svg></a>
-      <a href="mailto:fozanseyfi@gmail.com" aria-label="E-posta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></a>
-    </span>
-  </div>
-</footer>
 
 <div id="modal" role="dialog" aria-modal="true" hidden="">
   <div class="m-ov" id="m_ov"></div>
@@ -1656,7 +1629,7 @@ const GLOSS=[
  ['Fiyat terfisi (BESS)','Price uplift','Depolanan fazla kWh değerinin satış fiyatı yerine alış fiyatından değerlenmesi: bataryanın mahsuplaşma rejimindeki ana değer kaynağı.','Δdeğer = kaydırılan × (alış − satış)']
 ];
 GLOSS.forEach(([t,en,d,f])=>{
-  $('glist').insertAdjacentHTML('beforeend',
+  $('glist')?.insertAdjacentHTML('beforeend',
    `<details class="gterm"><summary>${t}<span class="en">${en}</span></summary>
     <div class="gb"><p>${d}</p>${f?`<div class="gf">${f}</div>`:''}</div></details>`);
 });
