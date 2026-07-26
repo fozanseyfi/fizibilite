@@ -41,27 +41,21 @@ function rescaleZone(arr: number[], g0: number, p0: number): number[] {
 }
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
-// ---- düzenlenebilir yüzde grid bileşeni ----
+// ---- düzenlenebilir yüzde grid bileşeni (hücreler doğrudan .hgrid altında) ----
 function PctGrid({ labels, values, onChange }: { labels: string[]; values: number[]; onChange: (a: number[]) => void }) {
   const n = values.length, per = n === 24 ? 12 : n;
-  const blocks: number[][] = [];
-  for (let off = 0; off < n; off += per) blocks.push(Array.from({ length: per }, (_, k) => off + k));
-  return (
-    <div className="hgrid" style={{ gridTemplateColumns: 'repeat(12,1fr)' }}>
-      {blocks.map((idxs, bi) => (
-        <div key={bi} style={{ display: 'contents' }}>
-          {idxs.map((i) => <div key={'l' + i} className="hlbl">{labels[i]}</div>)}
-          {idxs.map((i) => {
-            const last = i === n - 1;
-            return <input key={'i' + i} type="number" min={0} max={100} step={0.5}
-              value={r1(values[i])} readOnly={last} className={last ? 'rem' : undefined}
-              title={last ? 'Otomatik kalan: 100 − diğer hücreler' : undefined}
-              onChange={last ? undefined : (e) => onChange(setPctCell(values, i, parseFloat(e.target.value)))} />;
-          })}
-        </div>
-      ))}
-    </div>
-  );
+  const cells: React.ReactNode[] = [];
+  for (let off = 0; off < n; off += per) {
+    for (let i = off; i < off + per; i++) cells.push(<div key={'l' + i} className="hlbl">{labels[i]}</div>);
+    for (let i = off; i < off + per; i++) {
+      const last = i === n - 1;
+      cells.push(<input key={'i' + i} type="number" min={0} max={100} step={0.5}
+        value={r1(values[i])} readOnly={last} className={last ? 'rem' : undefined}
+        title={last ? 'Otomatik kalan: 100 − diğer hücreler' : undefined}
+        onChange={last ? undefined : (e) => onChange(setPctCell(values, i, parseFloat(e.target.value)))} />);
+    }
+  }
+  return <div className="hgrid">{cells}</div>;
 }
 
 const HLBL = Array.from({ length: 24 }, (_, h) => h + ':00');
@@ -84,7 +78,7 @@ function Step({ no, title, why, children }: { no: string; title: string; why?: s
   return (
     <div className="step">
       <div className="step-head"><span className="step-no">{no}</span><h2>{title}</h2>{why && <span className="why">{why}</span>}</div>
-      <div className="step-body">{children}</div>
+      <div className="step-body single">{children}</div>
     </div>
   );
 }
@@ -216,11 +210,11 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 <>
                   <Card title="Gün içi dağılım — puant dilimleri" small="· günün %'si · Gece otomatik kalan">
                     <div className="grid3" style={{ alignItems: 'end' }}>
-                      <NumF label="Hafta içi · Gündüz" unit="06–17 (%)" value={zone.wd.g} onChange={(v) => editZone('wd', 'g', v)} />
-                      <NumF label="Hafta içi · Puant" unit="17–22 (%)" value={zone.wd.p} onChange={(v) => editZone('wd', 'p', v)} />
+                      <NumF label="Hafta içi · Gündüz" unit="06–17 (%)" value={r1(zone.wd.g)} onChange={(v) => editZone('wd', 'g', v)} />
+                      <NumF label="Hafta içi · Puant" unit="17–22 (%)" value={r1(zone.wd.p)} onChange={(v) => editZone('wd', 'p', v)} />
                       <NumF label="Hafta içi · Gece" unit="22–06 (otomatik)" value={r1(zone.wd.n)} onChange={() => { }} disabled />
-                      <NumF label="Hafta sonu · Gündüz" unit="06–17 (%)" value={zone.we.g} onChange={(v) => editZone('we', 'g', v)} />
-                      <NumF label="Hafta sonu · Puant" unit="17–22 (%)" value={zone.we.p} onChange={(v) => editZone('we', 'p', v)} />
+                      <NumF label="Hafta sonu · Gündüz" unit="06–17 (%)" value={r1(zone.we.g)} onChange={(v) => editZone('we', 'g', v)} />
+                      <NumF label="Hafta sonu · Puant" unit="17–22 (%)" value={r1(zone.we.p)} onChange={(v) => editZone('we', 'p', v)} />
                       <NumF label="Hafta sonu · Gece" unit="22–06 (otomatik)" value={r1(zone.we.n)} onChange={() => { }} disabled />
                     </div>
                     <p className="tsub">Dilim yüzdesi değişince, seçili profilin dilim içi saat şekli korunarak yeniden ölçeklenir. Gündüz + Puant toplamı 100&apos;ü aşamaz; Gece kalanı otomatik alır.</p>
