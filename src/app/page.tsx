@@ -6,9 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, FolderOpen, Plus } from 'lucide-react';
 import { formatPct } from '@/lib/utils';
 import { useMyProjects, useProjectsHydrated } from '@/lib/project-store';
+import { ReportButton, useProjectReport } from '@/components/models/native/project-report';
 
 export default function DashboardPage() {
   const hydrated = useProjectsHydrated();
+  const report = useProjectReport();
   const rows = useMyProjects().map((p) => ({
     id: p.id,
     name: p.name,
@@ -17,6 +19,7 @@ export default function DashboardPage() {
     loc: (p.inputs.loc as string) || undefined,
     summary: p.summary,
     updatedAt: p.updatedAt,
+    project: p,
   }));
   if (!hydrated) return null;
 
@@ -66,7 +69,8 @@ export default function DashboardPage() {
                   <th className="hidden px-3 py-2.5 font-medium md:table-cell">Kapasite</th>
                   <th className="px-3 py-2.5 text-right font-medium">IRR</th>
                   <th className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">Geri Ödeme</th>
-                  <th className="hidden px-5 py-2.5 text-right font-medium lg:table-cell">Güncellendi</th>
+                  <th className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">Güncellendi</th>
+                  <th className="px-5 py-2.5 text-right font-medium">Rapor</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -94,8 +98,11 @@ export default function DashboardPage() {
                         ? `${r.summary.paybackYears.toFixed(1)} yıl`
                         : '—'}
                     </td>
-                    <td className="hidden px-5 py-3 text-right text-xs text-muted-foreground lg:table-cell">
+                    <td className="hidden px-3 py-3 text-right text-xs text-muted-foreground lg:table-cell">
                       {new Date(r.updatedAt).toLocaleDateString('tr-TR')}
+                    </td>
+                    <td className="px-5 py-2 text-right">
+                      <ReportButton busy={report.busyId === r.id} onClick={() => report.print(r.project)} />
                     </td>
                   </tr>
                 ))}
@@ -104,6 +111,7 @@ export default function DashboardPage() {
           </div>
         </Card>
       )}
+      {report.printer}
     </div>
   );
 }
