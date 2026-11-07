@@ -77,6 +77,16 @@
   .shadow-focus  { box-shadow: 0 0 0 4px rgb(16 185 129 / 0.12); }
 }
 
+/* Auth sayfaları (diğer platformlarla ortak şablon) */
+.bg-soft-gradient {
+  background:
+    radial-gradient(1200px 500px at 0% -10%, hsl(var(--primary) / 0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgb(26 74 148 / 0.08), transparent 60%),
+    hsl(var(--background));
+}
+@keyframes auth-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in-up { animation: auth-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
 @keyframes admin-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .animate-fade-in { animation: admin-fade-in 0.25s ease-out; }
 

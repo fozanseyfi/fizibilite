@@ -2,12 +2,13 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, FolderPlus, BookOpen, FlaskConical,
   ChevronRight, ChevronsLeft, ChevronsRight,
-  User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu, Plus, BookText,
+  User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu, Plus, BookText, LogOut,
 } from 'lucide-react';
+import { useAuthStore, useSession } from '@/lib/auth-store';
 import { BrandMark } from '@/components/layout/BrandMark';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LocaleToggle } from '@/components/LocaleToggle';
@@ -157,6 +158,7 @@ export function AppSidebar() {
 
         {/* Footer */}
         <div className={cn('border-t border-border/40 flex-shrink-0', collapsed ? 'p-2' : 'px-3 py-3 space-y-2')}>
+          <SessionBox collapsed={collapsed} />
           <div className={cn('flex items-center', collapsed ? 'flex-col gap-1' : 'gap-1.5')}>
             <LocaleToggle />
             <ThemeToggle />
@@ -180,6 +182,52 @@ export function AppSidebar() {
         </button>
       </aside>
     </>
+  );
+}
+
+/** Oturumdaki kullanıcı + çıkış butonu */
+function SessionBox({ collapsed }: { collapsed: boolean }) {
+  const session = useSession();
+  const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
+  if (!session) return null;
+  const onLogout = () => {
+    logout();
+    router.replace('/login');
+  };
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={onLogout}
+        className="mb-1 flex w-full justify-center rounded-md py-2 text-foreground/60 hover:bg-secondary hover:text-destructive transition-colors"
+        title={`Çıkış yap (${session.email})`}
+        aria-label="Çıkış yap"
+      >
+        <LogOut className="h-3.5 w-3.5" />
+      </button>
+    );
+  }
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2 rounded-md bg-secondary/50 px-2 py-1.5">
+        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
+          {session.fullName.charAt(0).toLocaleUpperCase('tr')}
+        </div>
+        <div className="min-w-0 flex-1 leading-tight">
+          <div className="truncate text-[12px] font-semibold">{session.fullName}</div>
+          <div className="truncate text-[10.5px] text-muted-foreground">{session.email}</div>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="flex w-full items-center justify-center gap-2 rounded-md border border-border/70 px-2.5 py-1.5 text-[12.5px] font-semibold text-foreground/75 transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+      >
+        <LogOut className="h-3.5 w-3.5" />
+        Çıkış Yap
+      </button>
+    </div>
   );
 }
 
@@ -227,6 +275,8 @@ function SidebarLink({
 /** Mobil/dar ekran için üst nav — sidebar gizliyken hamburger açar */
 export function MobileTopNav() {
   const openMobileDrawer = useStore((s) => s.openMobileDrawer);
+  const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
   return (
     <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-border/60 bg-background sticky top-0 z-30">
       <div className="flex items-center gap-3">
@@ -248,6 +298,18 @@ export function MobileTopNav() {
       <div className="flex items-center gap-1">
         <LocaleToggle />
         <ThemeToggle />
+        <button
+          type="button"
+          onClick={() => {
+            logout();
+            router.replace('/login');
+          }}
+          className="p-1.5 rounded-md text-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+          aria-label="Çıkış yap"
+          title="Çıkış yap"
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
