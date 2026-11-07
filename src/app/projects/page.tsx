@@ -7,6 +7,7 @@ import { FileText, Plus, FolderOpen, Building2, Home } from 'lucide-react';
 import type { ProjectSummary } from '@/lib/models/types';
 import { formatUsd, formatPct } from '@/lib/utils';
 import { useMyProjects, useProjectsHydrated } from '@/lib/project-store';
+import { KIND_SHORT } from '@/lib/models/types';
 
 interface Row { id: string; name: string; kind: string; summary: ProjectSummary; updatedAt: string; }
 
@@ -48,7 +49,8 @@ export default function ProjectsPage() {
 
 function ProjectCard({ r }: { r: Row }) {
   const positive = r.summary.npvUsd > 0;
-  const isUtil = r.kind === 'utility';
+  const isUtil = r.kind === 'utility' || r.kind === 'bess-utility';
+  const isBess = r.kind.startsWith('bess');
   return (
     <Link href={`/projects/${r.id}`}>
       <Card className="hover:shadow-lg hover:border-primary/40 transition-all h-full border-t-2 border-t-transparent hover:border-t-primary">
@@ -56,7 +58,7 @@ function ProjectCard({ r }: { r: Row }) {
           <div className="flex items-start justify-between gap-2 mb-1">
             <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${isUtil ? 'bg-navy/10 text-navy' : 'bg-eco/10 text-eco-dark'}`}>
               {isUtil ? <Building2 className="h-3 w-3" /> : <Home className="h-3 w-3" />}
-              {isUtil ? 'Utility' : 'C&I / Mesken'}
+              {KIND_SHORT[r.kind as keyof typeof KIND_SHORT] ?? r.kind}
             </span>
             <span className="text-[10px] text-muted-foreground">{new Date(r.updatedAt).toLocaleDateString('tr-TR')}</span>
           </div>
@@ -68,7 +70,7 @@ function ProjectCard({ r }: { r: Row }) {
             <MiniKpi label="IRR" value={formatPct(r.summary.irrPct * 100)} accent={positive ? 'eco' : 'red'} />
             <MiniKpi label="NPV" value={formatUsd(r.summary.npvUsd, { compact: true })} accent={positive ? 'eco' : 'red'} />
             <MiniKpi label="Geri Ödeme" value={Number.isFinite(r.summary.paybackYears) ? `${r.summary.paybackYears.toFixed(1)}y` : '—'} />
-            <MiniKpi label={isUtil ? 'LCOE' : 'Öz Tük.'} value={isUtil ? `${(r.summary.lcoe ?? 0).toFixed(1)} $` : formatPct((r.summary.selfConsumption ?? 0) * 100)} />
+            {isBess ? <MiniKpi label="Batarya" value={r.summary.capacityLabel} /> : <MiniKpi label={isUtil ? 'LCOE' : 'Öz Tük.'} value={isUtil ? `${(r.summary.lcoe ?? 0).toFixed(1)} $` : formatPct((r.summary.selfConsumption ?? 0) * 100)} />}
           </div>
           <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[10px] text-muted-foreground">
             <span>CAPEX: {formatUsd(r.summary.capexUsd, { compact: true })}</span>

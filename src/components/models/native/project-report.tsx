@@ -12,11 +12,24 @@ import { PROFILE_LABELS, type ProfileKey } from '@/lib/models/ci/presets';
 import { computeUtility, computeUtilityHuawei, type UtilityInputs } from '@/lib/models/utility/engine';
 import { defaultUtilityInputs } from '@/lib/models/utility/defaults';
 import type { StoredProject } from '@/lib/project-store';
+import { computeBessCi, type BessCiInputs } from '@/lib/models/bess/ci';
+import { computeBessUtility, type BessUtilityInputs } from '@/lib/models/bess/utility';
+import { defaultBessCiInputs, defaultBessUtilityInputs } from '@/lib/models/bess/defaults';
+import { reportBessCi, reportBessUtility } from '@/components/models/native/bess-report';
 
 const today = () => new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
 
 /** Kayıtlı projenin girdilerinden, model ekranındaki "Rapor çıktısı al" ile aynı raporu üretir. */
 export function buildReportHtml(project: StoredProject): string {
+  const meta = (i: { pname?: string; prep?: string; firm?: string; loc?: string }) => ({ title: i.pname || project.name, prep: i.prep, firm: i.firm, loc: i.loc, date: today() });
+  if (project.kind === 'bess-ci') {
+    const i: BessCiInputs = { ...defaultBessCiInputs(), ...(project.inputs as Partial<BessCiInputs>) };
+    return reportBessCi(i, computeBessCi(i), meta(i));
+  }
+  if (project.kind === 'bess-utility') {
+    const i: BessUtilityInputs = { ...defaultBessUtilityInputs(), ...(project.inputs as Partial<BessUtilityInputs>) };
+    return reportBessUtility(i, computeBessUtility(i), meta(i));
+  }
   if (project.kind === 'ci') {
     const i: CiInputs = { ...defaultCiInputs(), ...(project.inputs as Partial<CiInputs>) };
     const m = computeCi(i);

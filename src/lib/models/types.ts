@@ -6,11 +6,13 @@
 import type { UtilityInputs } from './utility/engine';
 import type { CiInputs } from './ci/engine';
 
-export type ModelKind = 'utility' | 'ci';
+export type ModelKind = 'utility' | 'ci' | 'bess-ci' | 'bess-utility';
 
 export const MODEL_LABELS: Record<ModelKind, string> = {
   utility: 'Utility (GES + BESS Proje Finansmanı)',
   ci: 'C&I / Mesken (Saatlik Mahsuplaşma)',
+  'bess-ci': 'Batarya Ekleme — C&I / Mesken',
+  'bess-utility': 'Batarya Ekleme — Utility',
 };
 
 export interface UtilityProjectConfig {
@@ -41,3 +43,11 @@ export interface ProjectSummary {
   selfConsumption?: number; // sadece C&I (0..1)
   capacityLabel: string; // "100 MWp" / "1.000 kWp + 1.000 kWh"
 }
+
+/** Listelerde kısa tip etiketi */
+export const KIND_SHORT: Record<ModelKind, string> = {
+  utility: 'Utility',
+  ci: 'C&I / Mesken',
+  'bess-ci': 'Batarya · C&I',
+  'bess-utility': 'Batarya · Utility',
+};

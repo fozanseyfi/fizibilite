@@ -15,7 +15,7 @@ import { persist } from "zustand/middleware";
 import type { ProjectSummary } from "@/lib/models/types";
 import { useSession } from "@/lib/auth-store";
 
-export type ProjectKind = "utility" | "ci";
+export type ProjectKind = "utility" | "ci" | "bess-ci" | "bess-utility";
 
 export interface StoredProject {
   id: string;

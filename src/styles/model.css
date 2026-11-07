@@ -329,3 +329,26 @@
   #mdl-report .r-foot { margin-top: 16px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 8px; color: #8892A4; display: flex; justify-content: space-between; }
   #mdl-report .r-foot b { color: var(--navy-deep); }
 }
+
+/* ============ Sadece-batarya modelleri ============ */
+.mdl .usegrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.mdl .usecard { display: flex; flex-direction: column; gap: 6px; border: 1.5px solid var(--line); border-radius: var(--radius); padding: 14px 16px; background: var(--surface); cursor: pointer; transition: border-color .15s, background .15s; }
+.mdl .usecard:hover { border-color: var(--navy); }
+.mdl .usecard.on { border-color: var(--navy); background: #F3F6FB; }
+.mdl .usecard.off { opacity: .55; cursor: not-allowed; }
+.mdl .usecard .uc-head { display: flex; align-items: center; gap: 9px; font-size: 14.5px; color: var(--ink); }
+.mdl .usecard .uc-head input { width: 16px; height: 16px; accent-color: var(--navy); }
+.mdl .usecard .uc-how { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.mdl .usecard .uc-when { font-size: 12.5px; color: var(--ink-soft); }
+.mdl .usecard .uc-when em { font-style: normal; font-weight: 600; color: var(--ink); }
+.mdl .usecard .uc-note { font-size: 12px; color: #8A5A12; background: var(--gold-soft); border-radius: 6px; padding: 6px 8px; }
+.mdl .bess-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+.mdl .bess-chart svg text { font-family: var(--mono); font-size: 10px; fill: #5A6478; }
+.mdl .bess-break td:nth-child(2) { text-align: right; font-weight: 600; }
+.mdl .bess-break td.neg { color: var(--red); }
+.mdl .bess-break .bb-hint { font-family: var(--sans); font-size: 11px; color: var(--ink-soft); white-space: normal; }
+.mdl .bess-break .bb-bar { display: block; height: 10px; border-radius: 3px; background: var(--navy); }
+.mdl .bess-break .bb-bar.neg { background: var(--red); }
+.mdl .bess-break tr.total td { font-weight: 700; border-top: 2px solid var(--navy); }
+.mdl .warnbox { background: #FFF6E8; border: 1px solid #F0D3A2; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #6B4A12; }
+.mdl .warnbox li { margin-left: 16px; list-style: disc; }

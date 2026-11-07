@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { UtilityModel } from '@/components/models/native/UtilityModel';
 import { CiModel } from '@/components/models/native/CiModel';
+import { BessCiModel } from '@/components/models/native/BessCiModel';
+import { BessUtilityModel } from '@/components/models/native/BessUtilityModel';
+import type { BessCiInputs } from '@/lib/models/bess/ci';
+import type { BessUtilityInputs } from '@/lib/models/bess/utility';
 import type { UtilityInputs } from '@/lib/models/utility/engine';
 import type { CiInputs } from '@/lib/models/ci/engine';
 import { useSession } from '@/lib/auth-store';
@@ -34,9 +38,14 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   }
 
   // key: farklı projeye geçişte model state'i sıfırlansın
-  return row.kind === 'ci' ? (
-    <CiModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as CiInputs} />
-  ) : (
-    <UtilityModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as UtilityInputs} />
-  );
+  switch (row.kind) {
+    case 'ci':
+      return <CiModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as CiInputs} />;
+    case 'bess-ci':
+      return <BessCiModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as BessCiInputs} />;
+    case 'bess-utility':
+      return <BessUtilityModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as BessUtilityInputs} />;
+    default:
+      return <UtilityModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as UtilityInputs} />;
+  }
 }

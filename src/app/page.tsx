@@ -7,6 +7,7 @@ import { ArrowRight, FolderOpen, Plus } from 'lucide-react';
 import { formatPct } from '@/lib/utils';
 import { useMyProjects, useProjectsHydrated } from '@/lib/project-store';
 import { ReportButton, useProjectReport } from '@/components/models/native/project-report';
+import { KIND_SHORT } from '@/lib/models/types';
 
 export default function DashboardPage() {
   const hydrated = useProjectsHydrated();
@@ -87,7 +88,7 @@ export default function DashboardPage() {
                       )}
                     </td>
                     <td className="px-3 py-3 text-xs text-muted-foreground">
-                      {r.kind === 'utility' ? 'Utility' : 'C&I / Mesken'}
+                      {KIND_SHORT[r.kind] ?? r.kind}
                     </td>
                     <td className="hidden px-3 py-3 tabular-nums md:table-cell">{r.summary?.capacityLabel ?? '—'}</td>
                     <td className="px-3 py-3 text-right tabular-nums">

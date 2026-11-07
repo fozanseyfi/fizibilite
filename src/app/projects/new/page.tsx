@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Building2, Home } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BatteryCharging, Building2, Home } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +19,7 @@ export default function NewProjectSelectPage() {
         <p className="text-sm text-muted-foreground">Hangi model türüyle çalışacaksınız?</p>
       </div>
 
+      <SectionTitle title="GES fizibilitesi" desc="Yeni GES (isteğe bağlı bataryayla) yatırımı." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ModelCard
           href="/projects/new/utility"
@@ -47,6 +48,45 @@ export default function NewProjectSelectPage() {
           accent="bg-eco/10 text-eco-dark"
         />
       </div>
+
+      <SectionTitle title="Sadece batarya — mevcut GES'e ekleme" desc="GES'iniz zaten çalışıyor, yalnızca batarya eklemenin fizibilitesini yapın. Senaryolar abone tipine göre farklıdır." />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ModelCard
+          href="/projects/new/bess-ci"
+          icon={<BatteryCharging className="h-6 w-6" />}
+          title="Batarya · C&I / Mesken"
+          subtitle="Fatura tasarrufu — tüketim tesisinde"
+          points={[
+            'Güneş fazlasını akşama kaydırma',
+            'Üç zamanlı tarife arbitrajı (gece → puant)',
+            'Zirve tıraşlama (güç bedeli)',
+            'Kesinti yedekleme',
+          ]}
+          accent="bg-eco/10 text-eco-dark"
+        />
+        <ModelCard
+          href="/projects/new/bess-utility"
+          icon={<BatteryCharging className="h-6 w-6" />}
+          title="Batarya · Utility"
+          subtitle="Piyasa geliri — lisanslı GES santralinde"
+          points={[
+            'Kırpılan / kısılan üretimi kurtarma (YEKDEM)',
+            'PTF arbitrajı (öğle → akşam)',
+            'TEİAŞ yan hizmetleri (PFK / SFK)',
+            'Dengesizlik maliyetini azaltma',
+          ]}
+          accent="bg-primary/10 text-primary"
+        />
+      </div>
+    </div>
+  );
+}
+
+function SectionTitle({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div className="pt-2">
+      <h2 className="text-sm font-semibold">{title}</h2>
+      <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
     </div>
   );
 }
