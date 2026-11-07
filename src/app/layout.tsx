@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import '@/styles/model.css';
 import { cookies } from 'next/headers';
@@ -8,6 +9,9 @@ import { Toaster } from '@/components/admin/toast';
 import { ConfirmRoot } from '@/components/admin/confirm';
 
 export const dynamic = 'force-dynamic';
+
+// Teklif platformuyla aynı font. latin-ext: ğ, ş, İ gibi Türkçe harfler için.
+const inter = Inter({ subsets: ['latin', 'latin-ext'], variable: '--font-inter', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Fizibilite Platformu — Utility & C&I Saatlik Mahsuplaşma',
@@ -28,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-background antialiased">
+      <body className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}>
         <AppShell>{children}</AppShell>
         <Toaster />
         <ConfirmRoot />

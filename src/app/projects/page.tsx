@@ -1,29 +1,22 @@
+'use client';
+
 import Link from 'next/link';
-import { listProjects, IS_DEMO_MODE } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Plus, Info, FolderOpen, Building2, Home } from 'lucide-react';
+import { FileText, Plus, FolderOpen, Building2, Home } from 'lucide-react';
 import type { ProjectSummary } from '@/lib/models/types';
 import { formatUsd, formatPct } from '@/lib/utils';
-
-export const dynamic = 'force-dynamic';
+import { useMyProjects, useProjectsHydrated } from '@/lib/project-store';
 
 interface Row { id: string; name: string; kind: string; summary: ProjectSummary; updatedAt: string; }
 
 export default function ProjectsPage() {
-  const rows: Row[] = listProjects()
-    .filter((p) => p.resultsJson)
-    .map((p) => ({ id: p.id, name: p.name, kind: p.projectType, summary: JSON.parse(p.resultsJson!) as ProjectSummary, updatedAt: p.updatedAt }));
+  const hydrated = useProjectsHydrated();
+  const rows: Row[] = useMyProjects();
+  if (!hydrated) return null;
 
   return (
     <div className="space-y-6">
-      {IS_DEMO_MODE && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 text-amber-900 p-3 text-xs flex items-start gap-2">
-          <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <div><strong>Demo modu:</strong> Vercel ortamında değişiklikler kalıcı değil; demo projeler her cold start&apos;ta yenilenir.</div>
-        </div>
-      )}
-
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0">
           <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary shrink-0"><FolderOpen className="h-5 w-5" /></span>

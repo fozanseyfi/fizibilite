@@ -64,7 +64,7 @@ export function AuthHeading({ title, subtitle }: { title: string; subtitle: stri
         <Sparkles className="size-2.5 sm:size-3" />
         Bağımsız bir inisiyatif
       </div>
-      <h1 className="font-[Archivo] text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-[2.4rem] lg:leading-tight">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-[2.4rem] lg:leading-tight">
         {title}
       </h1>
       <p className="mt-1.5 text-[13px] text-muted-foreground sm:mt-2 sm:text-sm">{subtitle}</p>

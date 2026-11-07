@@ -15,6 +15,7 @@ import { LocaleToggle } from '@/components/LocaleToggle';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/admin-store';
 import { ROLE_LABELS, initials, useAuthStore, useSession } from '@/lib/auth-store';
+import { useRequestLeave } from '@/lib/unsaved-changes';
 
 interface NavItem {
   href: string;
@@ -177,9 +178,8 @@ export function AppSidebar() {
             )}
           >
             <BrandMark className="size-9 shrink-0" />
-            <div className={cn('min-w-0 leading-tight', collapsed && 'lg:hidden')}>
-              <p className="truncate text-sm font-semibold tracking-tight text-white">Fizibilite</p>
-              <p className="truncate text-[11px] text-sidebar-muted">Platformu</p>
+            <div className={cn('min-w-0 flex-1', collapsed && 'lg:hidden')}>
+              <p className="text-sm font-semibold leading-tight tracking-tight text-white">Fizibilite Platformu</p>
             </div>
           </Link>
           <button
@@ -258,7 +258,7 @@ function NavLink({ item, active, collapsed }: { item: NavItem; active: boolean; 
           collapsed && 'lg:justify-center lg:gap-0 lg:px-2 lg:py-2',
           active
             ? 'bg-sidebar-accent/20 text-sidebar-accent-foreground'
-            : 'text-sidebar-foreground hover:bg-sidebar-border/40 hover:text-white'
+            : 'text-sidebar-foreground hover:bg-sidebar-border/40 hover:text-sidebar-accent-foreground'
         )}
       >
         <Icon
@@ -268,7 +268,7 @@ function NavLink({ item, active, collapsed }: { item: NavItem; active: boolean; 
           )}
         />
         <span className={cn('truncate', collapsed && 'lg:hidden')}>{item.label}</span>
-        {active && <span className={cn('ml-auto size-1.5 rounded-full bg-sidebar-accent', collapsed && 'lg:hidden')} />}
+        {active && <span className={cn('ml-auto size-1.5 rounded-full bg-sidebar-accent-foreground', collapsed && 'lg:hidden')} />}
       </Link>
       {tip &&
         createPortal(
@@ -292,6 +292,7 @@ function UserMenu({ compact = false }: { compact?: boolean }) {
   const session = useSession();
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
+  const requestLeave = useRequestLeave();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -351,8 +352,11 @@ function UserMenu({ compact = false }: { compact?: boolean }) {
           <button
             type="button"
             onClick={() => {
-              logout();
-              router.replace('/login');
+              setOpen(false);
+              requestLeave(() => {
+                logout();
+                router.replace('/login');
+              });
             }}
             className="flex w-full items-center gap-2 border-t px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary"
           >

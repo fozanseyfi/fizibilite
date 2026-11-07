@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Loader2, Trash2, FileDown } from 'lucide-react';
@@ -10,6 +9,8 @@ import { defaultUtilityInputs } from '@/lib/models/utility/defaults';
 import { Tipbox, NumF, TxtF, SelF, ChkF, SeriesChart, PrintReport } from '@/components/models/native/mdl-kit';
 import * as R from '@/components/models/native/utility-render';
 import { musd, pct, nf } from '@/lib/models/fmt';
+import type { ProjectSummary } from '@/lib/models/types';
+import { useProjectSave } from '@/components/models/native/use-project-save';
 
 const T = {
   mw: 'Santralin DC kurulu gücü (panellerin toplam gücü). Modeldeki her şey bununla ölçeklenir: CAPEX = MWp×1000×$/kWp, üretim E₁ = MWp×1000×spesifik üretim×…',
@@ -91,13 +92,11 @@ function Card({ label, html }: { label: string; html: string }) {
 function Note({ children }: { children: React.ReactNode }) { return <div className="note">{children}</div>; }
 
 export function UtilityModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: UtilityInputs }) {
-  const router = useRouter();
   const [inputs, setInputs] = useState<UtilityInputs>(() => ({ ...defaultUtilityInputs(), ...(initialInputs ?? {}) }));
   const [tab, setTab] = useState<'fiz' | 'hw' | 'sum'>('fiz');
   const [scens, setScens] = useState<R.TechScen[]>(() => R.techPresets({ ...defaultUtilityInputs(), ...(initialInputs ?? {}) }));
-  const [saving, setSaving] = useState(false);
+  const saving = false;
   const [printing, setPrinting] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
   const set = <K extends keyof UtilityInputs>(k: K, v: UtilityInputs[K]) => setInputs((p) => ({ ...p, [k]: v }));
   const setHw = <K extends keyof UtilityInputs['huawei']>(k: K, v: UtilityInputs['huawei'][K]) => setInputs((p) => ({ ...p, huawei: { ...p.huawei, [k]: v } }));
@@ -111,22 +110,11 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
   const tl = inputs.cur === 'tl';
   const vd = R.verdict(p, m);
 
-  async function save() {
-    setSaving(true); setErr(null);
-    try {
-      const summary = { kind: 'utility' as const, capexUsd: m.totalUses, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.pbS, lcoe: m.lcoe, minDscr: m.minDSCR, capacityLabel: inputs.bessOn ? `${inputs.mw} MWp + ${inputs.bMWh} MWh` : `${inputs.mw} MWp` };
-      const config = { kind: 'utility' as const, name: inputs.pname || 'Utility Projesi', inputs };
-      let id = projectId;
-      if (projectId) { const r = await fetch(`/api/projects/${projectId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config, summary }) }); if (!r.ok) throw new Error('Güncellenemedi'); }
-      else { const r = await fetch('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config, summary }) }); if (!r.ok) throw new Error('Oluşturulamadı'); id = (await r.json()).id; }
-      router.push(`/projects/${id}`); router.refresh();
-    } catch (e) { setErr(e instanceof Error ? e.message : String(e)); } finally { setSaving(false); }
-  }
-  async function del() {
-    if (!projectId || !confirm('Bu proje silinsin mi?')) return;
-    setSaving(true);
-    try { await fetch(`/api/projects/${projectId}`, { method: 'DELETE' }); router.push('/projects'); router.refresh(); } finally { setSaving(false); }
-  }
+  const buildSummary = useCallback(
+    (): ProjectSummary => ({ kind: 'utility', capexUsd: m.totalUses, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.pbS, lcoe: m.lcoe, minDscr: m.minDSCR, capacityLabel: inputs.bessOn ? `${inputs.mw} MWp + ${inputs.bMWh} MWh` : `${inputs.mw} MWp` }),
+    [m, inputs]
+  );
+  const { save, del, err } = useProjectSave({ projectId, kind: 'utility', inputs, name: inputs.pname || 'Utility Projesi', buildSummary });
 
   return (
     <>

@@ -44,14 +44,14 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // Koyu sidebar — teklif / proje platformlarıyla aynı yapı
+        // Koyu sidebar — teklif platformundaki değerlerle BİREBİR aynı (platformlar arası bütünlük)
         sidebar: {
           DEFAULT: '#0f172a',
           foreground: '#cbd5e1',
           muted: '#94a3b8',
           border: '#1e293b',
-          accent: '#f59e0b',
-          'accent-foreground': '#fde68a',
+          accent: '#047857',
+          'accent-foreground': '#ecfdf5',
         },
         solar: {
           DEFAULT: '#f59e0b',
@@ -83,6 +83,9 @@ const config: Config = {
         planned: '#3b82f6',
         realized: '#059669',
         critical: '#ef4444',
+      },
+      fontFamily: {
+        sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',

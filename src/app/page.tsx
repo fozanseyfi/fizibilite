@@ -1,48 +1,24 @@
+'use client';
+
 import Link from 'next/link';
-import { listProjects, IS_DEMO_MODE } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, FolderOpen, Plus } from 'lucide-react';
-import type { ProjectSummary } from '@/lib/models/types';
 import { formatPct } from '@/lib/utils';
-
-export const dynamic = 'force-dynamic';
-
-interface Row {
-  id: string;
-  name: string;
-  kind: string;
-  firm?: string;
-  loc?: string;
-  summary: ProjectSummary | null;
-  updatedAt: string;
-}
-
-function toRow(p: ReturnType<typeof listProjects>[number]): Row {
-  let firm: string | undefined;
-  let loc: string | undefined;
-  try {
-    const inputs = JSON.parse(p.configJson ?? '{}')?.inputs ?? {};
-    firm = inputs.firm || undefined;
-    loc = inputs.loc || undefined;
-  } catch {
-    /* eski kayıt — firma/lokasyon yok */
-  }
-  return {
-    id: p.id,
-    name: p.name,
-    kind: p.projectType,
-    firm,
-    loc,
-    summary: p.resultsJson ? (JSON.parse(p.resultsJson) as ProjectSummary) : null,
-    updatedAt: p.updatedAt,
-  };
-}
+import { useMyProjects, useProjectsHydrated } from '@/lib/project-store';
 
 export default function DashboardPage() {
-  const rows = listProjects()
-    .map(toRow)
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const hydrated = useProjectsHydrated();
+  const rows = useMyProjects().map((p) => ({
+    id: p.id,
+    name: p.name,
+    kind: p.kind,
+    firm: (p.inputs.firm as string) || undefined,
+    loc: (p.inputs.loc as string) || undefined,
+    summary: p.summary,
+    updatedAt: p.updatedAt,
+  }));
+  if (!hydrated) return null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -60,11 +36,6 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {IS_DEMO_MODE && (
-        <p className="rounded-md border bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
-          Demo ortamı: projelerde yapılan değişiklikler kalıcı değildir.
-        </p>
-      )}
 
       {rows.length === 0 ? (
         <Card>

@@ -1,7 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Loader2, Trash2, FileDown } from 'lucide-react';
@@ -14,6 +13,8 @@ import {
 import { Tipbox, Tip, NumF, TxtF, SelF, ChkF, Modal, PrintReport } from '@/components/models/native/mdl-kit';
 import * as R from '@/components/models/native/ci-render';
 import { nf, usd, pct } from '@/lib/models/fmt';
+import type { ProjectSummary } from '@/lib/models/types';
+import { useProjectSave } from '@/components/models/native/use-project-save';
 
 // ---- % grid yardımcıları (HTML buildPctGrid / rescaleZones portu) ----
 function setPctCell(arr: number[], k: number, raw: number): number[] {
@@ -86,7 +87,6 @@ function Step({ no, title, why, children }: { no: string; title: string; why?: s
 function Html({ html, className }: { html: string; className?: string }) { return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />; }
 
 export function CiModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: CiInputs }) {
-  const router = useRouter();
   const [inputs, setInputs] = useState<CiInputs>(() => ({ ...defaultCiInputs(), ...(initialInputs ?? {}) }));
   const [tab, setTab] = useState<'fiz' | 'hours' | 'bill' | 'cmp' | 'sum'>('fiz');
   const [adv, setAdv] = useState(false);
@@ -95,8 +95,6 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   const [hv, setHv] = useState<{ mi: number | 'y'; dt: 'wd' | 'we' }>({ mi: 5, dt: 'wd' });
   const [modal, setModal] = useState<{ title: string; body: string } | null>(null);
   const [printing, setPrinting] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
   const set = <K extends keyof CiInputs>(k: K, v: CiInputs[K]) => setInputs((p) => ({ ...p, [k]: v }));
   const m = useMemo(() => computeCi(inputs), [inputs]);
@@ -126,24 +124,13 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
     a.click(); URL.revokeObjectURL(a.href);
   }
 
-  async function save() {
-    setSaving(true); setErr(null);
-    try {
-      const y1 = m.years[0];
-      const selfC = y1.s.prod > 0 ? (y1.s.mah + y1.s.shift) / y1.s.prod : 0;
-      const summary = { kind: 'ci' as const, capexUsd: m.capex, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.pb, selfConsumption: selfC, capacityLabel: inputs.bessOn ? `${inputs.kwp} kWp + ${inputs.bKwh} kWh` : `${inputs.kwp} kWp` };
-      const config = { kind: 'ci' as const, name: inputs.pname || 'C&I Projesi', inputs };
-      let id = projectId;
-      if (projectId) { const r = await fetch(`/api/projects/${projectId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config, summary }) }); if (!r.ok) throw new Error('Güncellenemedi'); }
-      else { const r = await fetch('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config, summary }) }); if (!r.ok) throw new Error('Oluşturulamadı'); id = (await r.json()).id; }
-      router.push(`/projects/${id}`); router.refresh();
-    } catch (e) { setErr(e instanceof Error ? e.message : String(e)); } finally { setSaving(false); }
-  }
-  async function del() {
-    if (!projectId || !confirm('Bu proje silinsin mi?')) return;
-    setSaving(true);
-    try { await fetch(`/api/projects/${projectId}`, { method: 'DELETE' }); router.push('/projects'); router.refresh(); } finally { setSaving(false); }
-  }
+  const buildSummary = useCallback((): ProjectSummary => {
+    const y1 = m.years[0];
+    const selfC = y1.s.prod > 0 ? (y1.s.mah + y1.s.shift) / y1.s.prod : 0;
+    return { kind: 'ci', capexUsd: m.capex, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.pb, selfConsumption: selfC, capacityLabel: inputs.bessOn ? `${inputs.kwp} kWp + ${inputs.bKwh} kWh` : `${inputs.kwp} kWp` };
+  }, [m, inputs]);
+  const { save, del, err } = useProjectSave({ projectId, kind: 'ci', inputs, name: inputs.pname || 'C&I Projesi', buildSummary });
+  const saving = false;
 
   const chip = (active: boolean, label: string, onClick: () => void, key?: string | number) => (
     <button key={key} className={active ? 'active' : ''} onClick={onClick}>{label}</button>

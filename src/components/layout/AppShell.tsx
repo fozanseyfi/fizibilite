@@ -7,6 +7,7 @@ import { AppSidebar } from '@/components/layout/AppSidebar';
 import { BrandMark } from '@/components/layout/BrandMark';
 import { useAuthHydrated, useSession } from '@/lib/auth-store';
 import { siteConfig } from '@/lib/site-config';
+import { UnsavedChangesProvider } from '@/lib/unsaved-changes';
 
 /** Sidebar'sız, oturum gerektirmeyen sayfalar */
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
@@ -49,13 +50,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppSidebar />
-      <div className="sidebar-aware flex min-h-screen flex-col pt-14">
-        <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
-        <AppFooter />
+    <UnsavedChangesProvider>
+      <div className="min-h-screen bg-background">
+        <AppSidebar />
+        <div className="sidebar-aware flex min-h-screen flex-col pt-14">
+          <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+          <AppFooter />
+        </div>
       </div>
-    </div>
+    </UnsavedChangesProvider>
   );
 }
 
