@@ -57,10 +57,17 @@ const PLATFORMS: Platform[] = [
   },
 ];
 
-export function OtherPlatforms() {
+export function OtherPlatforms({ variant = "ribbon" }: { variant?: "ribbon" | "compact" }) {
+  const compact = variant === "compact";
   return (
-    <section className="border-t border-border/60 bg-gradient-to-b from-primary/[0.05] to-background">
-      <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+    <section
+      className={
+        compact
+          ? "rounded-xl border bg-card shadow-sm"
+          : "border-t border-border/60 bg-gradient-to-b from-primary/[0.05] to-background"
+      }
+    >
+      <div className={compact ? "p-5 sm:p-6" : "mx-auto max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10"}>
         <div className="mb-5 sm:mb-6">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-solar-dark dark:text-solar-light">
             <Sparkles className="size-3" />

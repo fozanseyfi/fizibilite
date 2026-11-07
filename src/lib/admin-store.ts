@@ -1,24 +1,12 @@
 /**
- * Admin sayfaları için basit localStorage-backed store.
- * Auth yok — tek kullanıcı (Ozan Seyfi) varsayımı.
- * Supabase entegrasyonu sonrası bu modül RPC + auth ile değişecek.
+ * Admin sayfaları + arayüz durumu için localStorage-backed store.
+ * Kullanıcı / oturum bilgisi burada DEĞİL — bkz. auth-store.ts.
  */
 
 "use client";
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-export interface AdminUser {
-  id: string;
-  fullName: string;
-  email: string;
-  phone?: string;
-  avatarUrl?: string;
-  isSuperAdmin: boolean;
-  createdAt: string;
-  lastLoginAt?: string;
-}
 
 export interface ShareLink {
   token: string;
@@ -27,19 +15,15 @@ export interface ShareLink {
 }
 
 interface AdminState {
-  currentUser: AdminUser | null;
-  panelName: string;
   shareLink: ShareLink | null;
   // ---------- UI state ----------
-  /** Masaüstü sidebar daraltma durumu (true = 60px ikon rail) */
+  /** Masaüstü sidebar daraltma durumu (true = ikon rail) */
   sidebarCollapsed: boolean;
   /** Proje detay sub-sidebar'ında her grup için açık/kapalı durum */
   projectGroupOpen: Record<string, boolean>;
   /** Mobil drawer açık mı? (persist edilmez) */
   mobileDrawerOpen: boolean;
 
-  setPanelName: (name: string) => void;
-  updateCurrentUser: (patch: Partial<AdminUser>) => void;
   setShareLink: (link: ShareLink | null) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (v: boolean) => void;
@@ -49,29 +33,14 @@ interface AdminState {
   closeMobileDrawer: () => void;
 }
 
-const DEFAULT_USER: AdminUser = {
-  id: "u_local",
-  fullName: "Ozan Seyfi",
-  email: "ozan.seyfi@kontrolmatik.com",
-  phone: "",
-  isSuperAdmin: true,
-  createdAt: "2026-05-23T00:00:00Z",
-  lastLoginAt: new Date().toISOString(),
-};
-
 export const useStore = create<AdminState>()(
   persist(
     (set) => ({
-      currentUser: DEFAULT_USER,
-      panelName: "GES-Fizibilite Pro",
       shareLink: null,
       sidebarCollapsed: false,
       projectGroupOpen: { analytics: true, financial: true, risk: true, reports: true },
       mobileDrawerOpen: false,
 
-      setPanelName: (name) => set({ panelName: name }),
-      updateCurrentUser: (patch) =>
-        set((s) => ({ currentUser: s.currentUser ? { ...s.currentUser, ...patch } : null })),
       setShareLink: (link) => set({ shareLink: link }),
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
@@ -88,18 +57,12 @@ export const useStore = create<AdminState>()(
     }),
     {
       name: "ges-admin-store",
-      // mobil drawer durumunu persist etme — refresh sonrası kapalı açılsın
-      partialize: (s) => {
-        const { mobileDrawerOpen: _omit, ...rest } = s;
-        return rest;
-      },
+      // Yalnızca kalıcı olması gerekenler (eski sürümlerden kalan kullanıcı alanları atılır)
+      partialize: (s) => ({
+        shareLink: s.shareLink,
+        sidebarCollapsed: s.sidebarCollapsed,
+        projectGroupOpen: s.projectGroupOpen,
+      }),
     }
   )
 );
-
-export const useCurrentUser = () => useStore((s) => s.currentUser);
-export const usePanelName = () => {
-  const panel = useStore((s) => s.panelName);
-  const user = useStore((s) => s.currentUser);
-  return panel || user?.fullName || "";
-};

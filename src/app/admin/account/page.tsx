@@ -1,299 +1,299 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  User as UserIcon,
-  Save,
-  Building2,
-  Shield,
-  Calendar,
-  KeyRound,
-  Mail,
-  Lock,
-  ShieldAlert,
+  AlertTriangle, ArrowRight, Calendar, Download, KeyRound, Lock, Mail, Save, Shield, Trash2,
+  User, UserCircle2, UserPlus, Users,
 } from "lucide-react";
-import { useStore, useCurrentUser, usePanelName } from "@/lib/admin-store";
-import { Card } from "@/components/admin/card";
-import { Button } from "@/components/admin/button";
-import { Input, Label } from "@/components/admin/input";
-import { useToast } from "@/components/admin/toast";
-import { formatDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { PasswordInput } from "@/components/auth/password-input";
+import {
+  FeatureChip, FieldGroup, FormMessage, IconBox, SectionCard, formatDateTr,
+} from "@/components/shared/section-card";
+import { ROLE_LABELS, initials, useAuthStore, useSession } from "@/lib/auth-store";
+
+type Msg = { tone: "error" | "success"; text: string } | null;
 
 export default function AccountPage() {
-  const user = useCurrentUser();
-  const updateUser = useStore((s) => s.updateCurrentUser);
-  const storedPanelName = useStore((s) => s.panelName);
-  const setPanelName = useStore((s) => s.setPanelName);
-  const effectivePanelName = usePanelName();
-  const toast = useToast((s) => s.push);
+  const session = useSession();
+  const updateProfile = useAuthStore((s) => s.updateProfile);
+  const changePassword = useAuthStore((s) => s.changePassword);
+  const deleteMyAccount = useAuthStore((s) => s.deleteMyAccount);
+  const router = useRouter();
 
-  const [fullName, setFullName] = useState("");
-  const [panel, setPanel] = useState("");
-  const [pwd, setPwd] = useState({ current: "", next: "", repeat: "" });
+  const [profileMsg, setProfileMsg] = useState<Msg>(null);
+  const [pwdMsg, setPwdMsg] = useState<Msg>(null);
+  const [pwdPending, setPwdPending] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
 
-  useEffect(() => {
-    if (user) setFullName(user.fullName);
-  }, [user]);
+  if (!session) return null;
+  const roleLabel = ROLE_LABELS[session.role];
+  const isAdmin = session.role === "admin";
 
-  useEffect(() => {
-    setPanel(storedPanelName);
-  }, [storedPanelName]);
-
-  if (!user) {
-    return (
-      <Card>
-        <div className="text-sm text-text2">Kullanıcı bilgisi bulunamadı.</div>
-      </Card>
-    );
+  function onProfile(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const r = updateProfile({ fullName: String(new FormData(e.currentTarget).get("fullName")) });
+    setProfileMsg(r.ok ? { tone: "success", text: r.message ?? "Kaydedildi." } : { tone: "error", text: r.error });
   }
 
-  function saveProfile() {
-    updateUser({ fullName: fullName.trim() });
-    toast("Profil bilgileri kaydedildi.", "success");
+  async function onPassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const next = String(fd.get("newPassword"));
+    if (next !== String(fd.get("confirmPassword"))) {
+      setPwdMsg({ tone: "error", text: "Yeni şifreler eşleşmiyor." });
+      return;
+    }
+    setPwdPending(true);
+    const r = await changePassword({ current: String(fd.get("currentPassword")), next });
+    setPwdPending(false);
+    if (r.ok) form.reset();
+    setPwdMsg(r.ok ? { tone: "success", text: r.message ?? "Güncellendi." } : { tone: "error", text: r.error });
   }
 
-  function savePanel() {
-    setPanelName(panel.trim());
-    toast("Panel adı güncellendi.", "success");
+  function onExport() {
+    const s = session!;
+    const data = {
+      profil: { adSoyad: s.fullName, eposta: s.email, rol: roleLabel, uyelik: s.createdAt, sonGiris: s.lastLoginAt },
+      disaAktarim: new Date().toISOString(),
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `verilerim-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
-  function savePassword() {
-    if (!pwd.current) return toast("Mevcut şifreyi girin.", "error");
-    if (pwd.next.length < 8) return toast("Yeni şifre en az 8 karakter olmalı.", "error");
-    if (pwd.next !== pwd.repeat) return toast("Yeni şifre ile tekrar eşleşmiyor.", "error");
-    setPwd({ current: "", next: "", repeat: "" });
-    toast("Şifre güncellendi (lokal mod).", "success");
+  function onDelete() {
+    if (confirmText !== "SİL") return;
+    deleteMyAccount();
+    router.replace("/login");
   }
-
-  const initials = (user.fullName || "?")
-    .split(" ")
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
-      <Card className="!p-0 overflow-hidden border-accent/25">
-        <div className="bg-gradient-to-br from-accent/10 via-white to-accent/5 p-6">
-          <div className="flex items-start gap-4 flex-wrap">
-            <div
-              className="flex items-center justify-center size-20 rounded-2xl text-white font-extrabold text-2xl shadow-sm shrink-0"
-              style={{ background: "linear-gradient(135deg, #10b981 0%, #047857 100%)" }}
-            >
-              {initials}
+    <div className="mx-auto max-w-4xl space-y-6">
+      {/* Kimlik kartı */}
+      <Card className="overflow-hidden shadow-sm">
+        <CardContent className="p-0">
+          <div className="grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:p-7">
+            <div className="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-sidebar text-2xl font-bold tracking-tight text-white">
+              {initials(session.fullName)}
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[1.4px] text-accent">
-                <UserIcon className="size-3" />
-                Profilim
-              </div>
-              <h1 className="font-display text-2xl md:text-[28px] font-extrabold text-text tracking-tight mt-2 leading-tight">
-                {user.fullName}
-              </h1>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                {user.isSuperAdmin && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent text-white text-[10px] font-bold uppercase tracking-wider">
-                    <Shield className="size-3" />
-                    Yönetici
-                  </span>
-                )}
-                <span className="text-[13px] text-text2 inline-flex items-center gap-1">
-                  <Mail className="size-3.5 text-text3" />
-                  {user.email}
+            <div className="min-w-0 space-y-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <UserCircle2 className="size-3" />
+                Hesabım
+              </span>
+              <h1 className="truncate text-2xl font-bold tracking-tight">{session.fullName}</h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
+                <span className="inline-flex items-center gap-1.5 rounded-md border bg-card px-2 py-0.5 font-semibold">
+                  <Shield className="size-3 text-primary" />
+                  {roleLabel}
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <Mail className="size-3.5" />
+                  {session.email}
                 </span>
               </div>
             </div>
           </div>
-
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <InfoChip icon={Building2} label="Şirket / Panel" value={effectivePanelName || "—"} />
-            <InfoChip icon={Shield} label="Rol" value={user.isSuperAdmin ? "Yönetici" : "Kullanıcı"} />
-            <InfoChip icon={Calendar} label="Üyelik Tarihi" value={formatDate(user.createdAt)} />
+          <div className="grid gap-px border-t bg-border sm:grid-cols-3">
+            <MetaCell icon={Shield} label="Rol" value={roleLabel} />
+            <MetaCell icon={Calendar} label="Üyelik Tarihi" value={formatDateTr(session.createdAt)} />
+            <MetaCell
+              icon={User}
+              label="Son Giriş"
+              value={session.lastLoginAt ? formatDateTr(session.lastLoginAt) : "—"}
+            />
           </div>
-        </div>
+        </CardContent>
       </Card>
 
-      <SectionCard
-        icon={UserIcon}
-        title="Profil bilgileri"
-        description="Görünen adınızı güncelleyin — ekip arkadaşlarınız sizi bu isimle görür."
-      >
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <Label className="!mb-1.5 text-[10px] font-bold uppercase tracking-wider text-text3">Ad Soyad</Label>
-            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Adınız Soyadınız" />
+      <SectionCard icon={User} title="Profil bilgileri" subtitle="Görünen adınız — ekip arkadaşlarınız sizi bu isimle görür.">
+        <form onSubmit={onProfile} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FieldGroup label="Ad Soyad">
+              <Input name="fullName" defaultValue={session.fullName} required />
+            </FieldGroup>
+            <FieldGroup label="E-posta">
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input value={session.email} readOnly className="bg-secondary/50 pl-9 text-muted-foreground" />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                E-posta değişimi için{" "}
+                <Link href="/admin/contact" className="font-semibold text-foreground underline-offset-2 hover:underline">
+                  iletişime geçin
+                </Link>
+                .
+              </p>
+            </FieldGroup>
           </div>
-          <div>
-            <Label className="!mb-1.5 text-[10px] font-bold uppercase tracking-wider text-text3">E-posta</Label>
-            <div className="relative">
-              <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
-              <Input value={user.email} readOnly disabled className="pl-9 cursor-not-allowed bg-bg2" />
-            </div>
-            <p className="text-[11px] text-text3 mt-1 inline-flex items-center gap-1">
-              <Lock className="size-3" />
-              E-posta değiştirilemez. Değişim için iletişime geçin.
-            </p>
-          </div>
-        </div>
-        <div className="mt-5">
-          <Button variant="accent" onClick={saveProfile}>
-            <Save className="size-4" />
-            Kaydet
+          {profileMsg && <FormMessage tone={profileMsg.tone}>{profileMsg.text}</FormMessage>}
+          <Button type="submit" size="sm" className="gap-1.5">
+            <Save className="size-3.5" /> Kaydet
           </Button>
-        </div>
-      </SectionCard>
-
-      <SectionCard
-        icon={Building2}
-        title="Şirket / Panel Adı"
-        description={
-          <>
-            Topbar&apos;da görünen ad. Varsayılan olarak <strong className="text-text">ad-soyadınız</strong>{" "}
-            kullanılır; şirket veya ekip adı yazmak isterseniz aşağıdan değiştirebilirsiniz.
-          </>
-        }
-      >
-        <Label className="!mb-1.5 text-[10px] font-bold uppercase tracking-wider text-text3">Şirket / Panel Adı</Label>
-        <Input
-          value={panel}
-          onChange={(e) => setPanel(e.target.value)}
-          placeholder={user.fullName ? `Otomatik: ${user.fullName}` : "Şirket / panel adı"}
-        />
-        <div className="text-[11px] text-text3 mt-1.5">
-          Şu an gösterilen:{" "}
-          <strong className="text-text font-semibold">{effectivePanelName || "—"}</strong>
-          {!storedPanelName.trim() && (
-            <span className="ml-1.5 inline-flex items-center px-1.5 py-0 rounded bg-accent/10 text-accent text-[9px] font-bold uppercase tracking-wider">
-              Otomatik
-            </span>
-          )}
-        </div>
-        <div className="mt-5 flex items-center gap-2 flex-wrap">
-          <Button variant="accent" onClick={savePanel}>
-            <Save className="size-4" />
-            Kaydet
-          </Button>
-          {storedPanelName.trim() && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setPanelName("");
-                setPanel("");
-                toast("Otomatik (ad-soyad) kullanılıyor.", "info");
-              }}
-            >
-              Varsayılana Döndür
-            </Button>
-          )}
-        </div>
+        </form>
       </SectionCard>
 
       <SectionCard
         icon={KeyRound}
         title="Şifre güvenliği"
-        description={
-          <>
-            Mevcut şifrenizi onaylayarak yeni bir şifre belirleyin. Şifrenizi unuttuysanız çıkış yapıp{" "}
-            <strong className="text-text">&quot;Şifremi unuttum&quot;</strong> bağlantısını kullanın.
-          </>
-        }
+        subtitle="Mevcut şifrenizi onaylayarak yeni bir şifre belirleyin."
       >
-        <div>
-          <Label className="!mb-1.5 text-[10px] font-bold uppercase tracking-wider text-text3">Mevcut Şifre</Label>
-          <div className="relative">
-            <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
-            <Input
-              type="password"
-              value={pwd.current}
-              onChange={(e) => setPwd({ ...pwd, current: e.target.value })}
-              className="pl-9"
-              placeholder="••••••••"
-            />
+        <form onSubmit={onPassword} className="space-y-4">
+          <FieldGroup label="Mevcut Şifre">
+            <PasswordInput name="currentPassword" autoComplete="current-password" placeholder="••••••••" required />
+          </FieldGroup>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FieldGroup label="Yeni Şifre">
+              <PasswordInput name="newPassword" autoComplete="new-password" placeholder="En az 8 karakter" required minLength={8} />
+            </FieldGroup>
+            <FieldGroup label="Yeni Şifre (Tekrar)">
+              <PasswordInput name="confirmPassword" autoComplete="new-password" placeholder="En az 8 karakter" required minLength={8} />
+            </FieldGroup>
           </div>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4 mt-4">
-          <div>
-            <Label className="!mb-1.5 text-[10px] font-bold uppercase tracking-wider text-text3">Yeni Şifre</Label>
-            <div className="relative">
-              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
-              <Input
-                type="password"
-                value={pwd.next}
-                onChange={(e) => setPwd({ ...pwd, next: e.target.value })}
-                className="pl-9"
-                placeholder="En az 8 karakter"
-              />
-            </div>
-          </div>
-          <div>
-            <Label className="!mb-1.5 text-[10px] font-bold uppercase tracking-wider text-text3">Yeni Şifre (Tekrar)</Label>
-            <div className="relative">
-              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
-              <Input
-                type="password"
-                value={pwd.repeat}
-                onChange={(e) => setPwd({ ...pwd, repeat: e.target.value })}
-                className="pl-9"
-                placeholder="En az 8 karakter"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="mt-5 flex items-center flex-wrap gap-3">
-          <Button variant="accent" onClick={savePassword}>
-            <Save className="size-4" />
-            Şifreyi Güncelle
+          {pwdMsg && <FormMessage tone={pwdMsg.tone}>{pwdMsg.text}</FormMessage>}
+          <Button type="submit" size="sm" disabled={pwdPending} className="gap-1.5">
+            <KeyRound className="size-3.5" />
+            {pwdPending ? "Güncelleniyor…" : "Şifreyi Güncelle"}
           </Button>
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-text3">
-            <ShieldAlert className="size-3.5 text-yellow" />
-            Şifre değişiminden sonra mevcut oturumlar bozulmaz.
-          </span>
+        </form>
+      </SectionCard>
+
+      <SectionCard
+        icon={Shield}
+        title="Hesap & Gizlilik (KVKK)"
+        subtitle="Verilerinizi JSON olarak indirebilir, hesabınızı kalıcı olarak silebilirsiniz. Hesap silme geri alınamaz."
+      >
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-secondary/30 p-4">
+            <div className="min-w-0">
+              <p className="text-[13px] font-semibold">Verilerimi İndir</p>
+              <p className="mt-0.5 text-[11.5px] text-muted-foreground">Profil ve üyelik bilgilerinizden oluşan JSON dosyası.</p>
+            </div>
+            <Button type="button" variant="outline" onClick={onExport} className="gap-1.5">
+              <Download className="size-4" /> JSON İndir
+            </Button>
+          </div>
+
+          <div className="rounded-lg border border-destructive/30 bg-destructive/[0.04] p-4">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-semibold">Hesabımı Sil</p>
+                <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted-foreground">
+                  <strong className="text-foreground">{session.email}</strong> hesabı kalıcı olarak silinir. Bu işlem{" "}
+                  <strong className="text-foreground">geri alınamaz</strong>.
+                </p>
+                {!showDelete ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowDelete(true)}
+                    className="mt-3 gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="size-4" /> Hesabımı Silmek İstiyorum
+                  </Button>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    <label className="block text-[11px] font-semibold">
+                      Onaylamak için kutuya <strong className="font-mono">SİL</strong> yazın:
+                    </label>
+                    <Input
+                      value={confirmText}
+                      onChange={(e) => setConfirmText(e.target.value)}
+                      placeholder="SİL"
+                      className="max-w-xs font-mono font-semibold"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowDelete(false);
+                          setConfirmText("");
+                        }}
+                      >
+                        Vazgeç
+                      </Button>
+                      <Button type="button" variant="destructive" onClick={onDelete} disabled={confirmText !== "SİL"} className="gap-1.5">
+                        <Trash2 className="size-4" /> Hesabımı Kalıcı Olarak Sil
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </SectionCard>
+
+      {isAdmin && (
+        <Card className="overflow-hidden shadow-sm">
+          <CardContent className="p-0">
+            <div className="grid lg:grid-cols-[1fr_auto]">
+              <div className="space-y-4 p-6">
+                <div className="flex items-start gap-3">
+                  <IconBox icon={Users} size="lg" />
+                  <div>
+                    <p className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">Yönetici Paneli</p>
+                    <h3 className="text-lg font-semibold tracking-tight">Ekip ve Yetkilendirme</h3>
+                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                      Kullanıcı davet et, rolleri yönet.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <FeatureChip icon={UserPlus} title="Kullanıcı Davet Et" desc="E-posta ile davet" />
+                  <FeatureChip icon={Shield} title="Rol Yönetimi" desc="Yönetici / Kullanıcı / Görüntüleyici" />
+                  <FeatureChip icon={Lock} title="Erişim Kontrolü" desc="Rol bazlı yetki" />
+                </div>
+              </div>
+              <div className="flex items-stretch border-t bg-secondary/30 p-6 lg:border-l lg:border-t-0">
+                <Link
+                  href="/admin/users"
+                  className="group inline-flex w-full items-center justify-between gap-3 rounded-xl bg-sidebar px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-sidebar/90 lg:w-auto lg:flex-col lg:justify-center lg:gap-2 lg:px-7"
+                >
+                  <Users className="size-5 lg:size-6" />
+                  <span className="flex flex-1 flex-col text-left lg:flex-none lg:items-center lg:text-center">
+                    <span className="text-[15px] font-bold leading-tight">Ekibi Yönet</span>
+                    <span className="text-[11px] font-medium opacity-80">Davet, rol, erişim</span>
+                  </span>
+                  <ArrowRight className="size-5 shrink-0 transition-transform group-hover:translate-x-1 lg:hidden" />
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
 
-function InfoChip({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-white px-3 py-2 flex items-center gap-2.5">
-      <span className="inline-flex items-center justify-center size-8 rounded-lg bg-accent/10 text-accent shrink-0">
-        <Icon className="size-4" />
-      </span>
-      <div className="min-w-0">
-        <div className="text-[9px] font-bold uppercase tracking-wider text-text3">{label}</div>
-        <div className="text-[13px] font-semibold text-text truncate">{value}</div>
-      </div>
-    </div>
-  );
-}
-
-function SectionCard({
-  icon: Icon,
-  title,
-  description,
-  children,
+function MetaCell({
+  icon,
+  label,
+  value,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: React.ReactNode;
-  children: React.ReactNode;
+  label: string;
+  value: string;
 }) {
   return (
-    <Card className="!p-0">
-      <div className="p-6">
-        <div className="flex items-start gap-3 mb-5">
-          <span className="inline-flex items-center justify-center size-10 rounded-xl bg-accent/10 text-accent shrink-0">
-            <Icon className="size-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-display text-base font-bold text-text tracking-tight">{title}</h3>
-            <p className="text-[13px] text-text2 mt-0.5 leading-relaxed">{description}</p>
-          </div>
-        </div>
-        {children}
+    <div className="flex items-center gap-3 bg-card px-5 py-3.5">
+      <IconBox icon={icon} />
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="mt-0.5 truncate text-sm font-semibold">{value}</p>
       </div>
-    </Card>
+    </div>
   );
 }

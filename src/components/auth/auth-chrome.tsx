@@ -35,11 +35,11 @@ export function AuthChrome({
           </Link>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="hidden items-center gap-3 sm:flex">
-              <SocialLinks size={17} />
+              <SocialLinks />
             </div>
             <Link
               href={cta === "register" ? "/register" : "/login"}
-              className="inline-flex h-8 items-center gap-1 rounded-lg gradient-solar px-2.5 text-[11px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90 sm:ml-2 sm:h-9 sm:gap-1.5 sm:px-3.5 sm:text-xs"
+              className="inline-flex h-8 items-center gap-1 rounded-lg bg-[#0B2350] px-2.5 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-[#0B2350]/90 sm:ml-2 sm:h-9 sm:gap-1.5 sm:px-3.5 sm:text-xs"
             >
               <Sparkles className="size-3 sm:size-3.5" />
               {cta === "register" ? "Hesap Oluştur" : "Giriş Yap"}

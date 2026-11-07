@@ -13,7 +13,7 @@ export function PlatformNoteCard() {
   return (
     <div className="w-full rounded-2xl border border-primary/20 bg-primary/[0.06] p-4">
       <div className="flex items-center gap-2.5">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg gradient-solar text-white shadow-sm">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#0B2350] text-white shadow-sm">
           <Heart className="size-4" />
         </div>
         <p className="text-[13.5px] font-bold tracking-tight text-foreground">

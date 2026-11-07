@@ -44,6 +44,15 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // Koyu sidebar — teklif / proje platformlarıyla aynı yapı
+        sidebar: {
+          DEFAULT: '#0f172a',
+          foreground: '#cbd5e1',
+          muted: '#94a3b8',
+          border: '#1e293b',
+          accent: '#f59e0b',
+          'accent-foreground': '#fde68a',
+        },
         solar: {
           DEFAULT: '#f59e0b',
           light: '#fcd34d',

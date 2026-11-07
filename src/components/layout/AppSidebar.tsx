@@ -1,316 +1,366 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, FolderPlus, BookOpen, FlaskConical,
-  ChevronRight, ChevronsLeft, ChevronsRight,
-  User, Users, History, Share2, HelpCircle, MessageSquare, Boxes, X, Menu, Plus, BookText, LogOut,
+  LayoutDashboard, FolderOpen, Plus, BookOpen, FlaskConical, BookText, HelpCircle,
+  MessageCircle, Users, Share2, ScrollText, UserCircle2, Boxes,
+  ChevronLeft, ChevronRight, ChevronDown, Menu, X, LogOut,
 } from 'lucide-react';
-import { useAuthStore, useSession } from '@/lib/auth-store';
 import { BrandMark } from '@/components/layout/BrandMark';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LocaleToggle } from '@/components/LocaleToggle';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/admin-store';
+import { ROLE_LABELS, initials, useAuthStore, useSession } from '@/lib/auth-store';
 
 interface NavItem {
   href: string;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
-  icon: typeof LayoutDashboard;
+  /** Varsayılan: href ile tam eşleşme veya alt yol */
   match?: (path: string) => boolean;
 }
 
-const NAV: NavItem[] = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard, match: (p) => p === '/' },
-  { href: '/projects', label: 'Projeler', icon: FolderPlus, match: (p) => p === '/projects' || (p.startsWith('/projects/') && !p.startsWith('/projects/new')) },
-  { href: '/projects/new', label: 'Yeni Proje', icon: Plus, match: (p) => p === '/projects/new' },
+const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
+  {
+    label: 'Ana Menü',
+    items: [
+      { href: '/', icon: LayoutDashboard, label: 'Dashboard', match: (p) => p === '/' },
+      {
+        href: '/projects',
+        icon: FolderOpen,
+        label: 'Projeler',
+        match: (p) => p === '/projects' || (p.startsWith('/projects/') && !p.startsWith('/projects/new')),
+      },
+      { href: '/projects/new', icon: Plus, label: 'Yeni Proje', match: (p) => p.startsWith('/projects/new') },
+    ],
+  },
+  {
+    label: 'Yönetim',
+    items: [
+      { href: '/admin/users', icon: Users, label: 'Kullanıcılar' },
+      { href: '/admin/share', icon: Share2, label: 'Paylaşım Linkleri' },
+      { href: '/admin/audit', icon: ScrollText, label: 'Aktivite Kayıtları' },
+      { href: '/admin/account', icon: UserCircle2, label: 'Hesabım' },
+    ],
+  },
+  {
+    label: 'Destek',
+    items: [
+      { href: '/about/netting-methodology', icon: BookOpen, label: 'Mahsuplaşma 101' },
+      { href: '/about/netting-comparison', icon: FlaskConical, label: 'Saatlik vs Aylık' },
+      { href: '/admin/financial-terms', icon: BookText, label: 'Finansal Terimler' },
+      { href: '/admin/how-it-works', icon: HelpCircle, label: 'Nasıl Çalışır' },
+      { href: '/admin/contact', icon: MessageCircle, label: 'İletişime Geç' },
+    ],
+  },
+  {
+    label: 'Diğer Platformlar',
+    items: [{ href: '/admin/platforms', icon: Boxes, label: 'Diğer Platformlar' }],
+  },
 ];
 
-const ADMIN_NAV: NavItem[] = [
-  { href: '/admin/account', label: 'Hesabım', icon: User },
-  { href: '/admin/users', label: 'Kullanıcılar', icon: Users },
-  { href: '/admin/share', label: 'Paylaşım', icon: Share2 },
-  { href: '/admin/audit', label: 'Aktivite', icon: History },
-  { href: '/admin/platforms', label: 'Diğer Platformlar', icon: Boxes },
-];
+const W_OPEN = '14rem';
+const W_COLLAPSED = '4rem';
 
-// Destek grubu (Mahsuplaşma 101 + Saatlik vs Aylık + Finansal Terimler + Nasıl Çalışır + İletişim)
-const SUPPORT_NAV: NavItem[] = [
-  { href: '/about/netting-methodology', label: 'Mahsuplaşma 101', icon: BookOpen },
-  { href: '/about/netting-comparison', label: 'Saatlik vs Aylık', icon: FlaskConical },
-  { href: '/admin/financial-terms', label: 'Finansal Terimler', icon: BookText },
-  { href: '/admin/how-it-works', label: 'Nasıl Çalışır', icon: HelpCircle },
-  { href: '/admin/contact', label: 'İletişim', icon: MessageSquare },
-];
-
-/** Sol sidebar — masaüstü (geniş/daraltılmış) + mobil drawer hepsi tek komponentte. */
+/** Üst bar + sol sidebar (masaüstünde sabit, mobilde drawer). */
 export function AppSidebar() {
   const pathname = usePathname();
   const collapsed = useStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useStore((s) => s.toggleSidebar);
   const mobileOpen = useStore((s) => s.mobileDrawerOpen);
-  const closeMobileDrawer = useStore((s) => s.closeMobileDrawer);
+  const openMobile = useStore((s) => s.openMobileDrawer);
+  const closeMobile = useStore((s) => s.closeMobileDrawer);
 
-  // Mobil drawer açıkken route değişince otomatik kapansın
+  // İçerik alanının sol boşluğu (.sidebar-aware) bu değişkeni kullanır
   useEffect(() => {
-    if (mobileOpen) closeMobileDrawer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+    document.documentElement.style.setProperty('--sidebar-w', collapsed ? W_COLLAPSED : W_OPEN);
+  }, [collapsed]);
 
-  // Mobil drawer açıkken ESC ile kapansın + body scroll lock
+  // Rota değişince mobil menüyü kapat
+  useEffect(() => {
+    closeMobile();
+  }, [pathname, closeMobile]);
+
+  // Mobil menü açıkken: ESC ile kapat + sayfa kaymasın
   useEffect(() => {
     if (!mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeMobileDrawer(); };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeMobile();
     window.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [mobileOpen, closeMobileDrawer]);
+  }, [mobileOpen, closeMobile]);
 
   return (
     <>
-      {/* ---------- MOBİL DRAWER + BACKDROP ---------- */}
-      {mobileOpen && (
+      {/* ÜST BAR — solda hesap, sağda dil/tema */}
+      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur-md sm:px-4 lg:px-6">
+        {/* Mobil: hamburger + marka */}
+        <div className="contents lg:hidden">
+          <button
+            type="button"
+            onClick={openMobile}
+            aria-label="Menüyü aç"
+            className="flex size-10 shrink-0 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-secondary"
+          >
+            <Menu className="size-5" />
+          </button>
+          <Link href="/" className="flex min-w-0 items-center gap-2">
+            <BrandMark className="size-8 shrink-0" />
+            <span className="truncate text-sm font-semibold">Fizibilite Platformu</span>
+          </Link>
+        </div>
+
+        {/* Masaüstü: hesap menüsü sidebar'ın hemen sağında */}
         <div
-          onClick={closeMobileDrawer}
-          className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in"
-          aria-hidden
+          className="hidden min-w-0 items-center lg:flex"
+          style={{ marginLeft: 'var(--sidebar-w, 14rem)', transition: 'margin-left 200ms' }}
+        >
+          <UserMenu />
+        </div>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <LocaleToggle />
+          <ThemeToggle />
+          <div className="lg:hidden">
+            <UserMenu compact />
+          </div>
+        </div>
+      </header>
+
+      {/* Mobil arka plan */}
+      {mobileOpen && (
+        <button
+          type="button"
+          onClick={closeMobile}
+          aria-label="Menüyü kapat"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
         />
       )}
 
-      {/* ---------- SIDEBAR (3 mod: desktop full, desktop collapsed, mobile drawer) ---------- */}
+      {/* SIDEBAR */}
       <aside
         className={cn(
-          'bg-card border-r border-border/60 flex flex-col z-50 transition-[width,transform] duration-200 ease-out',
-          'lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:flex',
-          collapsed ? 'lg:w-[60px]' : 'lg:w-60',
-          'fixed inset-y-0 left-0 w-60 h-screen',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-[transform,width] duration-200',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          'lg:translate-x-0 lg:[width:var(--sidebar-w,14rem)]'
         )}
       >
-        {/* Mobil kapatma butonu */}
-        {mobileOpen && (
-          <button
-            onClick={closeMobileDrawer}
-            className="lg:hidden absolute top-3 right-3 z-10 p-1.5 rounded-md text-foreground/60 hover:bg-secondary hover:text-foreground transition-colors"
-            aria-label="Menüyü kapat"
+        <button
+          type="button"
+          onClick={closeMobile}
+          aria-label="Menüyü kapat"
+          className="absolute right-3 top-3 z-40 flex size-9 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:bg-sidebar-border/40 hover:text-white lg:hidden"
+        >
+          <X className="size-5" />
+        </button>
+
+        {/* Marka + daraltma */}
+        <div
+          className={cn(
+            'flex h-16 items-center border-b border-sidebar-border',
+            'max-lg:gap-3 max-lg:px-5',
+            collapsed ? 'lg:justify-center lg:px-2' : 'lg:gap-3 lg:pl-5 lg:pr-2'
+          )}
+        >
+          <Link
+            href="/"
+            className={cn(
+              'flex min-w-0 items-center gap-3 rounded-lg transition-opacity hover:opacity-80',
+              collapsed ? 'lg:flex-none lg:gap-0' : 'flex-1'
+            )}
           >
-            <X className="h-4 w-4" />
+            <BrandMark className="size-9 shrink-0" />
+            <div className={cn('min-w-0 leading-tight', collapsed && 'lg:hidden')}>
+              <p className="truncate text-sm font-semibold tracking-tight text-white">Fizibilite</p>
+              <p className="truncate text-[11px] text-sidebar-muted">Platformu</p>
+            </div>
+          </Link>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Menüyü daralt"
+            title="Menüyü daralt"
+            className={cn(
+              'hidden size-7 shrink-0 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-border/50 hover:text-white lg:flex',
+              collapsed && 'lg:hidden'
+            )}
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+        </div>
+        {collapsed && (
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Menüyü aç"
+            title="Menüyü aç"
+            className="mx-auto mt-2 hidden size-7 shrink-0 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-border/50 hover:text-white lg:flex"
+          >
+            <ChevronRight className="size-4" />
           </button>
         )}
 
-        {/* Logo */}
-        <Link
-          href="/"
-          className={cn(
-            'flex items-center border-b border-border/40 hover:bg-secondary/40 transition-colors flex-shrink-0',
-            collapsed ? 'justify-center px-2 py-4' : 'gap-3 px-5 py-5'
-          )}
-          title={collapsed ? 'Fizibilite Platformu' : undefined}
-        >
-          <BrandMark className="h-10 w-10 flex-shrink-0 drop-shadow-sm" />
-          {!collapsed && (
-            <div className="min-w-0">
-              <div className="font-bold text-sm leading-tight whitespace-nowrap">
-                Fizibilite <span className="text-solar">Platformu</span>
+        <nav className={cn('flex-1 overflow-y-auto py-4 max-lg:px-3', collapsed ? 'lg:px-2' : 'lg:px-3')}>
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={group.label} className={gi > 0 ? 'mt-5' : ''}>
+              <p
+                className={cn(
+                  'mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-muted/80',
+                  collapsed && 'lg:hidden'
+                )}
+              >
+                {group.label}
+              </p>
+              {collapsed && gi > 0 && <div className="mx-2 mb-2 hidden h-px bg-sidebar-border lg:block" />}
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    active={item.match ? item.match(pathname) : pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                    collapsed={collapsed}
+                  />
+                ))}
               </div>
             </div>
-          )}
-        </Link>
-
-        {/* Primary nav */}
-        <nav className={cn('flex-1 py-2 overflow-y-auto overflow-x-hidden', collapsed ? 'px-2' : 'px-2.5')}>
-          {!collapsed && (
-            <div className="px-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-              Ana Menü
-            </div>
-          )}
-          {NAV.map((item) => (
-            <SidebarLink key={item.href} item={item} pathname={pathname} collapsed={collapsed} />
-          ))}
-
-          {/* Destek */}
-          {!collapsed && (
-            <div className="px-2 pt-4 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-              Destek
-            </div>
-          )}
-          {collapsed && <div className="my-2 border-t border-border/40 mx-1" />}
-          {SUPPORT_NAV.map((item) => (
-            <SidebarLink key={item.href} item={item} pathname={pathname} collapsed={collapsed} />
-          ))}
-
-          {/* Yönetim */}
-          {!collapsed && (
-            <div className="px-2 pt-4 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-              Yönetim
-            </div>
-          )}
-          {collapsed && <div className="my-2 border-t border-border/40 mx-1" />}
-          {ADMIN_NAV.map((item) => (
-            <SidebarLink key={item.href} item={item} pathname={pathname} collapsed={collapsed} />
           ))}
         </nav>
-
-        {/* Footer */}
-        <div className={cn('border-t border-border/40 flex-shrink-0', collapsed ? 'p-2' : 'px-3 py-3 space-y-2')}>
-          <SessionBox collapsed={collapsed} />
-          <div className={cn('flex items-center', collapsed ? 'flex-col gap-1' : 'gap-1.5')}>
-            <LocaleToggle />
-            <ThemeToggle />
-          </div>
-          {!collapsed && (
-            <div className="text-[10px] text-muted-foreground px-2">
-              v0.3.0 · Karar 14531
-            </div>
-          )}
-        </div>
-
-        {/* Desktop daralt/genişlet toggle */}
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          className="hidden lg:flex absolute -right-3 top-20 h-6 w-6 items-center justify-center rounded-full border border-border bg-card shadow-soft text-foreground/60 hover:text-foreground hover:bg-secondary transition-colors z-10"
-          aria-label={collapsed ? 'Sidebarı genişlet' : 'Sidebarı daralt'}
-          title={collapsed ? 'Genişlet' : 'Daralt'}
-        >
-          {collapsed ? <ChevronsRight className="h-3 w-3" /> : <ChevronsLeft className="h-3 w-3" />}
-        </button>
       </aside>
     </>
   );
 }
 
-/** Oturumdaki kullanıcı + çıkış butonu */
-function SessionBox({ collapsed }: { collapsed: boolean }) {
+function NavLink({ item, active, collapsed }: { item: NavItem; active: boolean; collapsed: boolean }) {
+  // Daraltılmışken hover tooltip — portal ile body'ye, sidebar overflow'una takılmasın
+  const [tip, setTip] = useState<{ top: number; left: number } | null>(null);
+  const Icon = item.icon;
+
+  return (
+    <>
+      <Link
+        href={item.href}
+        onClick={() => setTip(null)}
+        onMouseEnter={(e) => {
+          if (!collapsed || window.innerWidth < 1024) return;
+          const r = e.currentTarget.getBoundingClientRect();
+          setTip({ top: r.top + r.height / 2, left: r.right + 10 });
+        }}
+        onMouseLeave={() => setTip(null)}
+        className={cn(
+          'group flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors',
+          collapsed && 'lg:justify-center lg:gap-0 lg:px-2 lg:py-2',
+          active
+            ? 'bg-sidebar-accent/20 text-sidebar-accent-foreground'
+            : 'text-sidebar-foreground hover:bg-sidebar-border/40 hover:text-white'
+        )}
+      >
+        <Icon
+          className={cn(
+            'size-4 shrink-0 transition-colors',
+            active ? 'text-sidebar-accent-foreground' : 'text-sidebar-muted group-hover:text-sidebar-foreground'
+          )}
+        />
+        <span className={cn('truncate', collapsed && 'lg:hidden')}>{item.label}</span>
+        {active && <span className={cn('ml-auto size-1.5 rounded-full bg-sidebar-accent', collapsed && 'lg:hidden')} />}
+      </Link>
+      {tip &&
+        createPortal(
+          <div
+            className="pointer-events-none fixed z-[100] hidden select-none nav-tooltip-enter lg:block"
+            style={{ top: tip.top, left: tip.left }}
+          >
+            <div className="relative rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg ring-1 ring-white/10">
+              {item.label}
+              <span className="absolute right-full top-1/2 -translate-y-1/2 border-y-[5px] border-r-[5px] border-y-transparent border-r-slate-900" />
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
+  );
+}
+
+/** Hesap menüsü: avatar + ad + e-posta; açılır listede Hesabım ve Çıkış Yap. */
+function UserMenu({ compact = false }: { compact?: boolean }) {
   const session = useSession();
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [open]);
+
   if (!session) return null;
-  const onLogout = () => {
-    logout();
-    router.replace('/login');
-  };
-  if (collapsed) {
-    return (
+
+  return (
+    <div ref={ref} className="relative min-w-0">
       <button
         type="button"
-        onClick={onLogout}
-        className="mb-1 flex w-full justify-center rounded-md py-2 text-foreground/60 hover:bg-secondary hover:text-destructive transition-colors"
-        title={`Çıkış yap (${session.email})`}
-        aria-label="Çıkış yap"
+        onClick={() => setOpen((o) => !o)}
+        className="flex min-w-0 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-secondary"
+        aria-label="Hesap menüsü"
       >
-        <LogOut className="h-3.5 w-3.5" />
-      </button>
-    );
-  }
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-2 rounded-md bg-secondary/50 px-2 py-1.5">
-        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
-          {session.fullName.charAt(0).toLocaleUpperCase('tr')}
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar text-[11px] font-semibold text-white">
+          {initials(session.fullName)}
         </div>
-        <div className="min-w-0 flex-1 leading-tight">
-          <div className="truncate text-[12px] font-semibold">{session.fullName}</div>
-          <div className="truncate text-[10.5px] text-muted-foreground">{session.email}</div>
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={onLogout}
-        className="flex w-full items-center justify-center gap-2 rounded-md border border-border/70 px-2.5 py-1.5 text-[12.5px] font-semibold text-foreground/75 transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
-      >
-        <LogOut className="h-3.5 w-3.5" />
-        Çıkış Yap
+        {!compact && (
+          <>
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-[13px] font-semibold text-foreground">{session.fullName}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{session.email}</p>
+            </div>
+            <ChevronDown className={cn('size-3.5 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} />
+          </>
+        )}
       </button>
-    </div>
-  );
-}
-
-/** Tek nav linki — desktop geniş + dar + mobil drawer 3 modunda da çalışır. */
-function SidebarLink({
-  item,
-  pathname,
-  collapsed,
-}: {
-  item: NavItem;
-  pathname: string;
-  collapsed: boolean;
-}) {
-  const active = item.match ? item.match(pathname) : pathname === item.href;
-  const Icon = item.icon;
-  return (
-    <Link
-      href={item.href}
-      className={cn(
-        'group relative flex items-center rounded-md text-[13px] transition-colors',
-        collapsed ? 'justify-center px-0 py-2' : 'gap-2.5 px-2.5 py-1.5',
-        active
-          ? 'bg-primary/10 text-primary font-semibold'
-          : 'text-foreground/70 hover:bg-secondary hover:text-foreground',
-        !collapsed && active && 'border-l-2 border-l-primary'
-      )}
-      title={collapsed ? item.label : undefined}
-    >
-      <Icon className={cn('h-3.5 w-3.5 flex-shrink-0', active && 'text-primary')} />
-      {!collapsed && (
-        <>
-          <span className="flex-1 truncate">{item.label}</span>
-          {active && <ChevronRight className="h-3 w-3 flex-shrink-0" />}
-        </>
-      )}
-      {collapsed && (
-        <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 rounded-md bg-foreground text-background text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg">
-          {item.label}
-        </span>
-      )}
-    </Link>
-  );
-}
-
-/** Mobil/dar ekran için üst nav — sidebar gizliyken hamburger açar */
-export function MobileTopNav() {
-  const openMobileDrawer = useStore((s) => s.openMobileDrawer);
-  const logout = useAuthStore((s) => s.logout);
-  const router = useRouter();
-  return (
-    <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-border/60 bg-background sticky top-0 z-30">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={openMobileDrawer}
-          className="p-1.5 -ml-1 rounded-md text-foreground/70 hover:bg-secondary hover:text-foreground transition-colors"
-          aria-label="Menüyü aç"
+      {open && (
+        <div
+          className={cn(
+            'absolute top-full z-50 mt-1 w-56 overflow-hidden rounded-lg border bg-card shadow-lg',
+            compact ? 'right-0' : 'left-0'
+          )}
         >
-          <Menu className="h-5 w-5" />
-        </button>
-        <Link href="/" className="flex items-center gap-2 min-w-0">
-          <BrandMark className="h-8 w-8 flex-shrink-0" />
-          <span className="font-bold text-sm truncate">
-            Fizibilite <span className="text-solar">Platformu</span>
-          </span>
-        </Link>
-      </div>
-      <div className="flex items-center gap-1">
-        <LocaleToggle />
-        <ThemeToggle />
-        <button
-          type="button"
-          onClick={() => {
-            logout();
-            router.replace('/login');
-          }}
-          className="p-1.5 rounded-md text-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
-          aria-label="Çıkış yap"
-          title="Çıkış yap"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
-      </div>
+          <div className="border-b bg-secondary/40 px-3 py-2">
+            <p className="truncate text-sm font-semibold text-foreground">{session.fullName}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {session.email} · {ROLE_LABELS[session.role]}
+            </p>
+          </div>
+          <Link
+            href="/admin/account"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary"
+          >
+            <UserCircle2 className="size-4 text-muted-foreground" />
+            Hesabım
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              logout();
+              router.replace('/login');
+            }}
+            className="flex w-full items-center gap-2 border-t px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary"
+          >
+            <LogOut className="size-4 text-muted-foreground" />
+            Çıkış Yap
+          </button>
+        </div>
+      )}
     </div>
   );
 }

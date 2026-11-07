@@ -2,9 +2,11 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { AppSidebar, MobileTopNav } from '@/components/layout/AppSidebar';
+import { Globe, Mail } from 'lucide-react';
+import { AppSidebar } from '@/components/layout/AppSidebar';
 import { BrandMark } from '@/components/layout/BrandMark';
 import { useAuthHydrated, useSession } from '@/lib/auth-store';
+import { siteConfig } from '@/lib/site-config';
 
 /** Sidebar'sız, oturum gerektirmeyen sayfalar */
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
@@ -47,43 +49,61 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex">
+    <div className="min-h-screen bg-background">
       <AppSidebar />
-      <div className="flex-1 min-w-0">
-        <MobileTopNav />
-        <main className="px-4 lg:px-8 py-6 lg:py-8 max-w-[1600px] mx-auto">{children}</main>
+      <div className="sidebar-aware flex min-h-screen flex-col pt-14">
+        <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         <AppFooter />
       </div>
     </div>
   );
 }
 
-export function SocialLinks({ size = 19 }: { size?: number }) {
+export function LinkedInIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14ZM8.5 18V10H6v8h2.5Zm-1.25-9.1c.83 0 1.5-.67 1.5-1.5S8.08 5.9 7.25 5.9 5.75 6.57 5.75 7.4s.67 1.5 1.5 1.5ZM18 18v-4.6c0-2.16-1.16-3.16-2.7-3.16-1.25 0-1.81.69-2.13 1.18V10H10.7c.03.71 0 8 0 8h2.47v-4.47c0-.22.02-.44.08-.6.18-.44.59-.9 1.27-.9.9 0 1.26.69 1.26 1.7V18H18Z" />
+    </svg>
+  );
+}
+
+export function SocialLinks({ className = 'size-4' }: { className?: string }) {
+  const { developer } = siteConfig;
+  const cls = 'text-muted-foreground transition-colors hover:text-primary';
   return (
     <>
-      <a href="https://www.linkedin.com/in/fozanseyfi" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn" className="text-muted-foreground hover:text-primary transition-colors">
-        <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M8 11v5M8 8v.01M12 16v-3a2 2 0 0 1 4 0v3" /></svg>
+      <a href={developer.linkedin.href} target="_blank" rel="noreferrer" aria-label="LinkedIn" className={cls}>
+        <LinkedInIcon className={className} />
       </a>
-      <a href="https://fizibilite.fozanseyfi.com/" target="_blank" rel="noopener" aria-label="Web" title="Web" className="text-muted-foreground hover:text-primary transition-colors">
-        <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" /></svg>
+      <a href={developer.website.href} target="_blank" rel="noreferrer" aria-label="Web sitesi" className={cls}>
+        <Globe className={className} />
       </a>
-      <a href="mailto:fozanseyfi@gmail.com" aria-label="E-posta" title="E-posta" className="text-muted-foreground hover:text-primary transition-colors">
-        <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+      <a href={`mailto:${developer.email}`} aria-label="E-posta" className={cls}>
+        <Mail className={className} />
       </a>
     </>
   );
 }
 
 export function AppFooter({ wide = false }: { wide?: boolean }) {
+  const { developer, name } = siteConfig;
   return (
-    <footer className={`border-t border-border/60 py-4 no-print ${wide ? '' : 'mt-12'}`}>
-      <div className={`px-4 lg:px-8 mx-auto flex items-center flex-wrap gap-x-2 gap-y-1 text-[13.5px] text-muted-foreground ${wide ? 'max-w-[1400px] lg:px-10' : 'max-w-[1600px]'}`}>
-        <span>© 2026 <b className="text-foreground font-semibold">Fizibilite Platformu</b></span>
-        <span className="text-border">·</span>
-        <span>Tasarım &amp; Geliştirme: <b className="text-foreground font-semibold">Furkan Ozan Seyfi</b></span>
-        <span className="ml-auto flex items-center gap-4">
+    <footer className={`border-t bg-background/40 no-print ${wide ? '' : 'mt-12'}`}>
+      <div className={`mx-auto flex flex-col items-center justify-between gap-3 px-6 py-5 text-xs text-muted-foreground sm:flex-row ${wide ? 'max-w-[1400px] lg:px-10' : 'max-w-6xl'}`}>
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          <span>© {new Date().getFullYear()}</span>
+          <span className="font-medium text-foreground">{name}</span>
+          <span className="text-muted-foreground/60">·</span>
+          <span>
+            Tasarım &amp; Geliştirme:{' '}
+            <a href={developer.website.href} target="_blank" rel="noreferrer" className="font-medium text-foreground hover:text-primary">
+              {developer.name}
+            </a>
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
           <SocialLinks />
-        </span>
+        </div>
       </div>
     </footer>
   );

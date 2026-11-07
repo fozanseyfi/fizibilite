@@ -46,7 +46,14 @@ function NettingChart() {
       })}
       <path d={consPath} fill="none" stroke="#1A4A94" strokeWidth={2.5} strokeLinejoin="round" className="dark:stroke-sky-400" />
       {[0, 6, 12, 18, 23].map((h) => (
-        <text key={h} x={h * bw + bw / 2} y={H + 14} textAnchor="middle" className="fill-muted-foreground" fontSize={10}>
+        <text
+          key={h}
+          x={h === 0 ? 0 : h === 23 ? W : h * bw + bw / 2}
+          y={H + 14}
+          textAnchor={h === 0 ? "start" : h === 23 ? "end" : "middle"}
+          className="fill-muted-foreground"
+          fontSize={10}
+        >
           {String(h).padStart(2, "0")}:00
         </text>
       ))}
@@ -76,7 +83,7 @@ export function LoginShowcase() {
                 <k.icon className="size-3 text-primary" />
                 {k.label}
               </div>
-              <div className="mt-1 font-mono text-lg font-semibold tabular-nums text-foreground">{k.value}</div>
+              <div className="mt-1 text-lg font-semibold tabular-nums text-foreground">{k.value}</div>
             </div>
           ))}
         </div>

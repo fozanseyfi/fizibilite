@@ -18,7 +18,7 @@
 
 .mdl .m-header { background: var(--navy-deep); color: #fff; padding: 22px 20px 16px; border-radius: var(--radius) var(--radius) 0 0; }
 /* Yalnızca sekme çubuğu yapışkan — başlık/alt metin yukarı kaydırılır (küçük ekranı kaplamaz) */
-.mdl .m-tabs { background: var(--navy-deep); padding: 0 20px; position: sticky; top: 0; z-index: 40; box-shadow: 0 6px 16px rgba(14, 42, 94, .18); }
+.mdl .m-tabs { background: var(--navy-deep); padding: 0 20px; position: sticky; top: 56px; z-index: 20; box-shadow: 0 6px 16px rgba(14, 42, 94, .18); }
 .mdl .hwrap { max-width: none; margin: 0; }
 .mdl .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
 .mdl h1 { font-family: var(--disp); font-weight: 800; font-size: clamp(21px, 3.2vw, 31px); letter-spacing: -.01em; }
