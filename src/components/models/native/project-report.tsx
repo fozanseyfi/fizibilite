@@ -14,7 +14,7 @@ import { defaultUtilityInputs } from '@/lib/models/utility/defaults';
 import type { StoredProject } from '@/lib/project-store';
 import { computeBessCi, type BessCiInputs } from '@/lib/models/bess/ci';
 import { computeBessUtility, type BessUtilityInputs } from '@/lib/models/bess/utility';
-import { defaultBessCiInputs, defaultBessUtilityInputs } from '@/lib/models/bess/defaults';
+import { bessCiFromSaved, bessUtilityFromSaved } from '@/lib/models/bess/defaults';
 import { reportBessCi, reportBessUtility } from '@/components/models/native/bess-report';
 
 const today = () => new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -23,11 +23,11 @@ const today = () => new Date().toLocaleDateString('tr-TR', { day: 'numeric', mon
 export function buildReportHtml(project: StoredProject): string {
   const meta = (i: { pname?: string; prep?: string; firm?: string; loc?: string }) => ({ title: i.pname || project.name, prep: i.prep, firm: i.firm, loc: i.loc, date: today() });
   if (project.kind === 'bess-ci') {
-    const i: BessCiInputs = { ...defaultBessCiInputs(), ...(project.inputs as Partial<BessCiInputs>) };
+    const i: BessCiInputs = bessCiFromSaved(project.inputs as Partial<BessCiInputs>);
     return reportBessCi(i, computeBessCi(i), meta(i));
   }
   if (project.kind === 'bess-utility') {
-    const i: BessUtilityInputs = { ...defaultBessUtilityInputs(), ...(project.inputs as Partial<BessUtilityInputs>) };
+    const i: BessUtilityInputs = bessUtilityFromSaved(project.inputs as Partial<BessUtilityInputs>);
     return reportBessUtility(i, computeBessUtility(i), meta(i));
   }
   if (project.kind === 'ci') {

@@ -55,3 +55,61 @@ export const emptyTrace = (): DayTrace => ({
   prod: Array(24).fill(0), cons: Array(24).fill(0), chSolar: Array(24).fill(0),
   chGrid: Array(24).fill(0), dis: Array(24).fill(0), soc: Array(24).fill(0),
 });
+
+// ============================ BATARYA SAĞLIĞI (SOH) ============================
+
+/** Kapasite sağlığı şartı: `year`. yılın sonunda kapasite, ilk kapasitenin en az `pct`'i olmalı. */
+export interface SohReq { year: number; pct: number }
+
+export interface SohRow {
+  y: number;
+  /** Yıl sonu sağlık (ilk kapasiteye oranı, 0..1) */
+  soh: number;
+  /** Bu yılda kontrol noktası varsa şart (0..1) */
+  req?: number;
+  ok?: boolean;
+}
+
+export interface SohCheck {
+  rows: SohRow[];
+  /** Tüm kontrol noktaları sağlanıyor mu? */
+  ok: boolean;
+  /** Yenileme olmadan tüm şartları sağlayan en yüksek yıllık kayıp (0..1) */
+  maxDegr: number;
+}
+
+/**
+ * Yıl sonu sağlık eğrisi: (1 − kayıp)^yaş. Hücre yenilemesi (augYear) sağlığı
+ * yeniden %100'e çeker. Şart kontrolü yıl SONU değerine göre yapılır.
+ */
+export function sohCheck(life: number, degr: number, augYear: number, reqs: SohReq[]): SohCheck {
+  const valid = reqs.filter((r) => r.year > 0 && r.pct > 0);
+  const rows: SohRow[] = [];
+  for (let y = 1; y <= life; y++) {
+    const ageEnd = augYear > 0 && y >= augYear ? y - augYear + 1 : y;
+    const soh = Math.pow(1 - degr, ageEnd);
+    const r = valid.find((q) => q.year === y);
+    rows.push(r ? { y, soh, req: r.pct / 100, ok: soh >= r.pct / 100 - 1e-9 } : { y, soh });
+  }
+  const checks = rows.filter((r) => r.req !== undefined);
+  const maxDegr = valid.length
+    ? Math.min(...valid.map((q) => 1 - Math.pow(q.pct / 100, 1 / q.year)))
+    : 1;
+  return { rows, ok: checks.every((r) => r.ok), maxDegr };
+}
+
+/** Kullanıcı girdisinden şart listesi (yıl 0 veya % 0 → yok sayılır) */
+export function sohReqsOf(i: { sohY1?: number; sohP1?: number; sohY2?: number; sohP2?: number }): SohReq[] {
+  return [
+    { year: Math.round(i.sohY1 ?? 0), pct: i.sohP1 ?? 0 },
+    { year: Math.round(i.sohY2 ?? 0), pct: i.sohP2 ?? 0 },
+  ];
+}
+
+/** C-oranı seçenekleri (0 = güç elle girilir) */
+export const C_RATES: { value: number; label: string }[] = [
+  { value: 1, label: '1C — 1 saatlik (güç = kapasite)' },
+  { value: 0.5, label: '0,5C — 2 saatlik' },
+  { value: 0.25, label: '0,25C — 4 saatlik' },
+  { value: 0, label: 'Özel (gücü elle gir)' },
+];

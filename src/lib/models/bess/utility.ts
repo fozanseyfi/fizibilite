@@ -12,7 +12,7 @@
 //  - Dengesizlik: tahmin sapmasının bir kısmı batarya ile kapatılır.
 
 import { DAYS } from '@/lib/models/ci/presets';
-import { clamp, emptyTrace, irrOf, npvOf, paybackOf, pvDay, pvSum, type DayTrace } from './common';
+import { clamp, emptyTrace, irrOf, npvOf, paybackOf, pvDay, pvSum, sohCheck, sohReqsOf, type DayTrace, type SohCheck, type SohReq } from './common';
 
 export interface BessUtilityInputs {
   pname: string; firm?: string; loc?: string; prep: string;
@@ -32,6 +32,12 @@ export interface BessUtilityInputs {
   // Batarya
   bMw: number; bMwh: number; rte: number; dod: number; bDegr: number; life: number;
   capexKwh: number; opexPct: number; augYear: number; augCost: number;
+  /** C-oranı (MW = MWh × C). 0 → güç elle girilir */
+  cRate: number;
+  /** Güç dönüştürücü (PCS/inverter) maliyeti ($/kW) — C-oranının ekonomik etkisi buradan gelir */
+  capexKw: number;
+  /** Kapasite sağlığı şartı: sohY1. yıl sonunda en az %sohP1 (ikinci kontrol noktası da aynı) */
+  sohY1: number; sohP1: number; sohY2: number; sohP2: number;
   // Finans
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
@@ -45,6 +51,9 @@ export interface BessUtilityYear {
 
 export interface BessUtilityModel {
   capex: number;
+  /** Etkin güç (MW) — C-oranından türetilir */
+  bMw: number;
+  soh: SohCheck;
   years: BessUtilityYear[];
   npv: number; irr: number; payback: number; lcos: number;
   y1Stats: { clipMwh: number; curtMwh: number; recoveredMwh: number; arbMwh: number; disMwh: number; cycles: number; pvMwh: number; arbMw: number; ancMw: number };
@@ -61,6 +70,7 @@ interface P {
   devPct: number; imbCost: number; imbReduce: number;
   bMw: number; bMwh: number; rte: number; dod: number; bDegr: number; life: number;
   capexKwh: number; opexPct: number; augYear: number; augCost: number;
+  capexKw: number; sohReqs: SohReq[];
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
 
@@ -70,7 +80,7 @@ export function ptfCurve(noon: number, day: number, peak: number, night: number)
 }
 
 export function normalizeBessUtility(i: BessUtilityInputs): P {
-  const bMw = clamp(i.bMw, 0, 1e5);
+  const bMw = (i.cRate ?? 0) > 0 ? clamp(i.bMwh, 0, 1e6) * clamp(i.cRate, 0.05, 4) : clamp(i.bMw, 0, 1e5);
   return {
     dcMwp: clamp(i.dcMwp, 0, 1e5), acMw: clamp(i.acMw, 0.01, 1e5), spec: clamp(i.spec, 500, 2800), pvDegr: clamp(i.pvDegr, 0, 5) / 100,
     clipPct: clamp(i.clipPct, 0, 30) / 100, curtPct: clamp(i.curtPct, 0, 100) / 100,
@@ -81,7 +91,7 @@ export function normalizeBessUtility(i: BessUtilityInputs): P {
     devPct: clamp(i.devPct, 0, 100) / 100, imbCost: clamp(i.imbCost, 0, 1e6), imbReduce: clamp(i.imbReduce, 0, 100) / 100,
     bMw, bMwh: clamp(i.bMwh, 0, 1e6), rte: clamp(i.rte, 50, 100) / 100, dod: clamp(i.dod, 50, 100) / 100, bDegr: clamp(i.bDegr, 0, 10) / 100,
     life: Math.round(clamp(i.life, 3, 30)),
-    capexKwh: clamp(i.capexKwh, 0, 1e5), opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
+    capexKwh: clamp(i.capexKwh, 0, 1e5), capexKw: clamp(i.capexKw ?? 0, 0, 1e5), sohReqs: sohReqsOf(i), opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
     fx0: clamp(i.fx0, 1, 1e5), tlEsc: clamp(i.tlEsc, -50, 300) / 100, fxEsc: clamp(i.fxEsc, -50, 300) / 100, disc: clamp(i.disc, 0, 60) / 100,
   };
 }
@@ -167,7 +177,9 @@ export function computeBessUtility(inputs: BessUtilityInputs): BessUtilityModel 
   if (p.useAnc) warnings.push('Yan hizmet geliri iyimser senaryodur: santral içi bataryanın PFK/SFK\'ya katılımı TEİAŞ testleri ve anlaşmasına bağlıdır; saatlik teklif usulü 1 Ocak 2027\'de başlar.');
   if (p.useAnc && p.ancMw >= p.bMw && p.bMw > 0) warnings.push('Bataryanın tamamı yan hizmete ayrıldı; arbitraj ve kırpma kurtarma için güç kalmadı.');
 
-  const capex = p.bMwh * 1000 * p.capexKwh;
+  const capex = p.bMwh * 1000 * p.capexKwh + p.bMw * 1000 * p.capexKw;
+  const soh = sohCheck(p.life, p.bDegr, p.augYear, p.sohReqs);
+  if (!soh.ok) warnings.push(`Kapasite sağlığı şartı sağlanmıyor: yıllık %${(p.bDegr * 100).toFixed(1)} kayıpla kontrol noktalarında eşiğin altına düşülüyor. Şartı yenilemesiz sağlamak için yıllık kayıp en fazla %${(soh.maxDegr * 100).toFixed(2)} olmalı — garantili ürün seçin, kapasite fazlası kurun ya da hücre yenilemesi planlayın.`);
   const pw = Math.max(0, p.bMw - p.ancMw);
 
   const years: BessUtilityYear[] = [];
@@ -230,7 +242,7 @@ export function computeBessUtility(inputs: BessUtilityInputs): BessUtilityModel 
   };
 
   return {
-    capex, years,
+    capex, bMw: p.bMw, soh, years,
     npv: npvOf(capex, cfs, p.disc), irr: irrOf(capex, cfs), payback: paybackOf(capex, cfs), lcos,
     y1Stats, summer: trace(6), winter: trace(0), warnings,
   };

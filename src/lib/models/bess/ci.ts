@@ -13,7 +13,7 @@
 //  backup — kesintide kritik yükü besleme
 
 import { DAYS, MONTHS, shapesForProfile, monthlyForSeason, WE_RATIO, type ProfileKey, type SeasonKey } from '@/lib/models/ci/presets';
-import { calDays, clamp, emptyTrace, irrOf, npvOf, paybackOf, pvDay, pvSum, zoneOf, type DayTrace } from './common';
+import { calDays, clamp, emptyTrace, irrOf, npvOf, paybackOf, pvDay, pvSum, sohCheck, sohReqsOf, zoneOf, type DayTrace, type SohCheck, type SohReq } from './common';
 
 export interface BessCiInputs {
   pname: string; firm?: string; loc?: string; prep: string;
@@ -34,6 +34,12 @@ export interface BessCiInputs {
   // Batarya
   bKwh: number; bKw: number; rte: number; dod: number; bDegr: number; life: number;
   capexKwh: number; opexPct: number; augYear: number; augCost: number;
+  /** C-oranı (güç = kapasite × C). 0 → güç elle girilir */
+  cRate: number;
+  /** Güç dönüştürücü (PCS/inverter) maliyeti — C-oranının ekonomik etkisi buradan gelir */
+  capexKw: number;
+  /** Kapasite sağlığı şartı: sohY1. yıl sonunda en az %sohP1 (ikinci kontrol noktası da aynı) */
+  sohY1: number; sohP1: number; sohY2: number; sohP2: number;
   // Finans
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
@@ -50,6 +56,9 @@ export interface BessCiBreak { self: number; arb: number; peak: number; backup: 
 
 export interface BessCiModel {
   capex: number;
+  /** Etkin güç (kW) — C-oranından türetilir */
+  bKw: number;
+  soh: SohCheck;
   years: BessCiYear[];
   npv: number; irr: number; payback: number; lcos: number;
   /** 1. yıl, bugünkü fiyatlarla TL kazanç kırılımı */
@@ -69,6 +78,7 @@ interface P {
   outageH: number; outageCost: number; criticalKw: number; eventH: number; backupReserve: number;
   bKwh: number; bKw: number; rte: number; dod: number; bDegr: number; life: number;
   capexKwh: number; opexPct: number; augYear: number; augCost: number;
+  capexKw: number; sohReqs: SohReq[];
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
 
@@ -88,9 +98,9 @@ export function normalizeBessCi(i: BessCiInputs): P {
     demandFee: clamp(i.demandFee, 0, 1e6), peakCutKw: clamp(i.peakCutKw, 0, 1e7), peakHours: clamp(i.peakHours, 0.25, 24),
     outageH: clamp(i.outageH, 0, 8760), outageCost: clamp(i.outageCost, 0, 1e9), criticalKw: clamp(i.criticalKw, 0.1, 1e7),
     eventH: clamp(i.eventH, 0.1, 72), backupReserve: clamp(i.backupReserve, 0, 100) / 100,
-    bKwh: clamp(i.bKwh, 0, 1e8), bKw: clamp(i.bKw, 0, 1e8), rte: clamp(i.rte, 50, 100) / 100, dod: clamp(i.dod, 50, 100) / 100,
+    bKwh: clamp(i.bKwh, 0, 1e8), bKw: (i.cRate ?? 0) > 0 ? clamp(i.bKwh, 0, 1e8) * clamp(i.cRate, 0.05, 4) : clamp(i.bKw, 0, 1e8), rte: clamp(i.rte, 50, 100) / 100, dod: clamp(i.dod, 50, 100) / 100,
     bDegr: clamp(i.bDegr, 0, 10) / 100, life: Math.round(clamp(i.life, 3, 30)),
-    capexKwh: clamp(i.capexKwh, 0, 1e5), opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
+    capexKwh: clamp(i.capexKwh, 0, 1e5), capexKw: clamp(i.capexKw ?? 0, 0, 1e5), sohReqs: sohReqsOf(i), opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
     fx0: clamp(i.fx0, 1, 1e5), tlEsc: clamp(i.tlEsc, -50, 300) / 100, fxEsc: clamp(i.fxEsc, -50, 300) / 100, disc: clamp(i.disc, 0, 60) / 100,
   };
 }
@@ -219,7 +229,9 @@ export function computeBessCi(inputs: BessCiInputs): BessCiModel {
   if (p.bKw > 0 && p.bKwh / p.bKw < 1) warnings.push('Batarya süresi 1 saatin altında; akşam puantını karşılamak için genellikle 2–4 saat (kWh/kW) gerekir.');
 
   const flags: Flags = { self: p.useSelf, arb: p.useArb };
-  const capex = p.bKwh * p.capexKwh;
+  const capex = p.bKwh * p.capexKwh + p.bKw * p.capexKw;
+  const soh = sohCheck(p.life, p.bDegr, p.augYear, p.sohReqs);
+  if (!soh.ok) warnings.push(`Kapasite sağlığı şartı sağlanmıyor: yıllık %${(p.bDegr * 100).toFixed(1)} kayıpla kontrol noktalarında eşiğin altına düşülüyor. Şartı yenilemesiz sağlamak için yıllık kayıp en fazla %${(soh.maxDegr * 100).toFixed(2)} olmalı — garantili ürün seçin, kapasite fazlası kurun ya da hücre yenilemesi planlayın.`);
 
   const reserveFor = (cap: number) => {
     const backup = p.useBackup ? cap * p.backupReserve : 0;
@@ -281,7 +293,7 @@ export function computeBessCi(inputs: BessCiInputs): BessCiModel {
   const trace = (mi: number) => dispatchDay(p, pvDay(p.kwp, p.spec, p.orient, mi), dayCons(p, mi, 'wd'), op1, flags, true).trace!;
 
   return {
-    capex, years,
+    capex, bKw: p.bKw, soh, years,
     npv: npvOf(capex, cfs, p.disc), irr: irrOf(capex, cfs), payback: paybackOf(capex, cfs), lcos,
     y1, y1Stats, summer: trace(6), winter: trace(0), warnings,
   };

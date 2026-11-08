@@ -19,8 +19,9 @@ export function defaultBessCiInputs(): BessCiInputs {
     pSell: 3.0,
     demandFee: 120, peakCutKw: 100, peakHours: 2,
     outageH: 10, outageCost: 20000, criticalKw: 100, eventH: 2, backupReserve: 20,
-    bKwh: 500, bKw: 250, rte: 90, dod: 90, bDegr: 2.5, life: 12,
-    capexKwh: 300, opexPct: 1.5, augYear: 0, augCost: 120,
+    bKwh: 500, bKw: 250, rte: 90, dod: 90, bDegr: 2, life: 12,
+    cRate: 0.5, capexKwh: 220, capexKw: 160, opexPct: 1.5, augYear: 0, augCost: 120,
+    sohY1: 5, sohP1: 90, sohY2: 10, sohP2: 80,
     fx0: 47, tlEsc: 25, fxEsc: 20, disc: 10,
   };
 }
@@ -36,7 +37,25 @@ export function defaultBessUtilityInputs(): BessUtilityInputs {
     ancType: 'pfk', ancMw: 2, ancPrice: 1900, ancAvail: 90, ancHours: 0.5, ancEsc: 0,
     devPct: 8, imbCost: 300, imbReduce: 50,
     bMw: 5, bMwh: 10, rte: 88, dod: 90, bDegr: 2, life: 15,
-    capexKwh: 220, opexPct: 1.5, augYear: 10, augCost: 90,
+    cRate: 0.5, capexKwh: 170, capexKw: 100, opexPct: 1.5, augYear: 10, augCost: 90,
+    sohY1: 5, sohP1: 90, sohY2: 10, sohP2: 80,
     fx0: 47, tlEsc: 25, fxEsc: 20, disc: 11,
   };
+}
+
+/**
+ * Kayıtlı girdileri varsayılanlarla birleştirir. C-oranı ve güç maliyeti eklenmeden önce
+ * kaydedilmiş projeler eski anlamlarıyla açılır: güç elle girilmiş (cRate 0), maliyetin
+ * tamamı $/kWh (capexKw 0) — böylece eski projelerin sonuçları değişmez.
+ */
+export function bessCiFromSaved(saved?: Partial<BessCiInputs>): BessCiInputs {
+  const d = defaultBessCiInputs();
+  if (!saved) return d;
+  return { ...d, ...saved, cRate: saved.cRate ?? 0, capexKw: saved.capexKw ?? 0 };
+}
+
+export function bessUtilityFromSaved(saved?: Partial<BessUtilityInputs>): BessUtilityInputs {
+  const d = defaultBessUtilityInputs();
+  if (!saved) return d;
+  return { ...d, ...saved, cRate: saved.cRate ?? 0, capexKw: saved.capexKw ?? 0 };
 }

@@ -85,3 +85,62 @@ describe('Yan hizmet uyarısı', () => {
     expect(m.years[1].ancUsd).toBeLessThan(m.years[0].ancUsd);
   });
 });
+
+import { sohCheck } from '@/lib/models/bess/common';
+import { optimizeBessCi, optimizeBessUtility, sizeGrid } from '@/lib/models/bess/optimize';
+import { bessCiFromSaved } from '@/lib/models/bess/defaults';
+
+describe('Batarya sağlığı (SOH) şartı', () => {
+  const reqs = [{ year: 5, pct: 90 }, { year: 10, pct: 80 }];
+  it('%2,5 yıllık kayıp 5. yıl %90 şartını sağlamaz; izin verilen en fazla ≈%2,09', () => {
+    const s = sohCheck(12, 0.025, 0, reqs);
+    expect(s.ok).toBe(false);
+    expect(s.rows[4].soh).toBeCloseTo(Math.pow(0.975, 5), 9);
+    expect(s.maxDegr).toBeCloseTo(1 - Math.pow(0.9, 1 / 5), 9);
+  });
+  it('%2 kayıp iki kontrol noktasını da sağlar', () => {
+    expect(sohCheck(12, 0.02, 0, reqs).ok).toBe(true);
+  });
+  it('hücre yenilemesi sağlığı yeniden %100\'e çeker', () => {
+    const s = sohCheck(12, 0.03, 6, reqs);
+    expect(s.rows[5].soh).toBeCloseTo(0.97, 9); // 6. yıl sonu: yenilemeden sonra 1 yıl
+    expect(s.rows[9].ok).toBe(true); // 10. yıl: 5 yaş → 0,97^5 ≈ %85,9 ≥ %80
+  });
+});
+
+describe('C-oranı ve iki parçalı maliyet', () => {
+  it('güç = kapasite × C; maliyet enerji + güç', () => {
+    const m = computeBessCi({ ...defaultBessCiInputs(), bKwh: 400, cRate: 0.25, capexKwh: 200, capexKw: 100 });
+    expect(m.bKw).toBe(100);
+    expect(m.capex).toBe(400 * 200 + 100 * 100);
+    const u = computeBessUtility({ ...defaultBessUtilityInputs(), bMwh: 8, cRate: 1, capexKwh: 150, capexKw: 80 });
+    expect(u.bMw).toBe(8);
+    expect(u.capex).toBe(8000 * 150 + 8000 * 80);
+  });
+  it('özel (0) seçilince elle girilen güç kullanılır', () => {
+    expect(computeBessCi({ ...defaultBessCiInputs(), cRate: 0, bKw: 123 }).bKw).toBe(123);
+  });
+  it('eski kayıtlar eski anlamıyla açılır (C-oranı ve güç maliyeti yok)', () => {
+    const old = { ...defaultBessCiInputs(), bKw: 300, capexKwh: 300 } as Partial<ReturnType<typeof defaultBessCiInputs>>;
+    delete old.cRate; delete old.capexKw;
+    const i = bessCiFromSaved(old);
+    expect(i.cRate).toBe(0);
+    expect(i.capexKw).toBe(0);
+    expect(computeBessCi(i).capex).toBe(500 * 300);
+  });
+});
+
+describe('Optimizasyon', () => {
+  it('ızgara yuvarlak değerler üretir', () => {
+    expect(sizeGrid(100, 1000, 4)).toEqual([100, 400, 700, 1000]);
+  });
+  it('sonuçlar NPV\'ye göre azalan sırada ve tüm kombinasyonları içerir', () => {
+    const rows = optimizeBessCi(defaultBessCiInputs(), [200, 500, 1000], [1, 0.5, 0.25]);
+    expect(rows).toHaveLength(9);
+    for (let k = 1; k < rows.length; k++) expect(rows[k - 1].npv).toBeGreaterThanOrEqual(rows[k].npv);
+    const u = optimizeBessUtility(defaultBessUtilityInputs(), [5, 10], [0.5, 0.25]);
+    expect(u).toHaveLength(4);
+    console.log('OPT C&I en iyi 3:', JSON.stringify(rows.slice(0, 3).map((r) => ({ cap: r.cap, c: r.c, npv: Math.round(r.npv) }))));
+    console.log('OPT UT  sıralı:', JSON.stringify(u.map((r) => ({ cap: r.cap, c: r.c, npv: Math.round(r.npv) }))));
+  });
+});

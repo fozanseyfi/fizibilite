@@ -2,14 +2,17 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, FileDown, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tipbox, NumF, TxtF, SelF, PrintReport, SeriesChart } from '@/components/models/native/mdl-kit';
 import { BreakdownTable, DayLegend, UseCard, daySvg } from '@/components/models/native/bess-kit';
+import { OptPanel, SohCard, TabActions } from '@/components/models/native/bess-panels';
+import { optimizeBessUtility } from '@/lib/models/bess/optimize';
+import { C_RATES } from '@/lib/models/bess/common';
 import { UT_USE_LABELS, reportBessUtility } from '@/components/models/native/bess-report';
 import { useProjectSave } from '@/components/models/native/use-project-save';
 import { computeBessUtility, type BessUtilityInputs } from '@/lib/models/bess/utility';
-import { defaultBessUtilityInputs } from '@/lib/models/bess/defaults';
+import { bessUtilityFromSaved } from '@/lib/models/bess/defaults';
 import type { ProjectSummary } from '@/lib/models/types';
 import { nf, pct, usd, yearsFmt } from '@/lib/models/fmt';
 
@@ -27,21 +30,26 @@ const T = {
   devPct: 'Üretim tahmininin gerçekleşenden ortalama sapması (yıllık üretimin %\'si).',
   imbCost: 'Sapan 1 MWh için ödenen ortalama dengesizlik maliyeti (TL/MWh).',
   imbReduce: 'Sapmanın bataryayla kapatılabilen kısmı.',
-  capexKwh: 'Kurulu batarya sistemi maliyeti (hücre + PCS + trafo + EPC). Utility ölçekte 2026 için tipik 180–260 $/kWh.',
+  capexKwh: 'Enerji tarafı maliyeti: hücre + konteyner + BMS + EPC, kWh başına.',
+  capexKw: 'Güç dönüştürücü (PCS), orta gerilim trafosu ve bağlantı maliyeti, kW başına. C-oranı yükseldikçe aynı kapasiteye daha fazla MW gerekir; bu kalem büyür. Varsayılanlar 0,5C\'de toplam ≈220 $/kWh verir.',
+  cRate: 'Batarya gücünün kapasitesine oranı. 1C: tam kapasiteyi 1 saatte verir (yan hizmet, kısa zirveler). 0,5C: 2 saat. 0,25C: 4 saat (uzun akşam puantı arbitrajı). MW = MWh × C.',
+  soh: 'Batarya sağlığı şartı: belirtilen yıl sonunda kapasitenin ilk kapasiteye oranı en az bu değer olmalı (ör. 5. yıl %90, 10. yıl %80). Yıl veya % 0 girilirse kontrol yapılmaz.',
 };
 
 export function BessUtilityModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: BessUtilityInputs }) {
-  const [inputs, setInputs] = useState<BessUtilityInputs>(() => ({ ...defaultBessUtilityInputs(), ...(initialInputs ?? {}) }));
-  const [tab, setTab] = useState<'setup' | 'results'>('setup');
+  const [inputs, setInputs] = useState<BessUtilityInputs>(() => bessUtilityFromSaved(initialInputs));
+  const [tab, setTab] = useState<'setup' | 'results' | 'opt'>('setup');
   const [printing, setPrinting] = useState(false);
   const set = <K extends keyof BessUtilityInputs>(k: K, v: BessUtilityInputs[K]) => setInputs((p) => ({ ...p, [k]: v }));
   const m = useMemo(() => computeBessUtility(inputs), [inputs]);
   const yekdem = inputs.regime === 'yekdem';
 
   const buildSummary = useCallback(
-    (): ProjectSummary => ({ kind: 'bess-utility', capexUsd: m.capex, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.payback, capacityLabel: `${nf(inputs.bMw)} MW / ${nf(inputs.bMwh)} MWh` }),
-    [m, inputs.bMw, inputs.bMwh]
+    (): ProjectSummary => ({ kind: 'bess-utility', capexUsd: m.capex, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.payback, capacityLabel: `${nf(m.bMw, 1)} MW / ${nf(inputs.bMwh)} MWh` }),
+    [m, inputs.bMwh]
   );
+  const runOpt = useCallback((sizes: number[], cRates: number[]) => optimizeBessUtility(inputs, sizes, cRates), [inputs]);
+  const applySize = (cap: number, c: number) => { setInputs((p) => ({ ...p, bMwh: cap, cRate: c })); setTab('results'); };
   const { save, del, err } = useProjectSave({ projectId, kind: 'bess-utility', inputs, name: inputs.pname || 'Batarya Projesi', buildSummary });
 
   const y1 = m.years[0];
@@ -58,8 +66,6 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
         <div className="flex items-center gap-2 flex-wrap">
           {err && <span className="text-xs text-destructive">{err}</span>}
           {projectId && <Button variant="outline" size="sm" onClick={del} className="text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 mr-1" /> Sil</Button>}
-          <Button variant="outline" onClick={() => setPrinting(true)} size="sm"><FileDown className="h-4 w-4 mr-1.5" /> Rapor çıktısı al</Button>
-          <Button onClick={save} size="sm"><Save className="h-4 w-4 mr-1.5" />{projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'}</Button>
         </div>
       </div>
 
@@ -72,17 +78,19 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
           </div>
         </div>
         <div className="m-tabs">
-          <div className="hwrap">
+          <div className="hwrap tabs-row">
             <nav role="tablist">
               <button className={tab === 'setup' ? 'active' : ''} onClick={() => setTab('setup')}>1 · Kurulum</button>
               <button className={tab === 'results' ? 'active' : ''} onClick={() => setTab('results')}>2 · Sonuçlar</button>
+              <button className={tab === 'opt' ? 'active' : ''} onClick={() => setTab('opt')}>3 · Optimizasyon</button>
             </nav>
+            <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} />
           </div>
         </div>
 
         <div className="m-main">
           <div className="kpis">
-            <div className="kpi navy"><div className="kl">Yatırım</div><div className="kv">{usd(m.capex)}</div><div className="kh">{nf(inputs.bMwh)} MWh × {usd(inputs.capexKwh)}/kWh</div></div>
+            <div className="kpi navy"><div className="kl">Yatırım</div><div className="kv">{usd(m.capex)}</div><div className="kh">{nf(inputs.bMwh)} MWh / {nf(m.bMw, 1)} MW{inputs.cRate > 0 ? ` · ${String(inputs.cRate).replace('.', ',')}C` : ''}</div></div>
             <div className={`kpi ${y1.revUsd > y1.opexUsd ? 'good' : 'bad'}`}><div className="kl">1. yıl gelir</div><div className="kv">{usd(y1.revUsd)}</div><div className="kh">{y1.yekdem ? 'YEKDEM dönemi' : 'serbest piyasa'}</div></div>
             <div className={`kpi ${m.npv > 0 ? 'good' : 'bad'}`}><div className="kl">NPV</div><div className="kv">{usd(m.npv)}</div><div className="kh">iskonto {pct(inputs.disc)}</div></div>
             <div className="kpi"><div className="kl">IRR</div><div className="kv">{pct(m.irr * 100)}</div><div className="kh">USD bazında</div></div>
@@ -160,18 +168,28 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
               )}
             </Step>
 
-            <Step no="ADIM 4" title="Batarya" why="Arbitraj için 2–4 saatlik (MWh ÷ MW) batarya tipiktir.">
+            <Step no="ADIM 4" title="Batarya" why="Arbitraj için 2–4 saatlik (MWh ÷ MW) batarya tipiktir. En iyi boyut için Optimizasyon sekmesine bakın.">
               <div className="grid3">
-                <NumF label="Güç" unit="MW" value={inputs.bMw} onChange={(v) => set('bMw', v)} step={0.5} />
                 <NumF label="Kapasite" unit="MWh" value={inputs.bMwh} onChange={(v) => set('bMwh', v)} step={0.5} />
+                <SelF label="C-oranı" tip={T.cRate} value={String(inputs.cRate)} onChange={(v) => setInputs((p) => ({ ...p, cRate: Number(v), bMw: Number(v) > 0 ? p.bMwh * Number(v) : m.bMw }))}
+                  options={C_RATES.map((o) => ({ value: String(o.value), label: o.label }))} />
+                <NumF label="Güç" unit={inputs.cRate > 0 ? 'MW, C-oranından' : 'MW'} value={inputs.cRate > 0 ? m.bMw : inputs.bMw} onChange={(v) => set('bMw', v)} step={0.5} disabled={inputs.cRate > 0} />
                 <NumF label="Gidiş-dönüş verimi" unit="%" value={inputs.rte} onChange={(v) => set('rte', v)} step={1} />
                 <NumF label="Kullanılabilir kapasite" unit="%" value={inputs.dod} onChange={(v) => set('dod', v)} step={1} />
                 <NumF label="Yıllık kapasite kaybı" unit="%" value={inputs.bDegr} onChange={(v) => set('bDegr', v)} step={0.5} />
                 <NumF label="Ekonomik ömür" unit="yıl" value={inputs.life} onChange={(v) => set('life', v)} step={1} />
-                <NumF label="Kurulum maliyeti" unit="$/kWh" tip={T.capexKwh} value={inputs.capexKwh} onChange={(v) => set('capexKwh', v)} step={5} />
+                <NumF label="Enerji maliyeti" unit="$/kWh" tip={T.capexKwh} value={inputs.capexKwh} onChange={(v) => set('capexKwh', v)} step={5} />
+                <NumF label="Güç dönüştürücü maliyeti" unit="$/kW" tip={T.capexKw} value={inputs.capexKw} onChange={(v) => set('capexKw', v)} step={5} />
                 <NumF label="Yıllık bakım" unit="% CAPEX" value={inputs.opexPct} onChange={(v) => set('opexPct', v)} step={0.5} />
                 <NumF label="Hücre yenileme yılı" unit="0 = yok" value={inputs.augYear} onChange={(v) => set('augYear', v)} step={1} />
                 {inputs.augYear > 0 && <NumF label="Yenileme maliyeti" unit="$/kWh" value={inputs.augCost} onChange={(v) => set('augCost', v)} step={5} />}
+              </div>
+              <div className="note">Toplam yatırım {usd(m.capex)} = {nf(inputs.bMwh)} MWh × {usd(inputs.capexKwh)}/kWh + {nf(m.bMw, 1)} MW × {usd(inputs.capexKw)}/kW (≈ {usd(inputs.bMwh > 0 ? m.capex / (inputs.bMwh * 1000) : 0)}/kWh).</div>
+              <div className="grid4" style={{ marginTop: 12 }}>
+                <NumF label="Sağlık şartı · yıl" tip={T.soh} value={inputs.sohY1} onChange={(v) => set('sohY1', v)} step={1} />
+                <NumF label="En az kapasite" unit="%" value={inputs.sohP1} onChange={(v) => set('sohP1', v)} step={1} />
+                <NumF label="Sağlık şartı · yıl" value={inputs.sohY2} onChange={(v) => set('sohY2', v)} step={1} />
+                <NumF label="En az kapasite" unit="%" value={inputs.sohP2} onChange={(v) => set('sohP2', v)} step={1} />
               </div>
             </Step>
 
@@ -217,6 +235,8 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
               <div className="card bess-chart"><h3>Tipik gün — Ocak <small>· MWh</small></h3><div dangerouslySetInnerHTML={{ __html: daySvg(m.winter, svgOpts) }} /><DayLegend lineLabel="Veriş sınırı (AC)" chargeLabel2="Arbitraj şarjı" /></div>
             </div>
 
+            <SohCard soh={m.soh} degr={inputs.bDegr} />
+
             <div className="card bess-chart">
               <h3>Kümülatif nakit akışı <small>· USD, 0. yıl yatırım dahil</small></h3>
               <SeriesChart points={[-m.capex, ...m.years.map((y) => y.cumUsd)]} />
@@ -235,6 +255,12 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
                 </table>
               </div>
             </div>
+          </div>
+
+          {/* ==================== OPTİMİZASYON ==================== */}
+          <div className={`tab ${tab === 'opt' ? 'active' : ''}`}>
+            <OptPanel unitCap="MWh" unitPower="MW" current={inputs.bMwh} run={runOpt} onApply={applySize}
+              y1Label="1. yıl gelir" y1Fmt={(v) => usd(v)} />
           </div>
         </div>
       </div>
