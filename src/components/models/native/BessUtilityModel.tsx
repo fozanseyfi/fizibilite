@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Tipbox, NumF, TxtF, SelF, PrintReport, SeriesChart } from '@/components/models/native/mdl-kit';
 import { BreakdownTable, DayLegend, UseCard, daySvg } from '@/components/models/native/bess-kit';
 import { OptPanel, SohCard, TabActions } from '@/components/models/native/bess-panels';
+import { SohStrategyPanel, UtilityUsagePanel } from '@/components/models/native/bess-analysis';
+import { sohStrategiesUtility } from '@/lib/models/bess/soh-strategy';
 import { optimizeBessUtility } from '@/lib/models/bess/optimize';
 import { C_RATES } from '@/lib/models/bess/common';
 import { UT_USE_LABELS, reportBessUtility } from '@/components/models/native/bess-report';
@@ -33,12 +35,14 @@ const T = {
   capexKwh: 'Enerji tarafı maliyeti: hücre + konteyner + BMS + EPC, kWh başına.',
   capexKw: 'Güç dönüştürücü (PCS), orta gerilim trafosu ve bağlantı maliyeti, kW başına. C-oranı yükseldikçe aynı kapasiteye daha fazla MW gerekir; bu kalem büyür. Varsayılanlar 0,5C\'de toplam ≈220 $/kWh verir.',
   cRate: 'Batarya gücünün kapasitesine oranı. 1C: tam kapasiteyi 1 saatte verir (yan hizmet, kısa zirveler). 0,5C: 2 saat. 0,25C: 4 saat (uzun akşam puantı arbitrajı). MW = MWh × C.',
+  oversize: 'Beyan edilen kapasitenin üstüne kurulan pay. Güç değişmez; sağlık şartı beyan edilen kapasiteye göre kontrol edilir. Ekleme yapmadan şartı sağlamanın yolu budur — en iyi oranı 5. sekme hesaplar.',
+  aug: 'Bu yılda, o güne kadar kaybolan kapasite kadar modül eklenir; kapasite yeniden %100 olur. Maliyet = kaybolan kWh × ekleme birim maliyeti.',
   soh: 'Batarya sağlığı şartı: belirtilen yıl sonunda kapasitenin ilk kapasiteye oranı en az bu değer olmalı (ör. 5. yıl %90, 10. yıl %80). Yıl veya % 0 girilirse kontrol yapılmaz.',
 };
 
 export function BessUtilityModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: BessUtilityInputs }) {
   const [inputs, setInputs] = useState<BessUtilityInputs>(() => bessUtilityFromSaved(initialInputs));
-  const [tab, setTab] = useState<'setup' | 'results' | 'opt'>('setup');
+  const [tab, setTab] = useState<'setup' | 'results' | 'opt' | 'usage' | 'soh'>('setup');
   const [printing, setPrinting] = useState(false);
   const set = <K extends keyof BessUtilityInputs>(k: K, v: BessUtilityInputs[K]) => setInputs((p) => ({ ...p, [k]: v }));
   const m = useMemo(() => computeBessUtility(inputs), [inputs]);
@@ -83,6 +87,8 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
               <button className={tab === 'setup' ? 'active' : ''} onClick={() => setTab('setup')}>1 · Kurulum</button>
               <button className={tab === 'results' ? 'active' : ''} onClick={() => setTab('results')}>2 · Sonuçlar</button>
               <button className={tab === 'opt' ? 'active' : ''} onClick={() => setTab('opt')}>3 · Optimizasyon</button>
+              <button className={tab === 'usage' ? 'active' : ''} onClick={() => setTab('usage')}>4 · Kullanım analizi</button>
+              <button className={tab === 'soh' ? 'active' : ''} onClick={() => setTab('soh')}>5 · Sağlık şartı stratejisi</button>
             </nav>
             <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} />
           </div>
@@ -181,8 +187,9 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
                 <NumF label="Enerji maliyeti" unit="$/kWh" tip={T.capexKwh} value={inputs.capexKwh} onChange={(v) => set('capexKwh', v)} step={5} />
                 <NumF label="Güç dönüştürücü maliyeti" unit="$/kW" tip={T.capexKw} value={inputs.capexKw} onChange={(v) => set('capexKw', v)} step={5} />
                 <NumF label="Yıllık bakım" unit="% CAPEX" value={inputs.opexPct} onChange={(v) => set('opexPct', v)} step={0.5} />
-                <NumF label="Hücre yenileme yılı" unit="0 = yok" value={inputs.augYear} onChange={(v) => set('augYear', v)} step={1} />
-                {inputs.augYear > 0 && <NumF label="Yenileme maliyeti" unit="$/kWh" value={inputs.augCost} onChange={(v) => set('augCost', v)} step={5} />}
+                <NumF label="Kapasite fazlası" unit="% beyan edilen üstü" tip={T.oversize} value={inputs.oversize ?? 0} onChange={(v) => set('oversize', v)} step={0.5} />
+                <NumF label="Kapasite ekleme yılı" unit="0 = yok" tip={T.aug} value={inputs.augYear} onChange={(v) => set('augYear', v)} step={1} />
+                {inputs.augYear > 0 && <NumF label="Ekleme maliyeti" unit="$/kWh eklenen" value={inputs.augCost} onChange={(v) => set('augCost', v)} step={5} />}
               </div>
               <div className="note">Toplam yatırım {usd(m.capex)} = {nf(inputs.bMwh)} MWh × {usd(inputs.capexKwh)}/kWh + {nf(m.bMw, 1)} MW × {usd(inputs.capexKw)}/kW (≈ {usd(inputs.bMwh > 0 ? m.capex / (inputs.bMwh * 1000) : 0)}/kWh).</div>
               <div className="grid4" style={{ marginTop: 12 }}>
@@ -261,6 +268,18 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
           <div className={`tab ${tab === 'opt' ? 'active' : ''}`}>
             <OptPanel unitCap="MWh" unitPower="MW" current={inputs.bMwh} run={runOpt} onApply={applySize}
               y1Label="1. yıl gelir" y1Fmt={(v) => usd(v)} />
+          </div>
+
+          {/* ==================== KULLANIM ANALİZİ ==================== */}
+          <div className={`tab ${tab === 'usage' ? 'active' : ''}`}>
+            <UtilityUsagePanel inputs={inputs} bMw={m.bMw} onApply={(patch) => { setInputs((p) => ({ ...p, ...patch })); setTab('results'); }} />
+          </div>
+
+          {/* ==================== SAĞLIK ŞARTI STRATEJİSİ ==================== */}
+          <div className={`tab ${tab === 'soh' ? 'active' : ''}`}>
+            <SohStrategyPanel capUnit="MWh" run={() => sohStrategiesUtility(inputs)}
+              sohText={`${inputs.sohY1}. yıl ≥ %${inputs.sohP1}, ${inputs.sohY2}. yıl ≥ %${inputs.sohP2} · yıllık kayıp %${String(inputs.bDegr).replace('.', ',')}`}
+              onApply={(r) => { setInputs((p) => ({ ...p, augYear: r.augYear, oversize: r.oversizePct })); setTab('results'); }} />
           </div>
         </div>
       </div>

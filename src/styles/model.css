@@ -383,4 +383,8 @@
 .mdl .opt-run .btn-pdf:disabled { opacity: .55; cursor: wait; }
 .mdl tr.opt-best td { background: #EEF7F1; font-weight: 700; }
 .mdl table .btn-mini { padding: 2px 10px; font-size: 12px; }
+.mdl td.pos { color: var(--green); font-weight: 600; }
+.mdl td.neg { color: var(--red); }
+.mdl tr.checkpoint td { font-weight: 700; background: #F5F7FA; }
+.mdl .soh-status .btn-mini { margin-left: 4px; }
 @media (max-width: 640px) { .mdl .tab-actions { width: 100%; } .mdl .ta-btn { flex: 1; } }

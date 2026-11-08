@@ -82,18 +82,19 @@ export interface SohCheck {
  * Yıl sonu sağlık eğrisi: (1 − kayıp)^yaş. Hücre yenilemesi (augYear) sağlığı
  * yeniden %100'e çeker. Şart kontrolü yıl SONU değerine göre yapılır.
  */
-export function sohCheck(life: number, degr: number, augYear: number, reqs: SohReq[]): SohCheck {
+export function sohCheck(life: number, degr: number, augYear: number, reqs: SohReq[], over = 1): SohCheck {
   const valid = reqs.filter((r) => r.year > 0 && r.pct > 0);
   const rows: SohRow[] = [];
   for (let y = 1; y <= life; y++) {
     const ageEnd = augYear > 0 && y >= augYear ? y - augYear + 1 : y;
-    const soh = Math.pow(1 - degr, ageEnd);
+    // Beyan edilen kapasiteye oranla: kapasite fazlası (over) sağlığı yukarı taşır
+    const soh = over * Math.pow(1 - degr, ageEnd);
     const r = valid.find((q) => q.year === y);
     rows.push(r ? { y, soh, req: r.pct / 100, ok: soh >= r.pct / 100 - 1e-9 } : { y, soh });
   }
   const checks = rows.filter((r) => r.req !== undefined);
   const maxDegr = valid.length
-    ? Math.min(...valid.map((q) => 1 - Math.pow(q.pct / 100, 1 / q.year)))
+    ? Math.max(0, Math.min(...valid.map((q) => 1 - Math.pow(Math.min(1, q.pct / 100 / over), 1 / q.year))))
     : 1;
   return { rows, ok: checks.every((r) => r.ok), maxDegr };
 }

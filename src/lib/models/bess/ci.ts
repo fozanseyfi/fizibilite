@@ -40,6 +40,8 @@ export interface BessCiInputs {
   capexKw: number;
   /** Kapasite sağlığı şartı: sohY1. yıl sonunda en az %sohP1 (ikinci kontrol noktası da aynı) */
   sohY1: number; sohP1: number; sohY2: number; sohP2: number;
+  /** Kapasite fazlası (%): beyan edilen kapasitenin üstüne kurulan pay. Güç değişmez; sağlık şartı beyan edilene göre kontrol edilir */
+  oversize?: number;
   // Finans
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
@@ -79,6 +81,8 @@ interface P {
   bKwh: number; bKw: number; rte: number; dod: number; bDegr: number; life: number;
   capexKwh: number; opexPct: number; augYear: number; augCost: number;
   capexKw: number; sohReqs: SohReq[];
+  /** 1 + kapasite fazlası */
+  over: number;
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
 
@@ -100,7 +104,7 @@ export function normalizeBessCi(i: BessCiInputs): P {
     eventH: clamp(i.eventH, 0.1, 72), backupReserve: clamp(i.backupReserve, 0, 100) / 100,
     bKwh: clamp(i.bKwh, 0, 1e8), bKw: (i.cRate ?? 0) > 0 ? clamp(i.bKwh, 0, 1e8) * clamp(i.cRate, 0.05, 4) : clamp(i.bKw, 0, 1e8), rte: clamp(i.rte, 50, 100) / 100, dod: clamp(i.dod, 50, 100) / 100,
     bDegr: clamp(i.bDegr, 0, 10) / 100, life: Math.round(clamp(i.life, 3, 30)),
-    capexKwh: clamp(i.capexKwh, 0, 1e5), capexKw: clamp(i.capexKw ?? 0, 0, 1e5), sohReqs: sohReqsOf(i), opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
+    capexKwh: clamp(i.capexKwh, 0, 1e5), capexKw: clamp(i.capexKw ?? 0, 0, 1e5), sohReqs: sohReqsOf(i), over: 1 + clamp(i.oversize ?? 0, 0, 200) / 100, opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
     fx0: clamp(i.fx0, 1, 1e5), tlEsc: clamp(i.tlEsc, -50, 300) / 100, fxEsc: clamp(i.fxEsc, -50, 300) / 100, disc: clamp(i.disc, 0, 60) / 100,
   };
 }
@@ -217,7 +221,7 @@ function yearBill(p: P, yr: number, cap: number, f: Flags): YearOut {
 
 function capOf(p: P, yr: number): number {
   const age = p.augYear > 0 && yr >= p.augYear ? yr - p.augYear : yr - 1;
-  return p.bKwh * p.dod * Math.pow(1 - p.bDegr, age);
+  return p.bKwh * p.over * p.dod * Math.pow(1 - p.bDegr, age);
 }
 
 export function computeBessCi(inputs: BessCiInputs): BessCiModel {
@@ -229,8 +233,8 @@ export function computeBessCi(inputs: BessCiInputs): BessCiModel {
   if (p.bKw > 0 && p.bKwh / p.bKw < 1) warnings.push('Batarya süresi 1 saatin altında; akşam puantını karşılamak için genellikle 2–4 saat (kWh/kW) gerekir.');
 
   const flags: Flags = { self: p.useSelf, arb: p.useArb };
-  const capex = p.bKwh * p.capexKwh + p.bKw * p.capexKw;
-  const soh = sohCheck(p.life, p.bDegr, p.augYear, p.sohReqs);
+  const capex = p.bKwh * p.over * p.capexKwh + p.bKw * p.capexKw;
+  const soh = sohCheck(p.life, p.bDegr, p.augYear, p.sohReqs, p.over);
   if (!soh.ok) warnings.push(`Kapasite sağlığı şartı sağlanmıyor: yıllık %${(p.bDegr * 100).toFixed(1)} kayıpla kontrol noktalarında eşiğin altına düşülüyor. Şartı yenilemesiz sağlamak için yıllık kayıp en fazla %${(soh.maxDegr * 100).toFixed(2)} olmalı — garantili ürün seçin, kapasite fazlası kurun ya da hücre yenilemesi planlayın.`);
 
   const reserveFor = (cap: number) => {
@@ -261,7 +265,8 @@ export function computeBessCi(inputs: BessCiInputs): BessCiModel {
     const fx = p.fx0 * Math.pow(1 + p.fxEsc, y - 1);
     const savingUsd = ((energyTL + peakTL + backupTL) * tl) / fx;
     const opexUsd = capex * p.opexPct;
-    const augUsd = p.augYear > 0 && y === p.augYear ? p.bKwh * p.augCost : 0;
+    // Kapasite ekleme: yalnızca o güne kadar kaybolan kapasite kadar modül eklenir (tamamı yenilenmez)
+    const augUsd = p.augYear > 0 && y === p.augYear ? p.bKwh * p.over * p.augCost * (1 - Math.pow(1 - p.bDegr, p.augYear - 1)) : 0;
     const cfUsd = savingUsd - opexUsd - augUsd;
     cum += cfUsd;
     years.push({ y, capKwh: cap, energyTL, peakTL, backupTL, savingUsd, opexUsd, augUsd, cfUsd, cumUsd: cum, disKwh: withB.dis });

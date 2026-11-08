@@ -144,3 +144,71 @@ describe('Optimizasyon', () => {
     console.log('OPT UT  sıralı:', JSON.stringify(u.map((r) => ({ cap: r.cap, c: r.c, npv: Math.round(r.npv) }))));
   });
 });
+
+import { minOversize, sohStrategiesCi, sohStrategiesUtility } from '@/lib/models/bess/soh-strategy';
+import { utUseCombos, ciUseCombos, yekdemSweep, dcSweep, arbSweep } from '@/lib/models/bess/usage';
+import { clipFraction } from '@/lib/models/bess/utility';
+
+describe('Sağlık şartı stratejileri', () => {
+  const reqs = [{ year: 5, pct: 90 }, { year: 10, pct: 80 }];
+  it('eklemesiz: iki şartı da sağlayan en küçük fazla', () => {
+    const o = minOversize(0.025, 0, reqs, 12);
+    expect(1.0 * (1 + o) * Math.pow(0.975, 5)).toBeGreaterThanOrEqual(0.9 - 1e-9);
+    expect((1 + o) * Math.pow(0.975, 10)).toBeGreaterThanOrEqual(0.8 - 1e-9);
+    expect(o).toBeLessThan(0.04);
+  });
+  it('5. yılda eklemede 10. yıl şartı yaş 6 ile kontrol edilir', () => {
+    // 5. yıl kontrolü eklemeden sonra (yaş 1: %97,5), 10. yıl yaş 6: 0,975^6 ≈ %85,9 ≥ %80 → fazla gerekmez
+    expect(minOversize(0.025, 5, reqs, 12)).toBe(0);
+  });
+  it('kapasite fazlası sağlığı ve yatırımı yükseltir; güç değişmez', () => {
+    const a = computeBessCi({ ...defaultBessCiInputs(), bDegr: 2.5 });
+    const b = computeBessCi({ ...defaultBessCiInputs(), bDegr: 2.5, oversize: 4 });
+    expect(a.soh.ok).toBe(false);
+    expect(b.soh.ok).toBe(true);
+    expect(b.bKw).toBe(a.bKw);
+    expect(b.capex - a.capex).toBeCloseTo(500 * 0.04 * 220, 6);
+  });
+  it('kapasite ekleme yalnızca kaybolan kapasiteyi öder', () => {
+    const m = computeBessUtility({ ...defaultBessUtilityInputs(), augYear: 10, bDegr: 2, augCost: 90 });
+    const aug = m.years.find((y) => y.augUsd > 0)!;
+    expect(aug.y).toBe(10);
+    expect(aug.augUsd).toBeCloseTo(10000 * 90 * (1 - Math.pow(0.98, 9)), 6);
+  });
+  it('strateji listesi: her ekleme yılı + eklemesiz; hepsi şartı sağlar', () => {
+    const rows = sohStrategiesCi({ ...defaultBessCiInputs(), bDegr: 2.5 });
+    expect(rows).toHaveLength(12);
+    rows.forEach((r) => expect(r.sohOk).toBe(true));
+    expect(sohStrategiesUtility(defaultBessUtilityInputs()).every((r) => r.sohOk)).toBe(true);
+  });
+});
+
+describe('Kullanım analizi', () => {
+  it('Utility: 15 kombinasyon, marjinal katkı tümü − biri eksik', () => {
+    const c = utUseCombos(defaultBessUtilityInputs());
+    expect(c.rows).toHaveLength(15);
+    const all = c.rows.find((r) => r.uses.length === 4)!;
+    const noAnc = c.rows.find((r) => r.uses.length === 3 && !r.uses.includes('anc'))!;
+    expect(c.marginal.find((m) => m.use === 'anc')!.npv).toBeCloseTo(all.npv - noAnc.npv, 6);
+  });
+  it('C&I: tek zamanlı tarifede arbitraj denenmez', () => {
+    const c = ciUseCombos({ ...defaultBessCiInputs(), tariff: 'tek' });
+    c.rows.forEach((r) => expect(r.uses).not.toContain('arb'));
+  });
+  it('YEKDEM taraması 0…ömür; ömür kadar YEKDEM\'de arbitraj geliri yok', () => {
+    const i = defaultBessUtilityInputs();
+    const rows = yekdemSweep(i, 0.11);
+    expect(rows).toHaveLength(i.life + 1);
+  });
+  it('DC taraması: mevcut satırda fark 0; kırpma DC/AC ile artar', () => {
+    const rows = dcSweep(defaultBessUtilityInputs(), 0.11, 300);
+    expect(rows[0].deltaNoBess).toBeCloseTo(0, 6);
+    expect(rows[0].deltaWithBess).toBeCloseTo(0, 6);
+    for (let k = 1; k < rows.length; k++) expect(rows[k].clipPct).toBeGreaterThan(rows[k - 1].clipPct);
+    expect(clipFraction(18, 10, 1650)).toBeGreaterThan(clipFraction(12, 10, 1650));
+  });
+  it('Arbitraj: fark büyüdükçe arbitraj geliri artar', () => {
+    const rows = arbSweep({ ...defaultBessUtilityInputs(), regime: 'merchant' }, 0.11);
+    for (let k = 1; k < rows.length; k++) expect(rows[k].arbNpvUsd).toBeGreaterThan(rows[k - 1].arbNpvUsd);
+  });
+});

@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Tipbox, NumF, TxtF, SelF, PrintReport, SeriesChart } from '@/components/models/native/mdl-kit';
 import { BreakdownTable, DayLegend, UseCard, daySvg } from '@/components/models/native/bess-kit';
 import { OptPanel, SohCard, TabActions } from '@/components/models/native/bess-panels';
+import { CiUsagePanel, SohStrategyPanel } from '@/components/models/native/bess-analysis';
+import { sohStrategiesCi } from '@/lib/models/bess/soh-strategy';
 import { CI_USE_LABELS, reportBessCi } from '@/components/models/native/bess-report';
 import { useProjectSave } from '@/components/models/native/use-project-save';
 import { computeBessCi, type BessCiInputs } from '@/lib/models/bess/ci';
@@ -25,6 +27,8 @@ const T = {
   capexKwh: 'Enerji tarafı maliyeti: hücre + raf + kabin + BMS + montaj, kWh başına.',
   capexKw: 'Güç dönüştürücü (PCS / batarya inverteri) ve bağlantı maliyeti, kW başına. C-oranı yükseldikçe aynı kapasiteye daha fazla kW gerekir; bu kalem büyür. Varsayılanlar 0,5C\'de toplam ≈300 $/kWh verir.',
   cRate: 'Batarya gücünün kapasitesine oranı. 1C: tam kapasiteyi 1 saatte verir (kısa, güçlü zirveler). 0,5C: 2 saat. 0,25C: 4 saat (uzun akşam puantı). Güç = kapasite × C.',
+  oversize: 'Beyan edilen kapasitenin üstüne kurulan pay. Güç değişmez; sağlık şartı beyan edilen kapasiteye göre kontrol edilir. Ekleme yapmadan şartı sağlamanın yolu budur — en iyi oranı 5. sekme hesaplar.',
+  aug: 'Bu yılda, o güne kadar kaybolan kapasite kadar modül eklenir; kapasite yeniden %100 olur. Maliyet = kaybolan kWh × ekleme birim maliyeti.',
   soh: 'Batarya sağlığı şartı: belirtilen yıl sonunda kapasitenin ilk kapasiteye oranı en az bu değer olmalı (ör. 5. yıl %90, 10. yıl %80). Yıl veya % 0 girilirse kontrol yapılmaz.',
   demandFee: 'Çift terimli tarifede aylık güç bedeli (TL/kW-ay). Faturanızdaki "güç bedeli" kalemi.',
   peakCutKw: 'Bataryayla düşürmek istediğiniz aylık zirve çekiş (kW). Batarya gücünü aşamaz.',
@@ -37,7 +41,7 @@ const T = {
 
 export function BessCiModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: BessCiInputs }) {
   const [inputs, setInputs] = useState<BessCiInputs>(() => bessCiFromSaved(initialInputs));
-  const [tab, setTab] = useState<'setup' | 'results' | 'opt'>('setup');
+  const [tab, setTab] = useState<'setup' | 'results' | 'opt' | 'usage' | 'soh'>('setup');
   const [printing, setPrinting] = useState(false);
   const set = <K extends keyof BessCiInputs>(k: K, v: BessCiInputs[K]) => setInputs((p) => ({ ...p, [k]: v }));
   const m = useMemo(() => computeBessCi(inputs), [inputs]);
@@ -81,6 +85,8 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
               <button className={tab === 'setup' ? 'active' : ''} onClick={() => setTab('setup')}>1 · Kurulum</button>
               <button className={tab === 'results' ? 'active' : ''} onClick={() => setTab('results')}>2 · Sonuçlar</button>
               <button className={tab === 'opt' ? 'active' : ''} onClick={() => setTab('opt')}>3 · Optimizasyon</button>
+              <button className={tab === 'usage' ? 'active' : ''} onClick={() => setTab('usage')}>4 · Kullanım analizi</button>
+              <button className={tab === 'soh' ? 'active' : ''} onClick={() => setTab('soh')}>5 · Sağlık şartı stratejisi</button>
             </nav>
             <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} />
           </div>
@@ -184,8 +190,9 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
                 <NumF label="Enerji maliyeti" unit="$/kWh" tip={T.capexKwh} value={inputs.capexKwh} onChange={(v) => set('capexKwh', v)} step={10} />
                 <NumF label="Güç dönüştürücü maliyeti" unit="$/kW" tip={T.capexKw} value={inputs.capexKw} onChange={(v) => set('capexKw', v)} step={10} />
                 <NumF label="Yıllık bakım" unit="% CAPEX" value={inputs.opexPct} onChange={(v) => set('opexPct', v)} step={0.5} />
-                <NumF label="Hücre yenileme yılı" unit="0 = yok" value={inputs.augYear} onChange={(v) => set('augYear', v)} step={1} />
-                {inputs.augYear > 0 && <NumF label="Yenileme maliyeti" unit="$/kWh" value={inputs.augCost} onChange={(v) => set('augCost', v)} step={10} />}
+                <NumF label="Kapasite fazlası" unit="% beyan edilen üstü" tip={T.oversize} value={inputs.oversize ?? 0} onChange={(v) => set('oversize', v)} step={0.5} />
+                <NumF label="Kapasite ekleme yılı" unit="0 = yok" tip={T.aug} value={inputs.augYear} onChange={(v) => set('augYear', v)} step={1} />
+                {inputs.augYear > 0 && <NumF label="Ekleme maliyeti" unit="$/kWh eklenen" value={inputs.augCost} onChange={(v) => set('augCost', v)} step={10} />}
               </div>
               <div className="note">Toplam yatırım {usd(m.capex)} = {nf(inputs.bKwh)} kWh × {usd(inputs.capexKwh)} + {nf(m.bKw)} kW × {usd(inputs.capexKw)} (≈ {usd(inputs.bKwh > 0 ? m.capex / inputs.bKwh : 0)}/kWh).</div>
               <div className="grid4" style={{ marginTop: 12 }}>
@@ -255,6 +262,18 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
           <div className={`tab ${tab === 'opt' ? 'active' : ''}`}>
             <OptPanel unitCap="kWh" unitPower="kW" current={inputs.bKwh} run={runOpt} onApply={applySize}
               y1Label="1. yıl kazanç" y1Fmt={(v) => tl(v)} />
+          </div>
+
+          {/* ==================== KULLANIM ANALİZİ ==================== */}
+          <div className={`tab ${tab === 'usage' ? 'active' : ''}`}>
+            <CiUsagePanel inputs={inputs} onApplyUses={(u) => { setInputs((p) => ({ ...p, useSelf: u.includes('self'), useArb: u.includes('arb'), usePeak: u.includes('peak'), useBackup: u.includes('backup') })); setTab('results'); }} />
+          </div>
+
+          {/* ==================== SAĞLIK ŞARTI STRATEJİSİ ==================== */}
+          <div className={`tab ${tab === 'soh' ? 'active' : ''}`}>
+            <SohStrategyPanel capUnit="kWh" run={() => sohStrategiesCi(inputs)}
+              sohText={`${inputs.sohY1}. yıl ≥ %${inputs.sohP1}, ${inputs.sohY2}. yıl ≥ %${inputs.sohP2} · yıllık kayıp %${String(inputs.bDegr).replace('.', ',')}`}
+              onApply={(r) => { setInputs((p) => ({ ...p, augYear: r.augYear, oversize: r.oversizePct })); setTab('results'); }} />
           </div>
         </div>
       </div>

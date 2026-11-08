@@ -16,12 +16,12 @@ export function SohCard({ soh, degr }: { soh: SohCheck; degr: number }) {
   const fail = checks.filter((r) => !r.ok);
   return (
     <div className="card">
-      <h3>Batarya sağlığı (SOH) ve kapasite şartı <small>· yıl sonu, ilk kapasiteye oranla</small></h3>
+      <h3>Batarya sağlığı (SOH) ve kapasite şartı <small>· yıl sonu, beyan edilen kapasiteye oranla</small></h3>
       <div className={`soh-status ${soh.ok ? 'ok' : 'bad'}`}>
         {checks.length === 0 && 'Kontrol noktası tanımlı değil (Kurulum → Adım 4).'}
         {checks.length > 0 && soh.ok && <>Şart sağlanıyor: {checks.map((r) => `${r.y}. yıl ${pct(r.soh * 100)} ≥ ${pct((r.req ?? 0) * 100, 0)}`).join(' · ')}.</>}
         {checks.length > 0 && !soh.ok && <>Şart sağlanmıyor: {fail.map((r) => `${r.y}. yıl ${pct(r.soh * 100)} < ${pct((r.req ?? 0) * 100, 0)}`).join(' · ')}.</>}
-        {checks.length > 0 && <> Yenilemesiz sağlamak için yıllık kayıp en fazla <b>{pct(soh.maxDegr * 100, 2)}</b> olmalı (girilen {pct(degr, 1)}).</>}
+        {checks.length > 0 && <> Kapasite eklemeden sağlamak için yıllık kayıp en fazla <b>{pct(soh.maxDegr * 100, 2)}</b> olmalı (girilen {pct(degr, 1)}).</>}
       </div>
       <div className="tablewrap">
         <table className="soh-table">
@@ -44,7 +44,7 @@ export function SohCard({ soh, degr }: { soh: SohCheck; degr: number }) {
           </tbody>
         </table>
       </div>
-      <div className="note">SOH = (1 − yıllık kayıp)<sup>yaş</sup>; hücre yenilemesi yapılan yılda %100&apos;e döner. Kontrol noktaları ve eşikler Kurulum → Adım 4&apos;ten değiştirilebilir.</div>
+      <div className="note">SOH = (1 + kapasite fazlası) × (1 − yıllık kayıp)<sup>yaş</sup>; kapasite ekleme yapılan yılda yeniden başlar. Şartı en iyi hangi yolla sağlayacağınızı 5. sekme karşılaştırır. Kontrol noktaları ve eşikler Kurulum → Adım 4&apos;ten değiştirilebilir.</div>
     </div>
   );
 }

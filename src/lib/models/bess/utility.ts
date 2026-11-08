@@ -38,6 +38,8 @@ export interface BessUtilityInputs {
   capexKw: number;
   /** Kapasite sağlığı şartı: sohY1. yıl sonunda en az %sohP1 (ikinci kontrol noktası da aynı) */
   sohY1: number; sohP1: number; sohY2: number; sohP2: number;
+  /** Kapasite fazlası (%): beyan edilen kapasitenin üstüne kurulan pay. Güç değişmez; sağlık şartı beyan edilene göre kontrol edilir */
+  oversize?: number;
   // Finans
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
@@ -47,6 +49,8 @@ export interface BessUtilityYear {
   clipUsd: number; arbUsd: number; ancUsd: number; imbUsd: number;
   revUsd: number; opexUsd: number; augUsd: number; cfUsd: number; cumUsd: number;
   disMwh: number;
+  /** Santralin bataryasız satış geliri (USD) — YEKDEM/serbest piyasa kararını tüm santral bazında vermek için */
+  plantUsd: number;
 }
 
 export interface BessUtilityModel {
@@ -71,6 +75,8 @@ interface P {
   bMw: number; bMwh: number; rte: number; dod: number; bDegr: number; life: number;
   capexKwh: number; opexPct: number; augYear: number; augCost: number;
   capexKw: number; sohReqs: SohReq[];
+  /** 1 + kapasite fazlası */
+  over: number;
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
 
@@ -91,7 +97,7 @@ export function normalizeBessUtility(i: BessUtilityInputs): P {
     devPct: clamp(i.devPct, 0, 100) / 100, imbCost: clamp(i.imbCost, 0, 1e6), imbReduce: clamp(i.imbReduce, 0, 100) / 100,
     bMw, bMwh: clamp(i.bMwh, 0, 1e6), rte: clamp(i.rte, 50, 100) / 100, dod: clamp(i.dod, 50, 100) / 100, bDegr: clamp(i.bDegr, 0, 10) / 100,
     life: Math.round(clamp(i.life, 3, 30)),
-    capexKwh: clamp(i.capexKwh, 0, 1e5), capexKw: clamp(i.capexKw ?? 0, 0, 1e5), sohReqs: sohReqsOf(i), opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
+    capexKwh: clamp(i.capexKwh, 0, 1e5), capexKw: clamp(i.capexKw ?? 0, 0, 1e5), sohReqs: sohReqsOf(i), over: 1 + clamp(i.oversize ?? 0, 0, 200) / 100, opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
     fx0: clamp(i.fx0, 1, 1e5), tlEsc: clamp(i.tlEsc, -50, 300) / 100, fxEsc: clamp(i.fxEsc, -50, 300) / 100, disc: clamp(i.disc, 0, 60) / 100,
   };
 }
@@ -165,7 +171,7 @@ function dispatchDay(p: P, dc: number[], cap: number, pw: number, price: number[
 
 function capOf(p: P, yr: number): number {
   const age = p.augYear > 0 && yr >= p.augYear ? yr - p.augYear : yr - 1;
-  return p.bMwh * p.dod * Math.pow(1 - p.bDegr, age);
+  return p.bMwh * p.over * p.dod * Math.pow(1 - p.bDegr, age);
 }
 
 export function computeBessUtility(inputs: BessUtilityInputs): BessUtilityModel {
@@ -177,8 +183,8 @@ export function computeBessUtility(inputs: BessUtilityInputs): BessUtilityModel 
   if (p.useAnc) warnings.push('Yan hizmet geliri iyimser senaryodur: santral içi bataryanın PFK/SFK\'ya katılımı TEİAŞ testleri ve anlaşmasına bağlıdır; saatlik teklif usulü 1 Ocak 2027\'de başlar.');
   if (p.useAnc && p.ancMw >= p.bMw && p.bMw > 0) warnings.push('Bataryanın tamamı yan hizmete ayrıldı; arbitraj ve kırpma kurtarma için güç kalmadı.');
 
-  const capex = p.bMwh * 1000 * p.capexKwh + p.bMw * 1000 * p.capexKw;
-  const soh = sohCheck(p.life, p.bDegr, p.augYear, p.sohReqs);
+  const capex = p.bMwh * 1000 * p.over * p.capexKwh + p.bMw * 1000 * p.capexKw;
+  const soh = sohCheck(p.life, p.bDegr, p.augYear, p.sohReqs, p.over);
   if (!soh.ok) warnings.push(`Kapasite sağlığı şartı sağlanmıyor: yıllık %${(p.bDegr * 100).toFixed(1)} kayıpla kontrol noktalarında eşiğin altına düşülüyor. Şartı yenilemesiz sağlamak için yıllık kayıp en fazla %${(soh.maxDegr * 100).toFixed(2)} olmalı — garantili ürün seçin, kapasite fazlası kurun ya da hücre yenilemesi planlayın.`);
   const pw = Math.max(0, p.bMw - p.ancMw);
 
@@ -216,10 +222,11 @@ export function computeBessUtility(inputs: BessUtilityInputs): BessUtilityModel 
     const imbUsd = p.useImb ? (pvMwh * p.devPct * p.imbCost * p.imbReduce * tl) / fx : 0;
     const revUsd = clipUsd + arbUsd + ancUsd + imbUsd;
     const opexUsd = capex * p.opexPct;
-    const augUsd = p.augYear > 0 && y === p.augYear ? p.bMwh * 1000 * p.augCost : 0;
+    // Kapasite ekleme: yalnızca o güne kadar kaybolan kapasite kadar modül eklenir (tamamı yenilenmez)
+    const augUsd = p.augYear > 0 && y === p.augYear ? p.bMwh * 1000 * p.over * p.augCost * (1 - Math.pow(1 - p.bDegr, p.augYear - 1)) : 0;
     const cfUsd = revUsd - opexUsd - augUsd;
     cum += cfUsd;
-    years.push({ y, capMwh: cap, yekdem, clipUsd, arbUsd, ancUsd, imbUsd, revUsd, opexUsd, augUsd, cfUsd, cumUsd: cum, disMwh: dis });
+    years.push({ y, capMwh: cap, yekdem, clipUsd, arbUsd, ancUsd, imbUsd, revUsd, opexUsd, augUsd, cfUsd, cumUsd: cum, disMwh: dis, plantUsd: revBase });
     disArr.push(dis);
     costArr.push(opexUsd + augUsd);
     if (y === 1) y1Stats = { clipMwh, curtMwh, recoveredMwh: rec, arbMwh, disMwh: dis, cycles: cap > 0 ? (rec + arbMwh) / cap : 0, pvMwh, arbMw: pw, ancMw: p.ancMw };
@@ -246,4 +253,26 @@ export function computeBessUtility(inputs: BessUtilityInputs): BessUtilityModel 
     npv: npvOf(capex, cfs, p.disc), irr: irrOf(capex, cfs), payback: paybackOf(capex, cfs), lcos,
     y1Stats, summer: trace(6), winter: trace(0), warnings,
   };
+}
+
+/**
+ * Temsili gün tipleriyle (açık / parçalı bulutlu / kapalı) inverter kırpma oranı tahmini.
+ * Ortalama gün eğrisi AC sınırına nadiren değdiği için kırpmayı ancak gün tipleri gösterir.
+ * Mutlak değer kaba bir tahmindir (kesin değer PVsyst); DC artışının kırpmayı NE KADAR
+ * DEĞİŞTİRDİĞİNİ göstermek için kullanılır.
+ */
+const DAY_TYPES = [{ k: 1.3, w: 0.5 }, { k: 0.95, w: 0.3 }, { k: 0.35, w: 0.2 }];
+export function clipFraction(dcMwp: number, acMw: number, spec: number): number {
+  let tot = 0, clip = 0;
+  for (let mi = 0; mi < 12; mi++) {
+    const dc = pvDay(dcMwp * 1000, spec, 's', mi).map((v) => v / 1000);
+    for (const t of DAY_TYPES) {
+      for (let h = 0; h < 24; h++) {
+        const p = dc[h] * t.k;
+        tot += p * DAYS[mi] * t.w;
+        clip += Math.max(0, p - acMw) * DAYS[mi] * t.w;
+      }
+    }
+  }
+  return tot > 0 ? clip / tot : 0;
 }
