@@ -21,7 +21,6 @@ export function defaultBessCiInputs(): BessCiInputs {
     outageH: 10, outageCost: 20000, criticalKw: 100, eventH: 2, backupReserve: 20,
     bKwh: 500, bKw: 250, rte: 90, dod: 90, bDegr: 2, life: 12,
     cRate: 0.5, capexKwh: 220, capexKw: 160, opexPct: 1.5, augYear: 0, augCost: 120,
-    sohY1: 5, sohP1: 90, sohY2: 10, sohP2: 80, oversize: 0,
     fx0: 47, tlEsc: 25, fxEsc: 20, disc: 10,
   };
 }

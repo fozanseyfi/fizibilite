@@ -13,7 +13,7 @@
 //  backup — kesintide kritik yükü besleme
 
 import { DAYS, MONTHS, shapesForProfile, monthlyForSeason, WE_RATIO, type ProfileKey, type SeasonKey } from '@/lib/models/ci/presets';
-import { calDays, clamp, emptyTrace, irrOf, npvOf, paybackOf, pvDay, pvSum, sohCheck, sohReqsOf, zoneOf, type DayTrace, type SohCheck, type SohReq } from './common';
+import { calDays, clamp, emptyTrace, irrOf, npvOf, paybackOf, pvDay, pvSum, zoneOf, type DayTrace } from './common';
 
 export interface BessCiInputs {
   pname: string; firm?: string; loc?: string; prep: string;
@@ -38,10 +38,8 @@ export interface BessCiInputs {
   cRate: number;
   /** Güç dönüştürücü (PCS/inverter) maliyeti — C-oranının ekonomik etkisi buradan gelir */
   capexKw: number;
-  /** Kapasite sağlığı şartı: sohY1. yıl sonunda en az %sohP1 (ikinci kontrol noktası da aynı) */
-  sohY1: number; sohP1: number; sohY2: number; sohP2: number;
+  // C&I / meskende kapasite sağlığı (SOH) şartı yoktur — o şart yalnız lisanslı (utility) depolama içindir.
   /** Kapasite fazlası (%): beyan edilen kapasitenin üstüne kurulan pay. Güç değişmez; sağlık şartı beyan edilene göre kontrol edilir */
-  oversize?: number;
   // Finans
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
 }
@@ -60,7 +58,6 @@ export interface BessCiModel {
   capex: number;
   /** Etkin güç (kW) — C-oranından türetilir */
   bKw: number;
-  soh: SohCheck;
   years: BessCiYear[];
   npv: number; irr: number; payback: number; lcos: number;
   /** 1. yıl, bugünkü fiyatlarla TL kazanç kırılımı */
@@ -80,7 +77,7 @@ interface P {
   outageH: number; outageCost: number; criticalKw: number; eventH: number; backupReserve: number;
   bKwh: number; bKw: number; rte: number; dod: number; bDegr: number; life: number;
   capexKwh: number; opexPct: number; augYear: number; augCost: number;
-  capexKw: number; sohReqs: SohReq[];
+  capexKw: number;
   /** 1 + kapasite fazlası */
   over: number;
   fx0: number; tlEsc: number; fxEsc: number; disc: number;
@@ -104,7 +101,7 @@ export function normalizeBessCi(i: BessCiInputs): P {
     eventH: clamp(i.eventH, 0.1, 72), backupReserve: clamp(i.backupReserve, 0, 100) / 100,
     bKwh: clamp(i.bKwh, 0, 1e8), bKw: (i.cRate ?? 0) > 0 ? clamp(i.bKwh, 0, 1e8) * clamp(i.cRate, 0.05, 4) : clamp(i.bKw, 0, 1e8), rte: clamp(i.rte, 50, 100) / 100, dod: clamp(i.dod, 50, 100) / 100,
     bDegr: clamp(i.bDegr, 0, 10) / 100, life: Math.round(clamp(i.life, 3, 30)),
-    capexKwh: clamp(i.capexKwh, 0, 1e5), capexKw: clamp(i.capexKw ?? 0, 0, 1e5), sohReqs: sohReqsOf(i), over: 1 + clamp(i.oversize ?? 0, 0, 200) / 100, opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
+    capexKwh: clamp(i.capexKwh, 0, 1e5), capexKw: clamp(i.capexKw ?? 0, 0, 1e5), over: 1, opexPct: clamp(i.opexPct, 0, 20) / 100, augYear: Math.round(clamp(i.augYear, 0, 30)), augCost: clamp(i.augCost, 0, 1e5),
     fx0: clamp(i.fx0, 1, 1e5), tlEsc: clamp(i.tlEsc, -50, 300) / 100, fxEsc: clamp(i.fxEsc, -50, 300) / 100, disc: clamp(i.disc, 0, 60) / 100,
   };
 }
@@ -234,8 +231,6 @@ export function computeBessCi(inputs: BessCiInputs): BessCiModel {
 
   const flags: Flags = { self: p.useSelf, arb: p.useArb };
   const capex = p.bKwh * p.over * p.capexKwh + p.bKw * p.capexKw;
-  const soh = sohCheck(p.life, p.bDegr, p.augYear, p.sohReqs, p.over);
-  if (!soh.ok) warnings.push(`Kapasite sağlığı şartı sağlanmıyor: yıllık %${(p.bDegr * 100).toFixed(1)} kayıpla kontrol noktalarında eşiğin altına düşülüyor. Şartı yenilemesiz sağlamak için yıllık kayıp en fazla %${(soh.maxDegr * 100).toFixed(2)} olmalı — garantili ürün seçin, kapasite fazlası kurun ya da hücre yenilemesi planlayın.`);
 
   const reserveFor = (cap: number) => {
     const backup = p.useBackup ? cap * p.backupReserve : 0;
@@ -298,7 +293,7 @@ export function computeBessCi(inputs: BessCiInputs): BessCiModel {
   const trace = (mi: number) => dispatchDay(p, pvDay(p.kwp, p.spec, p.orient, mi), dayCons(p, mi, 'wd'), op1, flags, true).trace!;
 
   return {
-    capex, bKw: p.bKw, soh, years,
+    capex, bKw: p.bKw, years,
     npv: npvOf(capex, cfs, p.disc), irr: irrOf(capex, cfs), payback: paybackOf(capex, cfs), lcos,
     y1, y1Stats, summer: trace(6), winter: trace(0), warnings,
   };

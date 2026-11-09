@@ -145,7 +145,7 @@ describe('Optimizasyon', () => {
   });
 });
 
-import { minOversize, sohStrategiesCi, sohStrategiesUtility } from '@/lib/models/bess/soh-strategy';
+import { minOversize, sohStrategiesUtility } from '@/lib/models/bess/soh-strategy';
 import { utUseCombos, ciUseCombos, yekdemSweep, dcSweep, arbSweep } from '@/lib/models/bess/usage';
 import { clipFraction } from '@/lib/models/bess/utility';
 
@@ -162,12 +162,13 @@ describe('Sağlık şartı stratejileri', () => {
     expect(minOversize(0.025, 5, reqs, 12)).toBe(0);
   });
   it('kapasite fazlası sağlığı ve yatırımı yükseltir; güç değişmez', () => {
-    const a = computeBessCi({ ...defaultBessCiInputs(), bDegr: 2.5 });
-    const b = computeBessCi({ ...defaultBessCiInputs(), bDegr: 2.5, oversize: 4 });
+    const base = { ...defaultBessUtilityInputs(), bDegr: 2.5, augYear: 0 };
+    const a = computeBessUtility(base);
+    const b = computeBessUtility({ ...base, oversize: 4 });
     expect(a.soh.ok).toBe(false);
     expect(b.soh.ok).toBe(true);
-    expect(b.bKw).toBe(a.bKw);
-    expect(b.capex - a.capex).toBeCloseTo(500 * 0.04 * 220, 6);
+    expect(b.bMw).toBe(a.bMw);
+    expect(b.capex - a.capex).toBeCloseTo(10000 * 0.04 * 220, 6);
   });
   it('kapasite ekleme yalnızca kaybolan kapasiteyi öder', () => {
     const m = computeBessUtility({ ...defaultBessUtilityInputs(), augYear: 10, bDegr: 2, augCost: 90 });
@@ -176,10 +177,9 @@ describe('Sağlık şartı stratejileri', () => {
     expect(aug.augUsd).toBeCloseTo(10000 * 90 * (1 - Math.pow(0.98, 9)), 6);
   });
   it('strateji listesi: her ekleme yılı + eklemesiz; hepsi şartı sağlar', () => {
-    const rows = sohStrategiesCi({ ...defaultBessCiInputs(), bDegr: 2.5 });
-    expect(rows).toHaveLength(12);
+    const rows = sohStrategiesUtility({ ...defaultBessUtilityInputs(), bDegr: 2.5 });
+    expect(rows).toHaveLength(15);
     rows.forEach((r) => expect(r.sohOk).toBe(true));
-    expect(sohStrategiesUtility(defaultBessUtilityInputs()).every((r) => r.sohOk)).toBe(true);
   });
 });
 
@@ -221,5 +221,13 @@ describe('Utility tek kalem kurulum maliyeti', () => {
     expect(loaded.capexKw).toBe(0);
     expect(loaded.capexKwh).toBeCloseTo(220, 6);
     expect(computeBessUtility(loaded).capex).toBeCloseTo(before, 3);
+  });
+});
+
+describe('C&I sağlık şartı', () => {
+  it('C&I / meskende kapasite şartı yok: yüksek kayıpta bile şart uyarısı çıkmaz', () => {
+    const m = computeBessCi({ ...defaultBessCiInputs(), bDegr: 5 });
+    expect(m.warnings.some((w) => /sağlığı şartı/.test(w))).toBe(false);
+    expect('soh' in m).toBe(false);
   });
 });

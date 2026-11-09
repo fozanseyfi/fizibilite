@@ -4,7 +4,6 @@
 //  - N. yılda kapasite ekleme (+ gerekirse N'den önceki şartlar için küçük bir kapasite fazlası)
 // Her satır tam modelle hesaplanır.
 
-import { computeBessCi, type BessCiInputs } from './ci';
 import { computeBessUtility, type BessUtilityInputs } from './utility';
 import { sohReqsOf, type SohReq } from './common';
 
@@ -58,5 +57,4 @@ function run<I extends { life: number; bDegr: number; augYear: number; oversize?
   return rows.sort((a, b) => b.npv - a.npv);
 }
 
-export const sohStrategiesCi = (i: BessCiInputs) => run(i, computeBessCi);
 export const sohStrategiesUtility = (i: BessUtilityInputs) => run(i, computeBessUtility);

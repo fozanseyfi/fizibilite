@@ -36,7 +36,7 @@ export function optimizeBessCi(base: BessCiInputs, sizes: number[], cRates: numb
   for (const cap of sizes) for (const c of cRates) {
     const m = computeBessCi({ ...base, bKwh: cap, cRate: c });
     rows.push({ cap, c, power: m.bKw, capex: m.capex, npv: m.npv, irr: m.irr, payback: m.payback,
-      y1: m.y1.self + m.y1.arb + m.y1.peak + m.y1.backup, sohOk: m.soh.ok });
+      y1: m.y1.self + m.y1.arb + m.y1.peak + m.y1.backup, sohOk: true }); // C&I'da sağlık şartı yok
   }
   return rows.sort((a, b) => b.npv - a.npv);
 }

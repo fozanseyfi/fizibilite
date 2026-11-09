@@ -5,7 +5,7 @@ import type { BessUtilityInputs, BessUtilityModel } from '@/lib/models/bess/util
 import { nf, pct, tl, usd, yearsFmt } from '@/lib/models/fmt';
 import { daySvg } from './bess-kit';
 import type { SohCheck } from '@/lib/models/bess/common';
-import { sohStrategiesCi, sohStrategiesUtility, type StratRow } from '@/lib/models/bess/soh-strategy';
+import { sohStrategiesUtility, type StratRow } from '@/lib/models/bess/soh-strategy';
 
 export interface BessReportMeta { title: string; prep?: string; firm?: string; loc?: string; date: string }
 
@@ -111,19 +111,17 @@ export function reportBessCi(i: BessCiInputs, m: BessCiModel, meta: BessReportMe
     + `<div class="r-chart"><div class="r-cap">Ocak</div>${daySvg(m.winter, svgOpts)}</div></div>`
     + h2('04', 'Girdiler ve Varsayımlar')
     + `<table class="r-assume"><tbody>`
-    + `<tr><td>Batarya</td><td>${nf(i.bKwh)} kWh · ${nf(m.bKw)} kW${cRateTxt(i.cRate)} · verim ${pct(i.rte, 0)} · kullanılabilir ${pct(i.dod, 0)} · yıllık kayıp ${pct(i.bDegr)} · ${i.life} yıl${(i.oversize ?? 0) > 0 ? ` · kapasite fazlası ${pct(i.oversize ?? 0)}` : ''}</td><td>Maliyet</td><td>${usd(i.capexKwh)}/kWh${(i.capexKw ?? 0) > 0 ? ` + ${usd(i.capexKw)}/kW` : ''} (toplam ${usd(m.capex)}) · bakım ${pct(i.opexPct)} CAPEX/yıl${i.augYear ? ` · ${i.augYear}. yıl kapasite ekleme ${usd(i.augCost)}/kWh eklenen` : ''}</td></tr>`
+    + `<tr><td>Batarya</td><td>${nf(i.bKwh)} kWh · ${nf(m.bKw)} kW${cRateTxt(i.cRate)} · verim ${pct(i.rte, 0)} · kullanılabilir ${pct(i.dod, 0)} · yıllık kayıp ${pct(i.bDegr)} · ${i.life} yıl</td><td>Maliyet</td><td>${usd(i.capexKwh)}/kWh${(i.capexKw ?? 0) > 0 ? ` + ${usd(i.capexKw)}/kW` : ''} (toplam ${usd(m.capex)}) · bakım ${pct(i.opexPct)} CAPEX/yıl${i.augYear ? ` · ${i.augYear}. yıl kapasite ekleme ${usd(i.augCost)}/kWh eklenen` : ''}</td></tr>`
     + `<tr><td>Mevcut GES</td><td>${nf(i.kwp)} kWp · ${nf(i.spec)} kWh/kWp</td><td>Tüketim</td><td>${nf(i.consY)} kWh/yıl · profil ${esc(i.profileId)}</td></tr>`
     + `<tr><td>Tarife</td><td>${i.tariff === 'uc' ? `gündüz ${nf(i.pGunduz, 2)} · puant ${nf(i.pPuant, 2)} · gece ${nf(i.pGece, 2)} TL/kWh` : `${nf(i.pTek, 2)} TL/kWh`}</td><td>Fazla satış</td><td>${nf(i.pSell, 2)} TL/kWh</td></tr>`
     + (i.usePeak ? `<tr><td>Güç bedeli</td><td>${nf(i.demandFee)} TL/kW-ay · hedef ${nf(i.peakCutKw)} kW · ${nf(i.peakHours, 1)} saat</td><td>Sağlanan</td><td>${nf(m.y1Stats.peakCutKw)} kW</td></tr>` : '')
     + (i.useBackup ? `<tr><td>Yedekleme</td><td>${nf(i.outageH)} saat/yıl · ${tl(i.outageCost)}/saat · kritik yük ${nf(i.criticalKw)} kW</td><td>Karşılama</td><td>${pct(m.y1Stats.backupCoverage * 100, 0)} · ayrılan pay ${pct(i.backupReserve, 0)}</td></tr>` : '')
     + `<tr><td>Finans</td><td>kur ${nf(i.fx0, 2)} TL/$ · kur artışı ${pct(i.fxEsc)} · TL fiyat artışı ${pct(i.tlEsc)}</td><td>İskonto</td><td>${pct(i.disc)} (USD)</td></tr>`
     + `</tbody></table>`
-    + sohSection('05', m.soh, i.bDegr)
-    + strategySection('06', sohStrategiesCi(i))
-    + h2('07', 'Yıllık Nakit Akışı (USD)')
+    + h2('05', 'Yıllık Nakit Akışı (USD)')
     + table(['Yıl', 'Kapasite (kWh)', 'Kazanç', 'Bakım', 'Ekleme', 'Net', 'Kümülatif'],
       m.years.map((y) => [String(y.y), nf(y.capKwh), usd(y.savingUsd), usd(-y.opexUsd), y.augUsd ? usd(-y.augUsd) : '—', usd(y.cfUsd), usd(y.cumUsd)]))
-    + h2('08', 'Mevzuat Notu ve Uyarılar')
+    + h2('06', 'Mevzuat Notu ve Uyarılar')
     + `<div class="r-note">1 Ocak 2026'da yürürlüğe giren depolama yönetmeliği değişikliğine göre tüketim tesisine ve lisanssız üretim tesisine bütünleşik depolama yalnızca tesisin kendi ihtiyacı için kurulur; depodan şebekeye verilen enerjiye ödeme yapılmaz. Bu yüzden model bataryayı gelir değil fatura tasarrufu olarak değerlendirir. Tarife, güç bedeli ve satış fiyatları kullanıcı girdisidir; güncel EPDK tarife tablosu ve faturanızla doğrulayın.${m.warnings.length ? '<br/><br/>' + m.warnings.map(esc).join('<br/>') : ''}</div>`
     + foot(meta);
 }

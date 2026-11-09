@@ -119,7 +119,7 @@ function OptChart({ rows, unit, unitPower }: { rows: OptRow[]; unit: string; uni
  * Kullanım şekilleri, fiyatlar ve diğer varsayımlar sabit kalır.
  */
 export function OptPanel({
-  unitCap, unitPower, current, run, onApply, y1Label, y1Fmt, costNote, extra,
+  unitCap, unitPower, current, run, onApply, y1Label, y1Fmt, costNote, extra, showSoh = true,
 }: {
   unitCap: string; unitPower: string; current: number;
   run: (sizes: number[], cRates: number[]) => OptRow[];
@@ -129,6 +129,8 @@ export function OptPanel({
   costNote?: string;
   /** Modele özel ek girdi (ör. C-oranı fiyat farkı) */
   extra?: React.ReactNode;
+  /** Sağlık şartı sütunu (C&I'da şart yok) */
+  showSoh?: boolean;
 }) {
   const [min, setMin] = useState(() => Math.max(1, Math.round(current * 0.25)));
   const [max, setMax] = useState(() => Math.max(2, Math.round(current * 3)));
@@ -183,7 +185,7 @@ export function OptPanel({
             ) : (
               <>Denenen hiçbir boyut pozitif NPV vermiyor. En az zararlısı <b>{nf(best.cap)} {unitCap} · {cLabel(best.c)}</b> (NPV {usd(best.npv)}). Kullanım şekillerini, fiyatları veya maliyeti gözden geçirin.</>
             )}
-            {!best.sohOk && <> Bu boyutta kapasite sağlığı şartı sağlanmıyor.</>}
+            {showSoh && !best.sohOk && <> Bu boyutta kapasite sağlığı şartı sağlanmıyor.</>}
             {best.overGrid && <> Dikkat: bu boyutun gücü şebeke bağlantı gücünü aşıyor; aşan kısım kullanılamaz.</>}
             {' '}<button className="btn-mini" onClick={() => onApply(best.cap, best.c)}>Bu boyutu uygula</button>
           </div>
@@ -205,14 +207,14 @@ export function OptPanel({
             <div className="tablewrap">
               <table>
                 <thead>
-                  <tr><th>#</th><th>Kapasite ({unitCap})</th><th>C</th><th>Güç ({unitPower})</th><th>Yatırım</th><th>{y1Label}</th><th>NPV</th><th>IRR</th><th>Geri ödeme</th><th>SOH şartı</th><th /></tr>
+                  <tr><th>#</th><th>Kapasite ({unitCap})</th><th>C</th><th>Güç ({unitPower})</th><th>Yatırım</th><th>{y1Label}</th><th>NPV</th><th>IRR</th><th>Geri ödeme</th>{showSoh && <th>SOH şartı</th>}<th /></tr>
                 </thead>
                 <tbody>
                   {rows.map((r, k) => (
                     <tr key={`${r.cap}-${r.c}`} className={k === 0 ? 'opt-best' : ''}>
                       <td>{k + 1}</td><td>{nf(r.cap)}</td><td>{cLabel(r.c)}</td><td>{nf(r.power, 1)}{r.overGrid && <span className="pill bad" title="Batarya gücü şebeke bağlantı gücünü aşıyor; aşan kısım kullanılamaz." style={{ marginLeft: 6 }}>bağlantıyı aşıyor</span>}</td>
                       <td>{usd(r.capex)}</td><td>{y1Fmt(r.y1)}</td><td>{usd(r.npv)}</td><td>{pct(r.irr * 100)}</td><td>{yearsFmt(r.payback, 1)}</td>
-                      <td>{r.sohOk ? 'Uygun' : 'Değil'}</td>
+                      {showSoh && <td>{r.sohOk ? 'Uygun' : 'Değil'}</td>}
                       <td><button className="btn-mini" onClick={() => onApply(r.cap, r.c)}>Uygula</button></td>
                     </tr>
                   ))}
