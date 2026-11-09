@@ -231,3 +231,21 @@ describe('C&I sağlık şartı', () => {
     expect('soh' in m).toBe(false);
   });
 });
+
+describe('C&I tek kalem kurulum maliyeti', () => {
+  it('ayrı $/kW ile kaydedilmiş proje açılınca yatırım değişmez', () => {
+    const saved = { ...defaultBessCiInputs(), capexKwh: 220, capexKw: 160, cRate: 0.5 };
+    const before = computeBessCi(saved).capex;
+    const loaded = bessCiFromSaved(saved);
+    expect(loaded.capexKw).toBe(0);
+    expect(loaded.capexKwh).toBeCloseTo(300, 6);
+    expect(computeBessCi(loaded).capex).toBeCloseTo(before, 3);
+  });
+  it('optimizasyonda C-oranı fiyat farkı uygulanır', () => {
+    const rows = optimizeBessCi(defaultBessCiInputs(), [500], [1, 0.5, 0.25], 120);
+    const cap = (c: number) => rows.find((r) => r.c === c)!.capex;
+    expect(cap(0.5)).toBeCloseTo(500 * 300, 6);
+    expect(cap(1) - cap(0.5)).toBeCloseTo(500 * 60, 6);
+    expect(cap(0.5) - cap(0.25)).toBeCloseTo(500 * 30, 6);
+  });
+});

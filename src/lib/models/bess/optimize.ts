@@ -31,10 +31,13 @@ export function sizeGrid(min: number, max: number, steps: number): number[] {
   return [...new Set(raw.map(nice).filter((v) => v > 0))];
 }
 
-export function optimizeBessCi(base: BessCiInputs, sizes: number[], cRates: number[]): OptRow[] {
+/** C&I boyut optimizasyonu — maliyet tek kalem; diğer C-oranları güç farkı × cPremium ($/kW) ile fiyatlanır (bkz. utility). */
+export function optimizeBessCi(base: BessCiInputs, sizes: number[], cRates: number[], cPremium = 0): OptRow[] {
   const rows: OptRow[] = [];
+  const baseKw = base.cRate > 0 ? base.bKwh * base.cRate : base.bKw;
+  const baseC = base.bKwh > 0 ? baseKw / base.bKwh : 0.5;
   for (const cap of sizes) for (const c of cRates) {
-    const m = computeBessCi({ ...base, bKwh: cap, cRate: c });
+    const m = computeBessCi({ ...base, bKwh: cap, cRate: c, capexKwh: Math.max(0, base.capexKwh + cPremium * (c - baseC)) });
     rows.push({ cap, c, power: m.bKw, capex: m.capex, npv: m.npv, irr: m.irr, payback: m.payback,
       y1: m.y1.self + m.y1.arb + m.y1.peak + m.y1.backup, sohOk: true }); // C&I'da sağlık şartı yok
   }

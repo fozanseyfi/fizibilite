@@ -23,8 +23,8 @@ const T = {
   rte: 'Gidiş-dönüş verimi: bataryaya giren 100 kWh\'ın kaçı geri alınır. Lityum-demir-fosfat (LFP) sistemlerde tipik %88–92.',
   dod: 'Kapasitenin kullanılabilir kısmı (ömrü korumak için tam boşaltılmaz). Tipik %90.',
   bDegr: 'Yıllık kapasite kaybı. LFP\'de günde bir döngüde tipik %2–3/yıl.',
-  capexKwh: 'Enerji tarafı maliyeti: hücre + raf + kabin + BMS + montaj, kWh başına.',
-  capexKw: 'Güç dönüştürücü (PCS / batarya inverteri) ve bağlantı maliyeti, kW başına. C-oranı yükseldikçe aynı kapasiteye daha fazla kW gerekir; bu kalem büyür. Varsayılanlar 0,5C\'de toplam ≈300 $/kWh verir.',
+  capexKwh: 'Anahtar teslim batarya kurulum maliyeti, kWh başına: hücre, raf/kabin, BMS, güç dönüştürücü (PCS / batarya inverteri), bağlantı ve montaj dahil. Seçtiğiniz C-oranı için teklif edilen fiyatı girin — yüksek C-oranlı sistemlerin kWh fiyatı daha yüksektir.',
+  cPrem: 'Yüksek C-oranlı bataryada aynı kWh için daha büyük güç dönüştürücü gerekir. Optimizasyon, Kurulum sekmesindeki fiyatı mevcut C-oranı için kabul eder ve diğer C-oranlarını bu farkla fiyatlar. 0 girerseniz C-oranı maliyeti değiştirmez.',
   cRate: 'Batarya gücünün kapasitesine oranı. 1C: tam kapasiteyi 1 saatte verir (kısa, güçlü zirveler). 0,5C: 2 saat. 0,25C: 4 saat (uzun akşam puantı). Güç = kapasite × C.',
   aug: 'Bu yılda, o güne kadar kaybolan kapasite kadar modül eklenir; kapasite yeniden %100 olur. Maliyet = kaybolan kWh × ekleme birim maliyeti.',
   demandFee: 'Çift terimli tarifede aylık güç bedeli (TL/kW-ay). Faturanızdaki "güç bedeli" kalemi.',
@@ -49,7 +49,9 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
     (): ProjectSummary => ({ kind: 'bess-ci', capexUsd: m.capex, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.payback, capacityLabel: `${nf(inputs.bKwh)} kWh / ${nf(m.bKw)} kW` }),
     [m, inputs.bKwh]
   );
-  const runOpt = useCallback((sizes: number[], cRates: number[]) => optimizeBessCi(inputs, sizes, cRates), [inputs]);
+  // Optimizasyonda C-oranları arası fiyat farkı ($/kW güç) — kurulum maliyeti tek kalem olduğu için yalnız burada
+  const [cPrem, setCPrem] = useState(120);
+  const runOpt = useCallback((sizes: number[], cRates: number[]) => optimizeBessCi(inputs, sizes, cRates, cPrem), [inputs, cPrem]);
   const applySize = (cap: number, c: number) => { setInputs((p) => ({ ...p, bKwh: cap, cRate: c })); setTab('results'); };
   const { save, del, err } = useProjectSave({ projectId, kind: 'bess-ci', inputs, name: inputs.pname || 'Batarya Projesi', buildSummary });
 
@@ -183,13 +185,12 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
                 <NumF label="Kullanılabilir kapasite" unit="%" tip={T.dod} value={inputs.dod} onChange={(v) => set('dod', v)} step={1} />
                 <NumF label="Yıllık kapasite kaybı" unit="%" tip={T.bDegr} value={inputs.bDegr} onChange={(v) => set('bDegr', v)} step={0.5} />
                 <NumF label="Ekonomik ömür" unit="yıl" value={inputs.life} onChange={(v) => set('life', v)} step={1} />
-                <NumF label="Enerji maliyeti" unit="$/kWh" tip={T.capexKwh} value={inputs.capexKwh} onChange={(v) => set('capexKwh', v)} step={10} />
-                <NumF label="Güç dönüştürücü maliyeti" unit="$/kW" tip={T.capexKw} value={inputs.capexKw} onChange={(v) => set('capexKw', v)} step={10} />
+                <NumF label="Batarya kurulum maliyeti" unit="$/kWh, anahtar teslim" tip={T.capexKwh} value={inputs.capexKwh} onChange={(v) => set('capexKwh', v)} step={10} />
                 <NumF label="Yıllık bakım" unit="% CAPEX" value={inputs.opexPct} onChange={(v) => set('opexPct', v)} step={0.5} />
                 <NumF label="Kapasite ekleme yılı" unit="0 = yok" tip={T.aug} value={inputs.augYear} onChange={(v) => set('augYear', v)} step={1} />
                 {inputs.augYear > 0 && <NumF label="Ekleme maliyeti" unit="$/kWh eklenen" value={inputs.augCost} onChange={(v) => set('augCost', v)} step={10} />}
               </div>
-              <div className="note">Toplam yatırım {usd(m.capex)} = {nf(inputs.bKwh)} kWh × {usd(inputs.capexKwh)} + {nf(m.bKw)} kW × {usd(inputs.capexKw)} (≈ {usd(inputs.bKwh > 0 ? m.capex / inputs.bKwh : 0)}/kWh).</div>
+              <div className="note">Toplam yatırım {usd(m.capex)} = {nf(inputs.bKwh)} kWh × {usd(inputs.capexKwh)}/kWh.</div>
             </Step>
 
             <Step no="ADIM 5" title="Finansal varsayımlar" why="Yatırım USD, tasarruf TL: kur ve TL fiyat artışı sonucu doğrudan etkiler.">
@@ -248,7 +249,9 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
           {/* ==================== OPTİMİZASYON ==================== */}
           <div className={`tab ${tab === 'opt' ? 'active' : ''}`}>
             <OptPanel unitCap="kWh" unitPower="kW" current={inputs.bKwh} run={runOpt} onApply={applySize}
-              y1Label="1. yıl kazanç" y1Fmt={(v) => tl(v)} showSoh={false} />
+              y1Label="1. yıl kazanç" y1Fmt={(v) => tl(v)} showSoh={false}
+              extra={<NumF label="C-oranı fiyat farkı" unit="$/kW güç (PCS)" tip={T.cPrem} value={cPrem} onChange={setCPrem} step={10} />}
+              costNote={`Kurulum maliyeti (${usd(inputs.capexKwh)}/kWh) mevcut C-oranı içindir; diğer C-oranlarının kWh fiyatı güç farkı × ${usd(cPrem)}/kW kadar artar veya azalır (ör. 0,5C'den 1C'ye +${usd(cPrem * 0.5)}/kWh).`} />
           </div>
 
           {/* ==================== KULLANIM ANALİZİ ==================== */}

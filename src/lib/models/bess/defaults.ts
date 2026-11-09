@@ -20,7 +20,8 @@ export function defaultBessCiInputs(): BessCiInputs {
     demandFee: 120, peakCutKw: 100, peakHours: 2,
     outageH: 10, outageCost: 20000, criticalKw: 100, eventH: 2, backupReserve: 20,
     bKwh: 500, bKw: 250, rte: 90, dod: 90, bDegr: 2, life: 12,
-    cRate: 0.5, capexKwh: 220, capexKw: 160, opexPct: 1.5, augYear: 0, augCost: 120,
+    // Tek kalem kurulum maliyeti ($/kWh, PCS / batarya inverteri dahil); capexKw kullanılmaz
+    cRate: 0.5, capexKwh: 300, capexKw: 0, opexPct: 1.5, augYear: 0, augCost: 120,
     fx0: 47, tlEsc: 25, fxEsc: 20, disc: 10,
   };
 }
@@ -51,7 +52,14 @@ export function defaultBessUtilityInputs(): BessUtilityInputs {
 export function bessCiFromSaved(saved?: Partial<BessCiInputs>): BessCiInputs {
   const d = defaultBessCiInputs();
   if (!saved) return d;
-  return { ...d, ...saved, cRate: saved.cRate ?? 0, capexKw: saved.capexKw ?? 0 };
+  // Maliyet tek kalemdir ($/kWh): ayrı $/kW ile kaydedilmiş projelerde o kalem kWh başına çevrilip eklenir — toplam yatırım değişmez
+  const x = { ...d, ...saved, cRate: saved.cRate ?? 0, capexKw: saved.capexKw ?? 0 };
+  if (x.capexKw > 0) {
+    const ratio = x.cRate > 0 ? x.cRate : x.bKwh > 0 ? x.bKw / x.bKwh : 0;
+    x.capexKwh = Math.round((x.capexKwh + x.capexKw * ratio) * 100) / 100;
+    x.capexKw = 0;
+  }
+  return x;
 }
 
 /**
