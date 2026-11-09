@@ -11,6 +11,7 @@ import {
 } from '@/lib/models/bess/usage';
 import type { StratRow } from '@/lib/models/bess/soh-strategy';
 import { CI_USE_LABELS, UT_USE_LABELS } from '@/components/models/native/bess-report';
+import { HoverChart, type HoverCol } from '@/components/models/native/chart-hover';
 
 const signed = (v: number) => `${v >= 0 ? '+' : '−'}${usd(Math.abs(v))}`;
 
@@ -28,41 +29,96 @@ function Verdict({ tone = 'ok', children }: { tone?: 'ok' | 'bad'; children: Rea
 
 // ============================ KULLANIM KOMBİNASYONLARI ============================
 
+/** Tablo başlıkları için kısa adlar */
+const SHORT: Record<string, string> = {
+  self: 'Akşama kaydırma', arb: 'Arbitraj', peak: 'Zirve tıraşlama', backup: 'Yedekleme',
+  clip: 'Kırpma kurtarma', anc: 'Yan hizmet', imb: 'Dengesizlik',
+};
+
 function ComboSection<K extends string>({
   result, labels, y1Label, y1Fmt, onApply,
 }: {
   result: ComboResult; labels: Record<K, string>; y1Label: string; y1Fmt: (v: number) => string;
   onApply: (uses: K[]) => void;
 }) {
+  const [showAll, setShowAll] = useState(false);
   const best = result.rows[0];
+  const all = [...new Set(result.rows.flatMap((r) => r.uses))] as K[];
   const name = (uses: string[]) => uses.map((u) => labels[u as K]).join(' + ');
-  const marg = [...result.marginal].sort((a, b) => b.npv - a.npv);
+  const alone = (u: K) => result.rows.find((r) => r.uses.length === 1 && r.uses[0] === u);
+  const margOf = (u: K) => result.marginal.find((m) => m.use === u)?.npv;
+  const left = all.filter((u) => !best.uses.includes(u));
+  const maxAbs = Math.max(1, ...all.map((u) => Math.abs(alone(u)?.npv ?? 0)));
+  const shown = showAll ? result.rows : result.rows.slice(0, 5);
+
   return (
     <div className="card">
-      <h3>Kullanım kombinasyonları <small>· hangi kullanım şekilleri birlikte en iyi sonucu veriyor?</small></h3>
+      <h3>Bataryayı hangi işlerde kullanmalıyım? <small>· aynı batarya, farklı kullanım şekilleri</small></h3>
       <Verdict tone={best.npv > 0 ? 'ok' : 'bad'}>
-        En iyi kombinasyon: <b>{name(best.uses)}</b> — NPV {usd(best.npv)}, IRR {pct(best.irr * 100)}.{' '}
-        <button className="btn-mini" onClick={() => onApply(best.uses as K[])}>Bu kombinasyonu uygula</button>
+        En iyi sonuç: <b>{name(best.uses)}</b> — NPV {usd(best.npv)}.
+        {left.length > 0 && <> {left.map((u) => labels[u]).join(', ')} eklemek sonucu iyileştirmiyor.</>}{' '}
+        <button className="btn-mini" onClick={() => onApply(best.uses as K[])}>Bunu uygula</button>
       </Verdict>
-      {marg.length > 0 && (
-        <div className="note" style={{ marginBottom: 12 }}>
-          <b>Marjinal katkı</b> (hepsi açıkken bir kullanım şekli kapatılırsa NPV ne kadar düşer):{' '}
-          {marg.map((m) => `${labels[m.use as K]} ${signed(m.npv)}`).join(' · ')}
-        </div>
-      )}
+
+      <h4 className="combo-h">1 · Her kullanım şekli ne getiriyor?</h4>
       <div className="tablewrap">
-        <table>
-          <thead><tr><th>#</th><th>Kombinasyon</th><th>{y1Label}</th><th>NPV</th><th>IRR</th><th>Geri ödeme</th><th /></tr></thead>
+        <table className="combo-uses">
+          <thead>
+            <tr><th>Kullanım şekli</th><th>Tek başına NPV</th><th style={{ width: '28%' }} />{result.marginal.length > 0 && <th>Diğerlerinin yanına eklenince</th>}</tr>
+          </thead>
           <tbody>
-            {result.rows.map((r, k) => (
+            {all.map((u) => {
+              const a = alone(u), mg = margOf(u);
+              return (
+                <tr key={u}>
+                  <td>{labels[u]}</td>
+                  <td className={a && a.npv < 0 ? 'neg' : 'pos'}>{a ? usd(a.npv) : '—'}</td>
+                  <td>{a && <span className={`bb-bar ${a.npv < 0 ? 'neg' : ''}`} style={{ width: `${(Math.abs(a.npv) / maxAbs) * 100}%` }} />}</td>
+                  {result.marginal.length > 0 && (
+                    <td className={mg !== undefined && mg > 0 ? 'pos' : 'neg'}>
+                      {mg === undefined ? '—' : Math.abs(mg) < 1 ? 'Katkısı yok' : mg > 0 ? `NPV'yi ${usd(mg)} artırıyor` : `NPV'yi ${usd(-mg)} düşürüyor`}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div className="note" style={{ marginBottom: 14 }}>
+        <b>Tek başına:</b> batarya yalnızca bu işte kullanılırsa. <b>Eklenince:</b> diğer tüm kullanım şekilleri zaten açıkken bunu da açmanın etkisi.
+        Aynı batarya paylaşıldığı için katkılar toplanmaz — bir iş bataryayı kullanırken diğeri o enerjiyi kullanamaz.
+      </div>
+
+      <h4 className="combo-h">2 · Kombinasyonlar <small>· en iyiden kötüye</small></h4>
+      <div className="tablewrap">
+        <table className="combo-matrix">
+          <thead>
+            <tr>
+              <th>#</th>
+              {all.map((u) => <th key={u} title={labels[u]}>{SHORT[u] ?? labels[u]}</th>)}
+              <th>{y1Label}</th><th>NPV</th><th>Geri ödeme</th><th />
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((r, k) => (
               <tr key={r.uses.join('+')} className={k === 0 ? 'opt-best' : ''}>
-                <td>{k + 1}</td><td style={{ whiteSpace: 'normal' }}>{name(r.uses)}</td><td>{y1Fmt(r.y1)}</td><td>{usd(r.npv)}</td><td>{pct(r.irr * 100)}</td><td>{yearsFmt(r.payback, 1)}</td>
+                <td>{k + 1}</td>
+                {all.map((u) => <td key={u} className="cm-cell">{r.uses.includes(u) ? <span className="cm-on">✓</span> : <span className="cm-off">–</span>}</td>)}
+                <td>{y1Fmt(r.y1)}</td>
+                <td className={r.npv < 0 ? 'neg' : 'pos'}>{usd(r.npv)}</td>
+                <td>{yearsFmt(r.payback, 1)}</td>
                 <td><button className="btn-mini" onClick={() => onApply(r.uses as K[])}>Uygula</button></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {result.rows.length > 5 && (
+        <button className="btn-link" onClick={() => setShowAll((v) => !v)}>
+          {showAll ? 'Yalnızca ilk 5 kombinasyonu göster' : `Tüm ${result.rows.length} kombinasyonu göster`}
+        </button>
+      )}
     </div>
   );
 }
@@ -268,62 +324,161 @@ function DcSection({ rows, inputs, pvCapex, onApply }: { rows: DcRow[]; inputs: 
 
 // ============================ SAĞLIK ŞARTI STRATEJİSİ ============================
 
+const stratName = (x: StratRow) =>
+  x.augYear === 0 ? (x.oversizePct > 0 ? 'Baştan fazla kur, ekleme yapma' : 'Hiç ekleme yapma') : `${x.augYear}. yılda modül ekle`;
+
+/** Ekleme yılına göre en iyiye göre NPV farkı — hangi yıl en iyi ve ne kadar, bir bakışta */
+function StratChart({ rows, best, capText }: { rows: StratRow[]; best: StratRow; capText: (x: StratRow) => string }) {
+  const sorted = [...rows].sort((a, b) => a.augYear - b.augYear);
+  const W = 760, H = 220, padL = 64, padR = 10, padT = 12, padB = 34;
+  // Mutlak NPV'ler birbirine çok yakın olabildiği için en iyiye göre fark çizilir (en iyi = 0)
+  const vals = sorted.map((r) => r.npv - best.npv);
+  const mn = Math.min(-1, ...vals), mx = 0;
+  const y = (v: number) => padT + ((H - padT - padB) * (mx - v)) / Math.max(1e-9, mx - mn);
+  const bw = (W - padL - padR) / sorted.length;
+  const ax = (v: number) => (Math.abs(v) >= 1e6 ? `${nf(v / 1e6, 1)}M$` : Math.abs(v) >= 1e4 ? `${nf(v / 1e3, 0)}k$` : `${nf(v / 1e3, 1)}k$`);
+  const cols: HoverCol[] = sorted.map((r, k) => ({
+    x0: padL + k * bw, x1: padL + (k + 1) * bw,
+    title: stratName(r) + (r === best ? ' · en iyi' : ''),
+    rows: [
+      { label: 'Bugün kurulacak', value: capText(r) },
+      { label: 'Ekleme harcaması', value: r.augUsd > 0 ? usd(r.augUsd) : '—' },
+      { label: 'NPV', value: usd(r.npv), strong: true },
+      { label: 'En iyiye göre', value: r === best ? '—' : signed(r.npv - best.npv) },
+    ],
+  }));
+  return (
+    <HoverChart width={W} height={H} cols={cols} top={padT} bottom={padB}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Ekleme yılına göre NPV">
+        {[0, 0.5, 1].map((f) => {
+          const v = mn + (mx - mn) * f;
+          return (
+            <g key={f}>
+              <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="#E2E7EF" />
+              <text x={padL - 6} y={y(v) + 3} textAnchor="end">{ax(v)}</text>
+            </g>
+          );
+        })}
+        <line x1={padL} x2={W - padR} y1={y(0)} y2={y(0)} stroke="#5A6478" />
+        {sorted.map((r, k) => {
+          const x = padL + k * bw;
+          const d = r.npv - best.npv;
+          return (
+            <g key={r.augYear}>
+              {r === best
+                ? <><circle cx={x + bw / 2} cy={y(0) + 9} r={5} fill="#3D8B5F" /><text x={x + bw / 2} y={y(0) + 26} textAnchor="middle" style={{ fill: '#3D8B5F', fontWeight: 700 }}>en iyi</text></>
+                : <rect x={x + bw * 0.18} width={bw * 0.64} y={y(0)} height={Math.max(1, y(d) - y(0))} fill="#C9D3E4" rx="2" />}
+              <text x={x + bw / 2} y={H - 18} textAnchor="middle">{r.augYear === 0 ? 'Yok' : r.augYear}</text>
+            </g>
+          );
+        })}
+        <text x={padL + (W - padL - padR) / 2} y={H - 3} textAnchor="middle">modül ekleme yılı</text>
+      </svg>
+    </HoverChart>
+  );
+}
+
 export function SohStrategyPanel({
-  run, onApply, sohText, capUnit,
+  run, onApply, sohText, capUnit, baseCap,
 }: {
   run: () => StratRow[];
   onApply: (r: StratRow) => void;
   sohText: string;
   capUnit: string;
+  /** Beyan edilen kapasite (kapasite fazlası buna eklenir) */
+  baseCap: number;
 }) {
   const r = useRunner<StratRow[]>();
+  const [showAll, setShowAll] = useState(false);
   const rows = r.res;
-  const best = rows?.find((x) => x.sohOk);
-  const named = rows ? [rows.find((x) => x.augYear === 0), rows.find((x) => x.augYear === 5), rows.find((x) => x.augYear === 10)].filter(Boolean) as StratRow[] : [];
+  const ok = rows?.filter((x) => x.sohOk) ?? [];
+  const best = ok[0];
+  const capText = (x: StratRow) =>
+    `${nf(baseCap * (1 + x.oversizePct / 100), baseCap < 100 ? 2 : 0)} ${capUnit}${x.oversizePct > 0 ? ` (%${nf(x.oversizePct, 1)} fazla)` : ''}`;
+  const pick = (y: number) => ok.find((x) => x.augYear === y);
+  const named = [pick(0), pick(5), pick(10)].filter((x): x is StratRow => !!x);
+  const zero = pick(0);
+  const spread = best ? best.npv - Math.min(...ok.map((x) => x.npv)) : 0;
+  const tiny = best ? 0.005 * best.capex : 0;
+  // Tablo: öne çıkan seçenekler + en iyi birkaç yıl; istenirse tümü (yıl sırasıyla)
+  const table = showAll
+    ? [...ok].sort((a, b) => a.augYear - b.augYear)
+    : [...new Set([...(best ? [best] : []), ...named, ...ok.slice(0, 3)])].sort((a, b) => a.augYear - b.augYear);
+
   return (
     <>
       <div className="card">
-        <h3>Sağlık şartını en iyi nasıl sağlarım? <small>· {sohText}</small></h3>
-        <p className="text-sm" style={{ color: 'var(--ink-soft)', marginBottom: 12 }}>
-          Şartı karşılamanın yolları karşılaştırılır: baştan fazla kapasite kurmak ({capUnit} fazlası, hiç ekleme yapmadan) ya da belirli bir yılda kaybolan kapasite kadar modül eklemek. Her ekleme yılı için şartı sağlayan en küçük kapasite fazlası bulunur ve tam modelle hesaplanır.
+        <h3>Sağlık şartını en ucuza nasıl sağlarım? <small>· {sohText}</small></h3>
+        <p className="text-sm" style={{ color: 'var(--ink-soft)', marginBottom: 8 }}>
+          Batarya her yıl biraz kapasite kaybeder. Şartı sağlamanın iki yolu var:
         </p>
-        <button className="btn-pdf" onClick={() => r.go(run)} disabled={r.busy}>{r.busy ? 'Hesaplanıyor…' : 'Stratejileri karşılaştır'}</button>
+        <ul className="strat-ways">
+          <li><b>Baştan fazla kurmak:</b> bugün beyan edilenden biraz büyük batarya kurulur; kayıptan sonra bile şart sağlanır. Ekleme gerekmez ama fazla kapasitenin parası bugün ödenir.</li>
+          <li><b>Sonradan modül eklemek:</b> belirli bir yılda o güne kadar kaybolan kapasite kadar modül eklenir. Para ileride ödenir (bugünkü değeri düşüktür); ekleme yılından önceki şartı sağlamak için yine küçük bir fazla gerekebilir.</li>
+        </ul>
+        <p className="text-sm" style={{ color: 'var(--ink-soft)', margin: '8px 0 12px' }}>
+          Her seçenek için şartı tam sağlayan en küçük kurulum bulunur; seçenekler arasındaki tek fark, paranın ne kadar ve ne zaman ödendiğidir.
+        </p>
+        <button className="btn-pdf" onClick={() => r.go(run)} disabled={r.busy}>{r.busy ? 'Hesaplanıyor…' : 'Seçenekleri karşılaştır'}</button>
       </div>
+
+      {rows && !best && <Verdict tone="bad">Hiçbir seçenek şartı sağlayamadı — yıllık kapasite kaybını ve şart değerlerini kontrol edin.</Verdict>}
 
       {rows && best && (
         <>
           <Verdict tone={best.npv > 0 ? 'ok' : 'bad'}>
-            Şartı sağlayan en iyi strateji: <b>{best.label}</b> — yatırım {usd(best.capex)}{best.augUsd > 0 ? `, ekleme ${usd(best.augUsd)}` : ''}, NPV {usd(best.npv)}.{' '}
-            <button className="btn-mini" onClick={() => onApply(best)}>Bu stratejiyi uygula</button>
+            {zero && zero.oversizePct === 0 && <>Bu kayıp oranıyla şart, ekleme ve fazla kapasite olmadan zaten sağlanıyor; aşağıdaki eklemeler şart için değil, kaybolan kapasiteyi geri kazanıp gelir artırmak içindir. </>}
+            En iyi yol: <b>{stratName(best)}</b> — bugün <b>{capText(best)}</b> kurulur{best.augYear > 0 ? <>, {best.augYear}. yılda {usd(best.augUsd)} harcanıp modül eklenir</> : ''}. NPV {usd(best.npv)}.{' '}
+            {spread < tiny && <> Seçenekler arasındaki fark çok küçük (en fazla {usd(spread)}, yatırımın %{nf((spread / Math.max(1, best.capex)) * 100, 2)}&apos;si) — bu karar projenin sonucunu belirlemiyor.</>}{' '}
+            <button className="btn-mini" onClick={() => onApply(best)}>Bunu uygula</button>
           </Verdict>
+
           {named.length > 0 && (
             <div className="kpis">
               {named.map((n) => (
                 <div key={n.augYear} className={`kpi ${n === best ? 'good' : ''}`}>
-                  <div className="kl">{n.augYear === 0 ? 'Baştan fazla kapasite' : `${n.augYear}. yılda ekleme`}</div>
-                  <div className="kv">{usd(n.npv)}</div>
-                  <div className="kh">fazla %{nf(n.oversizePct, 1)} · yatırım {usd(n.capex)}{n.augUsd > 0 ? ` · ekleme ${usd(n.augUsd)}` : ''} · en iyiye göre {signed(n.npv - best.npv)}</div>
+                  <div className="kl">{stratName(n)}</div>
+                  <div className="kv">{n === best ? 'En iyi' : signed(n.npv - best.npv)}</div>
+                  <div className="kh">bugün {capText(n)}{n.augUsd > 0 ? ` · ekleme ${usd(n.augUsd)}` : ''} · NPV {usd(n.npv)}</div>
                 </div>
               ))}
             </div>
           )}
+
+          <div className="card bess-chart">
+            <h3>Her seçenek en iyiden ne kadar geride? <small>· NPV farkı, çubuk uzadıkça kötü; üzerine gelince ayrıntı</small></h3>
+            <StratChart rows={ok} best={best} capText={capText} />
+          </div>
+
           <div className="card">
-            <h3>Tüm stratejiler <small>· NPV&apos;ye göre sıralı</small></h3>
+            <h3>Seçeneklerin karşılaştırması</h3>
             <div className="tablewrap">
               <table>
-                <thead><tr><th>#</th><th>Strateji</th><th>Kapasite fazlası</th><th>Başlangıç yatırımı</th><th>Ekleme harcaması</th><th>NPV</th><th>IRR</th><th>Şart</th><th /></tr></thead>
+                <thead><tr><th>Seçenek</th><th>Bugün kurulacak kapasite</th><th>Bugünkü yatırım</th><th>İleride ekleme</th><th>NPV</th><th>En iyiye göre</th><th /></tr></thead>
                 <tbody>
-                  {rows.map((x, k) => (
+                  {table.map((x) => (
                     <tr key={x.augYear} className={x === best ? 'opt-best' : ''}>
-                      <td>{k + 1}</td><td style={{ whiteSpace: 'normal' }}>{x.label}</td><td>%{nf(x.oversizePct, 1)}</td><td>{usd(x.capex)}</td><td>{x.augUsd > 0 ? usd(x.augUsd) : '—'}</td>
-                      <td>{usd(x.npv)}</td><td>{pct(x.irr * 100)}</td><td>{x.sohOk ? 'Uygun' : 'Değil'}</td>
+                      <td style={{ whiteSpace: 'normal' }}>{stratName(x)}</td>
+                      <td>{capText(x)}</td>
+                      <td>{usd(x.capex)}</td>
+                      <td>{x.augUsd > 0 ? `${x.augYear}. yıl · ${usd(x.augUsd)}` : '—'}</td>
+                      <td>{usd(x.npv)}</td>
+                      <td>{x === best ? 'En iyi' : signed(x.npv - best.npv)}</td>
                       <td><button className="btn-mini" onClick={() => onApply(x)}>Uygula</button></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="note">Kapasite ekleme: yalnızca o yıla kadar kaybolan kapasite kadar modül eklenir (Kurulum → Adım 4&apos;teki ekleme birim maliyetiyle). Erken ve küçük eklemelerin sabit maliyeti (mobilizasyon, devreye alma) modelde yoktur; çok erken ekleme yılları bu yüzden olduğundan iyi görünebilir.</div>
+            {(showAll || ok.length > table.length) && (
+              <button className="btn-link" onClick={() => setShowAll((v) => !v)}>
+                {showAll ? 'Yalnızca öne çıkanları göster' : `Tüm ${ok.length} seçeneği göster`}
+              </button>
+            )}
+            <div className="note">
+              Ekleme harcaması o yılın parasıyla yazılmıştır; NPV ise her şeyi bugünkü değere çevirerek karşılaştırır — bu yüzden geç yapılan ekleme NPV&apos;yi daha az etkiler.
+              Eklemenin sabit maliyeti (mobilizasyon, devreye alma) modelde yoktur; çok erken (2.–3. yıl) eklemeler bu yüzden olduğundan iyi görünebilir.
+            </div>
           </div>
         </>
       )}

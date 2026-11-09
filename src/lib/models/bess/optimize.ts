@@ -14,6 +14,8 @@ export interface OptRow {
   /** 1. yıl kazanç (C&I: TL) / gelir (Utility: USD) */
   y1: number;
   sohOk: boolean;
+  /** Güç şebeke bağlantı gücünü aşıyor (yalnız utility) */
+  overGrid?: boolean;
 }
 
 /** min–max arasında `steps` adet "yuvarlak" kapasite değeri */
@@ -39,12 +41,25 @@ export function optimizeBessCi(base: BessCiInputs, sizes: number[], cRates: numb
   return rows.sort((a, b) => b.npv - a.npv);
 }
 
-export function optimizeBessUtility(base: BessUtilityInputs, sizes: number[], cRates: number[]): OptRow[] {
+/**
+ * Utility boyut optimizasyonu.
+ * - Kurulum maliyeti tek kalemdir ($/kWh) ve girilen fiyat mevcut C-oranı içindir. Diğer C-oranları için
+ *   güç tarafı farkı eklenir/düşülür: $/kWh' = $/kWh + cPremium × (C − C_mevcut)  (cPremium: $/kW güç).
+ * - Yan hizmet açıksa ayrılan güç, MW olarak değil güç PAYI olarak korunur (güç büyüdükçe yan hizmet de büyür).
+ */
+export function optimizeBessUtility(base: BessUtilityInputs, sizes: number[], cRates: number[], cPremium = 0): OptRow[] {
   const rows: OptRow[] = [];
+  const baseMw = base.cRate > 0 ? base.bMwh * base.cRate : base.bMw;
+  const baseC = base.bMwh > 0 ? baseMw / base.bMwh : 0.5;
+  const ancShare = base.useAnc && baseMw > 0 ? Math.min(1, base.ancMw / baseMw) : 0;
   for (const cap of sizes) for (const c of cRates) {
-    const m = computeBessUtility({ ...base, bMwh: cap, cRate: c });
+    const m = computeBessUtility({
+      ...base, bMwh: cap, cRate: c,
+      capexKwh: Math.max(0, base.capexKwh + cPremium * (c - baseC)),
+      ancMw: ancShare * cap * c,
+    });
     rows.push({ cap, c, power: m.bMw, capex: m.capex, npv: m.npv, irr: m.irr, payback: m.payback,
-      y1: m.years[0]?.revUsd ?? 0, sohOk: m.soh.ok });
+      y1: m.years[0]?.revUsd ?? 0, sohOk: m.soh.ok, overGrid: m.bMw > base.acMw * 1.001 });
   }
   return rows.sort((a, b) => b.npv - a.npv);
 }

@@ -37,7 +37,8 @@ export function defaultBessUtilityInputs(): BessUtilityInputs {
     ancType: 'pfk', ancMw: 2, ancPrice: 1900, ancAvail: 90, ancHours: 0.5, ancEsc: 0,
     devPct: 8, imbCost: 300, imbReduce: 50,
     bMw: 5, bMwh: 10, rte: 88, dod: 90, bDegr: 2, life: 15,
-    cRate: 0.5, capexKwh: 170, capexKw: 100, opexPct: 1.5, augYear: 10, augCost: 90,
+    // Utility: tek kalem kurulum maliyeti ($/kWh, PCS + trafo + bağlantı dahil); capexKw kullanılmaz
+    cRate: 0.5, capexKwh: 220, capexKw: 0, opexPct: 1.5, augYear: 10, augCost: 90,
     sohY1: 5, sohP1: 90, sohY2: 10, sohP2: 80, oversize: 0,
     fx0: 47, tlEsc: 25, fxEsc: 20, disc: 11,
   };
@@ -54,8 +55,18 @@ export function bessCiFromSaved(saved?: Partial<BessCiInputs>): BessCiInputs {
   return { ...d, ...saved, cRate: saved.cRate ?? 0, capexKw: saved.capexKw ?? 0 };
 }
 
+/**
+ * Utility'de maliyet tek kalemdir ($/kWh). Ayrı güç maliyetiyle ($/kW) kaydedilmiş projelerde
+ * o kalem kWh başına çevrilip enerji maliyetine eklenir — toplam yatırım değişmez.
+ */
 export function bessUtilityFromSaved(saved?: Partial<BessUtilityInputs>): BessUtilityInputs {
   const d = defaultBessUtilityInputs();
   if (!saved) return d;
-  return { ...d, ...saved, cRate: saved.cRate ?? 0, capexKw: saved.capexKw ?? 0 };
+  const x = { ...d, ...saved, cRate: saved.cRate ?? 0, capexKw: saved.capexKw ?? 0 };
+  if (x.capexKw > 0) {
+    const ratio = x.cRate > 0 ? x.cRate : x.bMwh > 0 ? x.bMw / x.bMwh : 0;
+    x.capexKwh = Math.round((x.capexKwh + x.capexKw * ratio) * 100) / 100;
+    x.capexKw = 0;
+  }
+  return x;
 }

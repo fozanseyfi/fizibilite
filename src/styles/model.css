@@ -267,6 +267,8 @@
   body.mdl-printing > *:not(#mdl-report) { display: none !important; }
   body.mdl-printing #mdl-report { display: block; }
   body.mdl-printing { background: #fff; font-size: 10.5px; color: #1A2436; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+}
+/* Rapor stilleri: baskıda ve paylaşılan link sayfasında (/p) ekranda da kullanılır */
   /* Kurumsal palet: lacivert + gri; renk yalnız küçük fark işaretlerinde (soluk yeşil/kırmızı). */
   #mdl-report { --navy: #1E3A6E; --navy-deep: #0E2A5E; --gold: #8892A4; --green: #3D6B54; --red: #9A3B40; --line: #D9E0EC; line-height: 1.5; }
   #mdl-report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -328,7 +330,6 @@
   /* Alt bilgi */
   #mdl-report .r-foot { margin-top: 16px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 8px; color: #8892A4; display: flex; justify-content: space-between; }
   #mdl-report .r-foot b { color: var(--navy-deep); }
-}
 
 /* ============ Sadece-batarya modelleri ============ */
 .mdl .usegrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
@@ -347,8 +348,8 @@
 .mdl .bess-break td:nth-child(2) { text-align: right; font-weight: 600; }
 .mdl .bess-break td.neg { color: var(--red); }
 .mdl .bess-break .bb-hint { font-family: var(--sans); font-size: 11px; color: var(--ink-soft); white-space: normal; }
-.mdl .bess-break .bb-bar { display: block; height: 10px; border-radius: 3px; background: var(--navy); }
-.mdl .bess-break .bb-bar.neg { background: var(--red); }
+.mdl .bess-break .bb-bar, .mdl .combo-uses .bb-bar { display: block; height: 10px; border-radius: 3px; background: var(--navy); }
+.mdl .bess-break .bb-bar.neg, .mdl .combo-uses .bb-bar.neg { background: #D8A3A6; }
 .mdl .bess-break tr.total td { font-weight: 700; border-top: 2px solid var(--navy); }
 .mdl .warnbox { background: #FFF6E8; border: 1px solid #F0D3A2; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #6B4A12; }
 .mdl .warnbox li { margin-left: 16px; list-style: disc; }
@@ -388,3 +389,32 @@
 .mdl tr.checkpoint td { font-weight: 700; background: #F5F7FA; }
 .mdl .soh-status .btn-mini { margin-left: 4px; }
 @media (max-width: 640px) { .mdl .tab-actions { width: 100%; } .mdl .ta-btn { flex: 1; } }
+
+/* ---- Paylaşım linki sayfası (/p): A4 raporu ekranda okunur boyutta göster ---- */
+@media screen {
+  .shared-report #mdl-report { font-size: 10.5px; color: #1A2436; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  @media (min-width: 900px) { .shared-report #mdl-report { zoom: 1.3; } }
+}
+
+/* ---- Grafik üzerine gelince değer (chart-hover.tsx) ---- */
+.hc { position: relative; touch-action: pan-y; cursor: crosshair; }
+.hc-svg svg { display: block; }
+.hc-band { position: absolute; background: rgba(30, 58, 110, .08); border-radius: 3px; pointer-events: none; }
+.hc-tip { position: absolute; top: 6px; z-index: 5; min-width: 170px; max-width: 260px; padding: 8px 10px; background: #fff; border: 1px solid #D9E0EC; border-radius: 8px; box-shadow: 0 6px 18px rgba(14, 42, 94, .14); font-size: 12px; line-height: 1.45; pointer-events: none; }
+.hc-t { font-weight: 700; color: #0E2A5E; margin-bottom: 3px; }
+.hc-r { display: flex; justify-content: space-between; gap: 12px; color: #5A6478; }
+.hc-r b { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #1A2436; white-space: nowrap; }
+.hc-r.strong { color: #1A2436; border-top: 1px solid #E2E7EF; margin-top: 3px; padding-top: 3px; }
+.hc-r i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+/* ---- Kullanım kombinasyonları / sağlık stratejisi ---- */
+.mdl .combo-h { font-size: 13.5px; font-weight: 700; color: var(--navy); margin: 14px 0 8px; }
+.mdl .combo-h small { font-weight: 400; color: var(--ink-soft); }
+.mdl .combo-uses td:first-child { white-space: normal; }
+.mdl .combo-matrix th { white-space: normal; text-align: center; font-size: 11.5px; line-height: 1.25; }
+.mdl .combo-matrix td.cm-cell { text-align: center; }
+.mdl .cm-on { color: #3D8B5F; font-weight: 700; font-size: 14px; }
+.mdl .cm-off { color: #C9D3E4; }
+.mdl .btn-link { appearance: none; background: none; border: 0; padding: 8px 0 0; color: var(--navy); font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.mdl .strat-ways { margin: 0 0 0 18px; padding: 0; list-style: disc; font-size: 13.5px; color: var(--ink); line-height: 1.55; }
+.mdl .strat-ways li { margin-bottom: 4px; }

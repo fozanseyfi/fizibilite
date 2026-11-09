@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { SohCheck } from '@/lib/models/bess/common';
 import { sizeGrid, type OptRow } from '@/lib/models/bess/optimize';
 import { NumF } from '@/components/models/native/mdl-kit';
+import { HoverChart, type HoverCol } from '@/components/models/native/chart-hover';
 import { nf, pct, usd, yearsFmt } from '@/lib/models/fmt';
 
 const cLabel = (c: number) => `${String(c).replace('.', ',')}C`;
@@ -53,7 +54,7 @@ export function SohCard({ soh, degr }: { soh: SohCheck; degr: number }) {
 
 const C_COLORS: Record<string, string> = { '1': '#1E3A6E', '0.5': '#3D8B5F', '0.25': '#D9822B' };
 
-function OptChart({ rows, unit }: { rows: OptRow[]; unit: string }) {
+function OptChart({ rows, unit, unitPower }: { rows: OptRow[]; unit: string; unitPower: string }) {
   if (rows.length < 2) return null;
   const W = 760, H = 260, padL = 70, padR = 14, padT = 14, padB = 34;
   const caps = rows.map((r) => r.cap), npvs = rows.map((r) => r.npv);
@@ -64,7 +65,24 @@ function OptChart({ rows, unit }: { rows: OptRow[]; unit: string }) {
   const best = rows[0];
   const series = [...new Set(rows.map((r) => r.c))].sort((a, b) => b - a);
   const ax = (v: number) => (Math.abs(v) >= 1e6 ? `${nf(v / 1e6, 1)}M$` : `${nf(v / 1e3, 0)}k$`);
+  // Üzerine gelince: o kapasitedeki her C-oranının sonucu
+  const capList = [...new Set(caps)].sort((a, b) => a - b);
+  const cols: HoverCol[] = capList.map((cap, k) => {
+    const xl = k === 0 ? padL : (x(capList[k - 1]) + x(cap)) / 2;
+    const xr = k === capList.length - 1 ? W - padR + 0.01 : (x(cap) + x(capList[k + 1])) / 2;
+    return {
+      x0: k === 0 ? 0 : xl, x1: k === capList.length - 1 ? W : xr,
+      title: `${nf(cap)} ${unit}`,
+      rows: series.map((c) => rows.find((r) => r.cap === cap && r.c === c)).filter((r): r is OptRow => !!r).map((r) => ({
+        label: `${cLabel(r.c)} · ${nf(r.power, 1)} ${unitPower}${r === best ? ' (en iyi)' : ''}`,
+        value: usd(r.npv),
+        color: C_COLORS[String(r.c)] ?? '#5A6478',
+        strong: r === best,
+      })),
+    };
+  });
   return (
+    <HoverChart width={W} height={H} cols={cols} top={padT} bottom={padB}>
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Kapasiteye göre NPV">
       {[0, 0.25, 0.5, 0.75, 1].map((f) => {
         const v = yMin + (yMax - yMin) * f;
@@ -92,6 +110,7 @@ function OptChart({ rows, unit }: { rows: OptRow[]; unit: string }) {
       })}
       <circle cx={x(best.cap)} cy={y(best.npv)} r={8} fill="none" stroke="#C0392B" strokeWidth={2} />
     </svg>
+    </HoverChart>
   );
 }
 
@@ -100,12 +119,16 @@ function OptChart({ rows, unit }: { rows: OptRow[]; unit: string }) {
  * Kullanım şekilleri, fiyatlar ve diğer varsayımlar sabit kalır.
  */
 export function OptPanel({
-  unitCap, unitPower, current, run, onApply, y1Label, y1Fmt,
+  unitCap, unitPower, current, run, onApply, y1Label, y1Fmt, costNote, extra,
 }: {
   unitCap: string; unitPower: string; current: number;
   run: (sizes: number[], cRates: number[]) => OptRow[];
   onApply: (cap: number, c: number) => void;
   y1Label: string; y1Fmt: (v: number) => string;
+  /** Maliyetin C-oranına etkisini anlatan not */
+  costNote?: string;
+  /** Modele özel ek girdi (ör. C-oranı fiyat farkı) */
+  extra?: React.ReactNode;
 }) {
   const [min, setMin] = useState(() => Math.max(1, Math.round(current * 0.25)));
   const [max, setMax] = useState(() => Math.max(2, Math.round(current * 3)));
@@ -133,6 +156,7 @@ export function OptPanel({
           <NumF label="En küçük kapasite" unit={unitCap} value={min} onChange={setMin} />
           <NumF label="En büyük kapasite" unit={unitCap} value={max} onChange={setMax} />
           <NumF label="Kapasite adımı" unit="adet, 2–20" value={steps} onChange={setSteps} />
+          {extra}
         </div>
         <div className="opt-cs">
           <span>Denenecek C-oranları:</span>
@@ -160,12 +184,13 @@ export function OptPanel({
               <>Denenen hiçbir boyut pozitif NPV vermiyor. En az zararlısı <b>{nf(best.cap)} {unitCap} · {cLabel(best.c)}</b> (NPV {usd(best.npv)}). Kullanım şekillerini, fiyatları veya maliyeti gözden geçirin.</>
             )}
             {!best.sohOk && <> Bu boyutta kapasite sağlığı şartı sağlanmıyor.</>}
+            {best.overGrid && <> Dikkat: bu boyutun gücü şebeke bağlantı gücünü aşıyor; aşan kısım kullanılamaz.</>}
             {' '}<button className="btn-mini" onClick={() => onApply(best.cap, best.c)}>Bu boyutu uygula</button>
           </div>
 
           <div className="card bess-chart">
             <h3>Kapasiteye göre NPV <small>· her çizgi bir C-oranı, kırmızı halka en iyisi</small></h3>
-            <OptChart rows={rows} unit={unitCap} />
+            <OptChart rows={rows} unit={unitCap} unitPower={unitPower} />
             <div className="bess-legend">
               {[...new Set(rows.map((r) => r.c))].sort((a, b) => b - a).map((c) => (
                 <span key={c} className="inline-flex items-center gap-1.5">
@@ -185,7 +210,7 @@ export function OptPanel({
                 <tbody>
                   {rows.map((r, k) => (
                     <tr key={`${r.cap}-${r.c}`} className={k === 0 ? 'opt-best' : ''}>
-                      <td>{k + 1}</td><td>{nf(r.cap)}</td><td>{cLabel(r.c)}</td><td>{nf(r.power, 1)}</td>
+                      <td>{k + 1}</td><td>{nf(r.cap)}</td><td>{cLabel(r.c)}</td><td>{nf(r.power, 1)}{r.overGrid && <span className="pill bad" title="Batarya gücü şebeke bağlantı gücünü aşıyor; aşan kısım kullanılamaz." style={{ marginLeft: 6 }}>bağlantıyı aşıyor</span>}</td>
                       <td>{usd(r.capex)}</td><td>{y1Fmt(r.y1)}</td><td>{usd(r.npv)}</td><td>{pct(r.irr * 100)}</td><td>{yearsFmt(r.payback, 1)}</td>
                       <td>{r.sohOk ? 'Uygun' : 'Değil'}</td>
                       <td><button className="btn-mini" onClick={() => onApply(r.cap, r.c)}>Uygula</button></td>
@@ -194,7 +219,7 @@ export function OptPanel({
                 </tbody>
               </table>
             </div>
-            <div className="note">Her satır tam modelle (saatlik simülasyon, tüm yıllar) hesaplandı. Yalnızca kapasite ve C-oranı değişir. Güç dönüştürücü maliyeti ($/kW) ayrı olduğu için yüksek C-oranı daha pahalıdır.</div>
+            <div className="note">Her satır tam modelle (saatlik simülasyon, tüm yıllar) hesaplandı. Yalnızca kapasite ve C-oranı değişir. {costNote ?? 'Güç dönüştürücü maliyeti ($/kW) ayrı olduğu için yüksek C-oranı daha pahalıdır.'}</div>
           </div>
         </>
       )}

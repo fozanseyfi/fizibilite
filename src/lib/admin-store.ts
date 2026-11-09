@@ -8,14 +8,20 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+/** Oluşturulan paylaşım linki (link proje verisini içinde taşır — bkz. share-link.ts) */
 export interface ShareLink {
-  token: string;
+  id: string;
+  ownerId: string;
+  projectId: string;
+  projectName: string;
+  url: string;
   createdAt: string;
-  expiresAt: string;
+  /** Son geçerlilik (ISO tarih); boşsa süresiz */
+  expiresAt: string | null;
 }
 
 interface AdminState {
-  shareLink: ShareLink | null;
+  shareLinks: ShareLink[];
   // ---------- UI state ----------
   /** Masaüstü sidebar daraltma durumu (true = ikon rail) */
   sidebarCollapsed: boolean;
@@ -24,7 +30,8 @@ interface AdminState {
   /** Mobil drawer açık mı? (persist edilmez) */
   mobileDrawerOpen: boolean;
 
-  setShareLink: (link: ShareLink | null) => void;
+  addShareLink: (link: ShareLink) => void;
+  removeShareLink: (id: string) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (v: boolean) => void;
   toggleProjectGroup: (groupId: string) => void;
@@ -36,12 +43,13 @@ interface AdminState {
 export const useStore = create<AdminState>()(
   persist(
     (set) => ({
-      shareLink: null,
+      shareLinks: [],
       sidebarCollapsed: false,
       projectGroupOpen: { analytics: true, financial: true, risk: true, reports: true },
       mobileDrawerOpen: false,
 
-      setShareLink: (link) => set({ shareLink: link }),
+      addShareLink: (link) => set((s) => ({ shareLinks: [link, ...s.shareLinks] })),
+      removeShareLink: (id) => set((s) => ({ shareLinks: s.shareLinks.filter((l) => l.id !== id) })),
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
       toggleProjectGroup: (groupId) =>
@@ -57,9 +65,15 @@ export const useStore = create<AdminState>()(
     }),
     {
       name: "ges-admin-store",
+      version: 2,
+      // v1: tek "shareLink" vardı ve hiçbir sayfaya bağlı değildi — atılır
+      migrate: (old) => {
+        const o = (old ?? {}) as Partial<AdminState>;
+        return { sidebarCollapsed: !!o.sidebarCollapsed, projectGroupOpen: o.projectGroupOpen ?? {}, shareLinks: [] } as unknown as AdminState;
+      },
       // Yalnızca kalıcı olması gerekenler (eski sürümlerden kalan kullanıcı alanları atılır)
       partialize: (s) => ({
-        shareLink: s.shareLink,
+        shareLinks: s.shareLinks,
         sidebarCollapsed: s.sidebarCollapsed,
         projectGroupOpen: s.projectGroupOpen,
       }),

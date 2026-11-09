@@ -14,6 +14,10 @@ const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
 
 const isAuthRoute = (p: string) => AUTH_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
 
+/** Herkese açık sayfalar: oturum gerekmez, oturum olsa da yönlendirme yapılmaz (paylaşım linki) */
+const PUBLIC_ROUTES = ["/p"];
+const isPublicRoute = (p: string) => PUBLIC_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
+
 /**
  * Uygulama kabuğu + istemci tarafı oturum koruması.
  * - Auth sayfaları: sadece içerik (oturum varsa ana sayfaya atar).
@@ -27,9 +31,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const hydrated = useAuthHydrated();
   const session = useSession();
   const authPage = isAuthRoute(pathname);
+  const publicPage = isPublicRoute(pathname);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || publicPage) return;
     if (!session && !authPage) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     } else if (session && authPage) {
@@ -37,9 +42,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       const next = new URLSearchParams(window.location.search).get('next');
       router.replace(next && next.startsWith('/') && !next.startsWith('//') ? next : '/');
     }
-  }, [hydrated, session, authPage, pathname, router]);
+  }, [hydrated, session, authPage, publicPage, pathname, router]);
 
-  if (authPage) return <>{children}</>;
+  if (authPage || publicPage) return <>{children}</>;
 
   if (!hydrated || !session) {
     return (

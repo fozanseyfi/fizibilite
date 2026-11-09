@@ -81,8 +81,19 @@ interface P {
 }
 
 /** Saatlik PTF eğrisi: öğle çukuru 11–15, gündüz 06–10 & 16, puant 17–21, gece 22–05. */
+/**
+ * Saatlik PTF eğrisi. Girilen değerler bölge ORTALAMASIdır; bölge içinde gerçek piyasadaki
+ * gibi hafif bir şekil verilir (puant 19–20'de en yüksek, öğle 13'te en düşük). Şekil olmadan
+ * puantın her saati aynı fiyatta olur ve batarya gücünün (C-oranı) hiçbir ekonomik etkisi kalmaz.
+ */
+const PEAK_SHAPE = [0.9, 1.0, 1.1, 1.08, 0.92];   // 17–21, ortalama 1
+const NOON_SHAPE = [1.06, 0.98, 0.92, 0.98, 1.06]; // 11–15, ortalama 1
 export function ptfCurve(noon: number, day: number, peak: number, night: number): number[] {
-  return Array.from({ length: 24 }, (_, h) => (h >= 11 && h <= 15 ? noon : h >= 6 && h <= 16 ? day : h >= 17 && h <= 21 ? peak : night));
+  return Array.from({ length: 24 }, (_, h) =>
+    h >= 11 && h <= 15 ? noon * NOON_SHAPE[h - 11]
+      : h >= 6 && h <= 16 ? day
+        : h >= 17 && h <= 21 ? peak * PEAK_SHAPE[h - 17]
+          : night);
 }
 
 export function normalizeBessUtility(i: BessUtilityInputs): P {
@@ -93,7 +104,8 @@ export function normalizeBessUtility(i: BessUtilityInputs): P {
     regime: i.regime === 'merchant' ? 'merchant' : 'yekdem', yekdemPrice: clamp(i.yekdemPrice, 0, 1e4), yekdemYears: Math.round(clamp(i.yekdemYears, 0, 30)),
     ptf: ptfCurve(clamp(i.ptfNoon, 0, 1e6), clamp(i.ptfDay, 0, 1e6), clamp(i.ptfPeak, 0, 1e6), clamp(i.ptfNight, 0, 1e6)),
     useClip: !!i.useClip, useArb: !!i.useArb, useAnc: !!i.useAnc, useImb: !!i.useImb,
-    ancMw: i.useAnc ? clamp(i.ancMw, 0, bMw) : 0, ancPrice: clamp(i.ancPrice, 0, 1e6), ancAvail: clamp(i.ancAvail, 0, 100) / 100, ancHours: clamp(i.ancHours, 0, 24), ancEsc: clamp(i.ancEsc ?? 0, -50, 300) / 100,
+    // Yan hizmet gücü batarya gücünü ve şebeke bağlantı (AC lisans) gücünü aşamaz
+    ancMw: i.useAnc ? clamp(i.ancMw, 0, Math.min(bMw, clamp(i.acMw, 0.01, 1e5))) : 0, ancPrice: clamp(i.ancPrice, 0, 1e6), ancAvail: clamp(i.ancAvail, 0, 100) / 100, ancHours: clamp(i.ancHours, 0, 24), ancEsc: clamp(i.ancEsc ?? 0, -50, 300) / 100,
     devPct: clamp(i.devPct, 0, 100) / 100, imbCost: clamp(i.imbCost, 0, 1e6), imbReduce: clamp(i.imbReduce, 0, 100) / 100,
     bMw, bMwh: clamp(i.bMwh, 0, 1e6), rte: clamp(i.rte, 50, 100) / 100, dod: clamp(i.dod, 50, 100) / 100, bDegr: clamp(i.bDegr, 0, 10) / 100,
     life: Math.round(clamp(i.life, 3, 30)),
@@ -181,6 +193,7 @@ export function computeBessUtility(inputs: BessUtilityInputs): BessUtilityModel 
   if (p.useArb && yekdemAll) warnings.push('YEKDEM süresi analiz süresini kapsıyor: YEKDEM fiyatı her saat aynı olduğundan arbitraj kazancı sıfır çıkar.');
   if (p.useClip && p.clipPct === 0 && p.curtPct === 0) warnings.push('Kırpma ve kısıntı oranı %0: kurtarılacak enerji yok. PVsyst raporundaki inverter kırpma kaybını ve kısıntı varsayımını girin.');
   if (p.useAnc) warnings.push('Yan hizmet geliri iyimser senaryodur: santral içi bataryanın PFK/SFK\'ya katılımı TEİAŞ testleri ve anlaşmasına bağlıdır; saatlik teklif usulü 1 Ocak 2027\'de başlar.');
+  if (p.bMw > p.acMw * 1.001) warnings.push(`Batarya gücü (${p.bMw.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} MW) şebeke bağlantı gücünü (${p.acMw.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} MW AC) aşıyor. Santral içi depolamada verilebilecek güç bağlantı gücüyle sınırlı; aşan kısım ne arbitrajda ne yan hizmette kullanılabilir — daha düşük C-oranı seçin.`);
   if (p.useAnc && p.ancMw >= p.bMw && p.bMw > 0) warnings.push('Bataryanın tamamı yan hizmete ayrıldı; arbitraj ve kırpma kurtarma için güç kalmadı.');
 
   const capex = p.bMwh * 1000 * p.over * p.capexKwh + p.bMw * 1000 * p.capexKw;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeBessCi } from '@/lib/models/bess/ci';
 import { computeBessUtility } from '@/lib/models/bess/utility';
-import { defaultBessCiInputs, defaultBessUtilityInputs } from '@/lib/models/bess/defaults';
+import { bessUtilityFromSaved, defaultBessCiInputs, defaultBessUtilityInputs } from '@/lib/models/bess/defaults';
 
 describe('C&I batarya', () => {
   it('kapasite 0 iken kazanç yok', () => {
@@ -210,5 +210,16 @@ describe('Kullanım analizi', () => {
   it('Arbitraj: fark büyüdükçe arbitraj geliri artar', () => {
     const rows = arbSweep({ ...defaultBessUtilityInputs(), regime: 'merchant' }, 0.11);
     for (let k = 1; k < rows.length; k++) expect(rows[k].arbNpvUsd).toBeGreaterThan(rows[k - 1].arbNpvUsd);
+  });
+});
+
+describe('Utility tek kalem kurulum maliyeti', () => {
+  it('ayrı $/kW ile kaydedilmiş proje açılınca yatırım değişmez', () => {
+    const saved = { ...defaultBessUtilityInputs(), capexKwh: 170, capexKw: 100, cRate: 0.5 };
+    const before = computeBessUtility(saved).capex;
+    const loaded = bessUtilityFromSaved(saved);
+    expect(loaded.capexKw).toBe(0);
+    expect(loaded.capexKwh).toBeCloseTo(220, 6);
+    expect(computeBessUtility(loaded).capex).toBeCloseTo(before, 3);
   });
 });

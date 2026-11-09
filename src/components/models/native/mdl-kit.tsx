@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { HoverChart, type HoverCol } from '@/components/models/native/chart-hover';
+import { usd as usdFmt } from '@/lib/models/fmt';
 
 // ============================ TOOLTIP ============================
 /** .tipq etiketi — üzerine gelince #mdl-tipbox açılır (HTML ile birebir). */
@@ -148,7 +150,17 @@ export function SeriesChart({ points, color = '#18428F', payback = 'geri ödeme'
   const axl = (v: number) => (Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + 'M$' : (v / 1e3).toFixed(0) + 'k$');
   let payIdx = -1;
   for (let i = 1; i < n; i++) if (points[i - 1] < 0 && points[i] >= 0) { payIdx = i; break; }
+  const step = (W - padL - padR) / Math.max(1, n - 1);
+  const cols: HoverCol[] = points.map((v, i) => ({
+    x0: x(i) - step / 2, x1: x(i) + step / 2,
+    title: i === 0 ? '0. yıl (yatırım)' : `${i}. yıl`,
+    rows: [
+      ...(i > 0 ? [{ label: 'O yılın net nakdi', value: usdFmt(v - points[i - 1]) }] : []),
+      { label: 'Kümülatif', value: usdFmt(v), strong: true },
+    ],
+  }));
   return (
+    <HoverChart width={W} height={H} cols={cols} top={padT} bottom={padB}>
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img">
       {Array.from({ length: 5 }).map((_, g) => {
         const v = mn + ((mx - mn) * g) / 4;
@@ -170,5 +182,6 @@ export function SeriesChart({ points, color = '#18428F', payback = 'geri ödeme'
       </g>)}
       <text x={padL} y={H - 10}>yıl →</text>
     </svg>
+    </HoverChart>
   );
 }

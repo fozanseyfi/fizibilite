@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tipbox, NumF, TxtF, SelF, PrintReport, SeriesChart } from '@/components/models/native/mdl-kit';
-import { BreakdownTable, DayLegend, UseCard, daySvg } from '@/components/models/native/bess-kit';
+import { BreakdownTable, DayLegend, UseCard, DayChart } from '@/components/models/native/bess-kit';
 import { OptPanel, SohCard, TabActions } from '@/components/models/native/bess-panels';
 import { CiUsagePanel, SohStrategyPanel } from '@/components/models/native/bess-analysis';
 import { sohStrategiesCi } from '@/lib/models/bess/soh-strategy';
@@ -231,8 +231,8 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
             </div>
 
             <div className="grid2">
-              <div className="card bess-chart"><h3>Tipik gün — Temmuz <small>· hafta içi, kWh</small></h3><div dangerouslySetInnerHTML={{ __html: daySvg(m.summer, svgOpts) }} /><DayLegend lineLabel="Tüketim" chargeLabel2="Şebekeden şarj (gece)" /></div>
-              <div className="card bess-chart"><h3>Tipik gün — Ocak <small>· hafta içi, kWh</small></h3><div dangerouslySetInnerHTML={{ __html: daySvg(m.winter, svgOpts) }} /><DayLegend lineLabel="Tüketim" chargeLabel2="Şebekeden şarj (gece)" /></div>
+              <div className="card bess-chart"><h3>Tipik gün — Temmuz <small>· hafta içi, kWh</small></h3><DayChart t={m.summer} opts={svgOpts} /><DayLegend lineLabel="Tüketim" chargeLabel2="Şebekeden şarj (gece)" /></div>
+              <div className="card bess-chart"><h3>Tipik gün — Ocak <small>· hafta içi, kWh</small></h3><DayChart t={m.winter} opts={svgOpts} /><DayLegend lineLabel="Tüketim" chargeLabel2="Şebekeden şarj (gece)" /></div>
             </div>
 
             <SohCard soh={m.soh} degr={inputs.bDegr} />
@@ -271,7 +271,7 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
 
           {/* ==================== SAĞLIK ŞARTI STRATEJİSİ ==================== */}
           <div className={`tab ${tab === 'soh' ? 'active' : ''}`}>
-            <SohStrategyPanel capUnit="kWh" run={() => sohStrategiesCi(inputs)}
+            <SohStrategyPanel capUnit="kWh" baseCap={inputs.bKwh} run={() => sohStrategiesCi(inputs)}
               sohText={`${inputs.sohY1}. yıl ≥ %${inputs.sohP1}, ${inputs.sohY2}. yıl ≥ %${inputs.sohP2} · yıllık kayıp %${String(inputs.bDegr).replace('.', ',')}`}
               onApply={(r) => { setInputs((p) => ({ ...p, augYear: r.augYear, oversize: r.oversizePct })); setTab('results'); }} />
           </div>

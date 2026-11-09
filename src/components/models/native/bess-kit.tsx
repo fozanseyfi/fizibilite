@@ -2,6 +2,9 @@
 
 import type { DayTrace } from '@/lib/models/bess/common';
 import { nf } from '@/lib/models/fmt';
+import { HoverChart, type HoverCol } from '@/components/models/native/chart-hover';
+
+const DAY = { W: 760, H: 260, padL: 52, padR: 12, padT: 14, padB: 30 };
 
 /**
  * Tipik gün grafiği — SVG metni olarak üretilir; ekranda ve PDF raporunda aynı çizim kullanılır.
@@ -9,7 +12,7 @@ import { nf } from '@/lib/models/fmt';
  * Altta (eksen altı): bataryaya şarj — güneşten (yeşil), şebekeden / arbitrajdan (turuncu).
  */
 export function daySvg(t: DayTrace, opts: { unit: string; lineLabel: string; chargeLabel2: string }): string {
-  const W = 760, H = 260, padL = 52, padR = 12, padT = 14, padB = 30;
+  const { W, H, padL, padR, padT, padB } = DAY;
   const up = Math.max(1e-9, ...t.prod.map((v, h) => Math.max(v, t.cons[h], t.dis[h])));
   const down = Math.max(1e-9, ...t.chSolar.map((v, h) => v + t.chGrid[h]));
   const total = up + down;
@@ -42,6 +45,26 @@ export function daySvg(t: DayTrace, opts: { unit: string; lineLabel: string; cha
   parts.push(`<text x="${padL}" y="${padT - 3}" font-size="10">${opts.unit}</text>`);
   parts.push('</svg>');
   return parts.join('');
+}
+
+/** Ekrandaki tipik gün grafiği: daySvg çizimi + saat saat değerler (üzerine gelince) */
+export function DayChart({ t, opts }: { t: DayTrace; opts: { unit: string; lineLabel: string; chargeLabel2: string } }) {
+  const { W, H, padL, padR, padT, padB } = DAY;
+  const bw = (W - padL - padR) / 24;
+  const f = (v: number) => `${nf(v, v !== 0 && Math.abs(v) < 10 ? 2 : 1)} ${opts.unit}`;
+  const hh = (h: number) => String(h).padStart(2, '0') + ':00';
+  const cols: HoverCol[] = Array.from({ length: 24 }, (_, h) => ({
+    x0: padL + h * bw, x1: padL + (h + 1) * bw,
+    title: `${hh(h)} – ${hh((h + 1) % 24)}`,
+    rows: [
+      { label: 'GES üretimi', value: f(t.prod[h]), color: '#F4C76B' },
+      { label: 'Bataryadan deşarj', value: f(t.dis[h]), color: '#1E3A6E' },
+      { label: 'Şarj (güneş fazlası / kırpılan)', value: f(t.chSolar[h]), color: '#3D8B5F' },
+      { label: opts.chargeLabel2, value: f(t.chGrid[h]), color: '#D9822B' },
+      { label: opts.lineLabel, value: f(t.cons[h]), color: '#C0392B' },
+    ],
+  }));
+  return <HoverChart width={W} height={H} cols={cols} svgHtml={daySvg(t, opts)} top={padT} bottom={padB} />;
 }
 
 export function DayLegend({ lineLabel, chargeLabel2 }: { lineLabel: string; chargeLabel2: string }) {

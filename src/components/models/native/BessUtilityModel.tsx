@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tipbox, NumF, TxtF, SelF, PrintReport, SeriesChart } from '@/components/models/native/mdl-kit';
-import { BreakdownTable, DayLegend, UseCard, daySvg } from '@/components/models/native/bess-kit';
+import { BreakdownTable, DayLegend, UseCard, DayChart } from '@/components/models/native/bess-kit';
 import { OptPanel, SohCard, TabActions } from '@/components/models/native/bess-panels';
 import { SohStrategyPanel, UtilityUsagePanel } from '@/components/models/native/bess-analysis';
 import { sohStrategiesUtility } from '@/lib/models/bess/soh-strategy';
@@ -32,8 +32,8 @@ const T = {
   devPct: 'Üretim tahmininin gerçekleşenden ortalama sapması (yıllık üretimin %\'si).',
   imbCost: 'Sapan 1 MWh için ödenen ortalama dengesizlik maliyeti (TL/MWh).',
   imbReduce: 'Sapmanın bataryayla kapatılabilen kısmı.',
-  capexKwh: 'Enerji tarafı maliyeti: hücre + konteyner + BMS + EPC, kWh başına.',
-  capexKw: 'Güç dönüştürücü (PCS), orta gerilim trafosu ve bağlantı maliyeti, kW başına. C-oranı yükseldikçe aynı kapasiteye daha fazla MW gerekir; bu kalem büyür. Varsayılanlar 0,5C\'de toplam ≈220 $/kWh verir.',
+  cPrem: 'Yüksek C-oranlı bataryada aynı kWh için daha büyük güç dönüştürücü (PCS) ve trafo gerekir. Optimizasyon, Kurulum sekmesindeki fiyatı mevcut C-oranı için kabul eder ve diğer C-oranlarını bu farkla fiyatlar. 0 girerseniz C-oranı maliyeti değiştirmez.',
+  capexKwh: 'Anahtar teslim batarya kurulum maliyeti, kWh başına: hücre, konteyner, BMS, güç dönüştürücü (PCS), orta gerilim trafosu, bağlantı ve EPC dahil. Seçtiğiniz C-oranı için teklif edilen fiyatı girin — yüksek C-oranlı sistemlerin kWh fiyatı daha yüksektir.',
   cRate: 'Batarya gücünün kapasitesine oranı. 1C: tam kapasiteyi 1 saatte verir (yan hizmet, kısa zirveler). 0,5C: 2 saat. 0,25C: 4 saat (uzun akşam puantı arbitrajı). MW = MWh × C.',
   oversize: 'Beyan edilen kapasitenin üstüne kurulan pay. Güç değişmez; sağlık şartı beyan edilen kapasiteye göre kontrol edilir. Ekleme yapmadan şartı sağlamanın yolu budur — en iyi oranı 5. sekme hesaplar.',
   aug: 'Bu yılda, o güne kadar kaybolan kapasite kadar modül eklenir; kapasite yeniden %100 olur. Maliyet = kaybolan kWh × ekleme birim maliyeti.',
@@ -52,7 +52,9 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
     (): ProjectSummary => ({ kind: 'bess-utility', capexUsd: m.capex, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.payback, capacityLabel: `${nf(m.bMw, 1)} MW / ${nf(inputs.bMwh)} MWh` }),
     [m, inputs.bMwh]
   );
-  const runOpt = useCallback((sizes: number[], cRates: number[]) => optimizeBessUtility(inputs, sizes, cRates), [inputs]);
+  // Optimizasyonda C-oranları arası fiyat farkı ($/kW güç) — kurulum maliyeti tek kalem olduğu için yalnız burada
+  const [cPrem, setCPrem] = useState(60);
+  const runOpt = useCallback((sizes: number[], cRates: number[]) => optimizeBessUtility(inputs, sizes, cRates, cPrem), [inputs, cPrem]);
   const applySize = (cap: number, c: number) => { setInputs((p) => ({ ...p, bMwh: cap, cRate: c })); setTab('results'); };
   const { save, del, err } = useProjectSave({ projectId, kind: 'bess-utility', inputs, name: inputs.pname || 'Batarya Projesi', buildSummary });
 
@@ -184,14 +186,13 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
                 <NumF label="Kullanılabilir kapasite" unit="%" value={inputs.dod} onChange={(v) => set('dod', v)} step={1} />
                 <NumF label="Yıllık kapasite kaybı" unit="%" value={inputs.bDegr} onChange={(v) => set('bDegr', v)} step={0.5} />
                 <NumF label="Ekonomik ömür" unit="yıl" value={inputs.life} onChange={(v) => set('life', v)} step={1} />
-                <NumF label="Enerji maliyeti" unit="$/kWh" tip={T.capexKwh} value={inputs.capexKwh} onChange={(v) => set('capexKwh', v)} step={5} />
-                <NumF label="Güç dönüştürücü maliyeti" unit="$/kW" tip={T.capexKw} value={inputs.capexKw} onChange={(v) => set('capexKw', v)} step={5} />
+                <NumF label="Batarya kurulum maliyeti" unit="$/kWh, anahtar teslim" tip={T.capexKwh} value={inputs.capexKwh} onChange={(v) => set('capexKwh', v)} step={5} />
                 <NumF label="Yıllık bakım" unit="% CAPEX" value={inputs.opexPct} onChange={(v) => set('opexPct', v)} step={0.5} />
                 <NumF label="Kapasite fazlası" unit="% beyan edilen üstü" tip={T.oversize} value={inputs.oversize ?? 0} onChange={(v) => set('oversize', v)} step={0.5} />
                 <NumF label="Kapasite ekleme yılı" unit="0 = yok" tip={T.aug} value={inputs.augYear} onChange={(v) => set('augYear', v)} step={1} />
                 {inputs.augYear > 0 && <NumF label="Ekleme maliyeti" unit="$/kWh eklenen" value={inputs.augCost} onChange={(v) => set('augCost', v)} step={5} />}
               </div>
-              <div className="note">Toplam yatırım {usd(m.capex)} = {nf(inputs.bMwh)} MWh × {usd(inputs.capexKwh)}/kWh + {nf(m.bMw, 1)} MW × {usd(inputs.capexKw)}/kW (≈ {usd(inputs.bMwh > 0 ? m.capex / (inputs.bMwh * 1000) : 0)}/kWh).</div>
+              <div className="note">Toplam yatırım {usd(m.capex)} = {nf(inputs.bMwh * (1 + (inputs.oversize ?? 0) / 100), 2)} MWh × {usd(inputs.capexKwh)}/kWh.</div>
               <div className="grid4" style={{ marginTop: 12 }}>
                 <NumF label="Sağlık şartı · yıl" tip={T.soh} value={inputs.sohY1} onChange={(v) => set('sohY1', v)} step={1} />
                 <NumF label="En az kapasite" unit="%" value={inputs.sohP1} onChange={(v) => set('sohP1', v)} step={1} />
@@ -238,8 +239,8 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
             </div>
 
             <div className="grid2">
-              <div className="card bess-chart"><h3>Tipik gün — Temmuz <small>· MWh</small></h3><div dangerouslySetInnerHTML={{ __html: daySvg(m.summer, svgOpts) }} /><DayLegend lineLabel="Veriş sınırı (AC)" chargeLabel2="Arbitraj şarjı" /></div>
-              <div className="card bess-chart"><h3>Tipik gün — Ocak <small>· MWh</small></h3><div dangerouslySetInnerHTML={{ __html: daySvg(m.winter, svgOpts) }} /><DayLegend lineLabel="Veriş sınırı (AC)" chargeLabel2="Arbitraj şarjı" /></div>
+              <div className="card bess-chart"><h3>Tipik gün — Temmuz <small>· MWh</small></h3><DayChart t={m.summer} opts={svgOpts} /><DayLegend lineLabel="Veriş sınırı (AC)" chargeLabel2="Arbitraj şarjı" /></div>
+              <div className="card bess-chart"><h3>Tipik gün — Ocak <small>· MWh</small></h3><DayChart t={m.winter} opts={svgOpts} /><DayLegend lineLabel="Veriş sınırı (AC)" chargeLabel2="Arbitraj şarjı" /></div>
             </div>
 
             <SohCard soh={m.soh} degr={inputs.bDegr} />
@@ -267,7 +268,9 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
           {/* ==================== OPTİMİZASYON ==================== */}
           <div className={`tab ${tab === 'opt' ? 'active' : ''}`}>
             <OptPanel unitCap="MWh" unitPower="MW" current={inputs.bMwh} run={runOpt} onApply={applySize}
-              y1Label="1. yıl gelir" y1Fmt={(v) => usd(v)} />
+              y1Label="1. yıl gelir" y1Fmt={(v) => usd(v)}
+              extra={<NumF label="C-oranı fiyat farkı" unit="$/kW güç (PCS + trafo)" tip={T.cPrem} value={cPrem} onChange={setCPrem} step={5} />}
+              costNote={`Kurulum maliyeti (${usd(inputs.capexKwh)}/kWh) mevcut C-oranı içindir; diğer C-oranlarının kWh fiyatı güç farkı × ${usd(cPrem)}/kW kadar artar veya azalır (ör. 0,5C'den 1C'ye +${usd(cPrem * 0.5)}/kWh). Yan hizmet açıksa ayrılan güç payı (%) korunur; güç büyüdükçe yan hizmet de büyür.`} />
           </div>
 
           {/* ==================== KULLANIM ANALİZİ ==================== */}
@@ -277,7 +280,7 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
 
           {/* ==================== SAĞLIK ŞARTI STRATEJİSİ ==================== */}
           <div className={`tab ${tab === 'soh' ? 'active' : ''}`}>
-            <SohStrategyPanel capUnit="MWh" run={() => sohStrategiesUtility(inputs)}
+            <SohStrategyPanel capUnit="MWh" baseCap={inputs.bMwh} run={() => sohStrategiesUtility(inputs)}
               sohText={`${inputs.sohY1}. yıl ≥ %${inputs.sohP1}, ${inputs.sohY2}. yıl ≥ %${inputs.sohP2} · yıllık kayıp %${String(inputs.bDegr).replace('.', ',')}`}
               onApply={(r) => { setInputs((p) => ({ ...p, augYear: r.augYear, oversize: r.oversizePct })); setTab('results'); }} />
           </div>
