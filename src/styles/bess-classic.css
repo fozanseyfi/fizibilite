@@ -1,0 +1,94 @@
+/*
+ * Klasik görünüm — yalnızca Utility batarya modeli (.mdl.classic).
+ * Kurumsal rapor sadeliği + ölçülü vurgu; tablolar Excel benzeri (ızgara çizgili, gri başlık).
+ * model.css'teki genel stillerin üzerine yazar; diğer modelleri etkilemez.
+ */
+
+.mdl.classic {
+  --ink: #1d2733; --ink-soft: #55606e; --line: #d4d9e0;
+  --navy: #1f4e8c; --navy-deep: #16304f;
+  --green: #1e6b3f; --red: #a3231b;
+  --radius: 4px;
+  --shadow: none;
+  --sans: var(--font-inter), 'Segoe UI', Arial, sans-serif;
+  --disp: var(--sans);
+  --mono: var(--sans);
+  font-family: var(--sans);
+  font-size: 14.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Başlık ve sekmeler: düz lacivert, yuvarlatma az, altın vurgu yok ---- */
+.mdl.classic .m-header { background: var(--navy-deep); border-radius: var(--radius) var(--radius) 0 0; padding: 18px 20px 12px; }
+.mdl.classic .eyebrow { font-family: var(--sans); color: #9fb3cf; letter-spacing: .06em; font-size: 12px; font-weight: 600; }
+.mdl.classic h1 { font-family: var(--sans); font-weight: 700; font-size: clamp(20px, 2.6vw, 26px); letter-spacing: 0; }
+.mdl.classic .sub { color: #c3cfdf; font-size: 13.5px; }
+.mdl.classic .m-tabs { background: var(--navy-deep); box-shadow: none; border-bottom: 1px solid #0d2038; }
+.mdl.classic nav button { border-radius: 3px 3px 0 0; padding: 9px 16px; font-size: 14px; color: #b3c2d8; font-weight: 600; }
+.mdl.classic nav button.active { background: #ffffff; color: var(--navy-deep); }
+.mdl.classic .ta-btn { border-radius: 3px; font-size: 13px; padding: 6px 13px; }
+.mdl.classic .ta-btn.ghost { background: transparent; border-color: rgba(255, 255, 255, .45); }
+.mdl.classic .ta-btn.primary { background: #ffffff; border-color: #ffffff; color: var(--navy-deep); }
+.mdl.classic .ta-btn.primary:hover { background: #e8eef6; }
+
+/* ---- Kutular: ince çerçeve, gölge yok ---- */
+.mdl.classic .step,
+.mdl.classic .card,
+.mdl.classic .chartcard,
+.mdl.classic .sucard { border-radius: var(--radius); box-shadow: none; border-color: var(--line); }
+.mdl.classic .card { padding: 16px 18px; }
+.mdl.classic .card h3 { font-size: 16px; font-weight: 700; color: var(--navy-deep); padding-bottom: 8px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.mdl.classic .card h3 small { color: var(--ink-soft); font-size: 12.5px; font-weight: 400; }
+.mdl.classic .step-head { padding: 14px 18px; background: #f6f7f9; }
+.mdl.classic .step-head h2 { font-size: 16.5px; font-weight: 700; color: var(--navy-deep); }
+.mdl.classic .step-no { background: transparent; color: var(--ink-soft); padding: 0; font-family: var(--sans); font-size: 12px; letter-spacing: .06em; }
+.mdl.classic .combo-h { color: var(--navy-deep); font-size: 14.5px; }
+
+/* ---- Göstergeler: sade kutu, renk yalnız rakamda ---- */
+.mdl.classic .kpi { border-left: 1px solid var(--line); border-radius: var(--radius); box-shadow: none; padding: 12px 14px; }
+.mdl.classic .kpi .kl { font-family: var(--sans); font-size: 11.5px; letter-spacing: .04em; font-weight: 600; }
+.mdl.classic .kpi .kv { font-family: var(--sans); font-size: 22px; font-weight: 700; color: var(--navy-deep); }
+.mdl.classic .kpi.good { border-top: 3px solid var(--green); }
+.mdl.classic .kpi.bad { border-top: 3px solid var(--red); }
+.mdl.classic .kpi.good .kv { color: var(--green); }
+.mdl.classic .kpi.bad .kv { color: var(--red); }
+
+/* ---- Sonuç cümleleri: ölçülü vurgu ---- */
+.mdl.classic .soh-status { border-radius: var(--radius); font-size: 14px; padding: 10px 14px; }
+.mdl.classic .soh-status.ok { background: #eef5f0; border: 1px solid #c4d9ca; color: #1f4d2e; }
+.mdl.classic .soh-status.bad { background: #fbf1ef; border: 1px solid #e3c4bf; color: #6e2620; }
+.mdl.classic .note { background: #f6f7f9; border: 1px solid var(--line); border-radius: var(--radius); color: var(--ink-soft); }
+.mdl.classic .ctx-note { background: #f1f5fa; border: 1px solid #c9d6e6; border-radius: var(--radius); padding: 9px 13px; margin-bottom: 10px; font-size: 13.5px; color: var(--ink); }
+.mdl.classic .warnbox { border-radius: var(--radius); }
+.mdl.classic .pill { border-radius: 3px; }
+.mdl.classic .usecard { border-radius: var(--radius); border-width: 1px; }
+.mdl.classic .usecard.on { background: #f3f6fa; }
+.mdl.classic .usecard .uc-note { border-radius: 3px; }
+
+/* ---- Düğmeler ---- */
+.mdl.classic .btn-pdf { border-radius: 3px; padding: 9px 18px; font-size: 14px; }
+.mdl.classic .btn-mini { border-radius: 3px; border-width: 1px; font-size: 13px; padding: 5px 12px; }
+.mdl.classic .field input[type=number],
+.mdl.classic .field input[type=text],
+.mdl.classic .field select { border-radius: 3px; border-color: #c4cbd4; background: #ffffff; font-size: 14px; }
+
+/* ---- Tablolar: Excel benzeri ---- */
+.mdl.classic .tablewrap { border: none; border-radius: 0; background: transparent; }
+.mdl.classic table { font-family: var(--sans); font-size: 13px; border: 1px solid #b9c0ca; }
+.mdl.classic th,
+.mdl.classic td { border: 1px solid #d4d9e0; padding: 5px 9px; }
+.mdl.classic th { background: #e9edf2; color: #1d2733; font-weight: 700; border-color: #c4cbd4; }
+.mdl.classic tbody tr:hover td { background: #eef4fb; }
+.mdl.classic td.txt { text-align: left; }
+.mdl.classic td.pos { color: var(--green); font-weight: 400; }
+.mdl.classic td.neg { color: var(--red); }
+.mdl.classic tr.opt-best td { background: #fff2cc; font-weight: 700; }
+.mdl.classic tr.checkpoint td { background: #f2f2f2; }
+.mdl.classic table .btn-mini { margin-top: 0; padding: 2px 9px; font-size: 12px; }
+.mdl.classic .cm-on { color: var(--ink); font-size: 13px; }
+.mdl.classic .bb-bar { border-radius: 0 !important; height: 9px !important; background: #8fa9cc !important; }
+.mdl.classic .bb-bar.neg { background: #e0a9a3 !important; }
+
+/* ---- Grafik üzerine gelince kutusu ---- */
+.mdl.classic .hc-tip { border-radius: 3px; box-shadow: 0 2px 8px rgba(0, 0, 0, .12); font-family: var(--sans); }
+.mdl.classic svg text { font-family: var(--sans); }

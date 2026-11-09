@@ -36,10 +36,14 @@ const SHORT: Record<string, string> = {
 };
 
 function ComboSection<K extends string>({
-  result, labels, y1Label, y1Fmt, onApply,
+  result, labels, y1Label, y1Fmt, onApply, context, period,
 }: {
   result: ComboResult; labels: Record<K, string>; y1Label: string; y1Fmt: (v: number) => string;
   onApply: (uses: K[]) => void;
+  /** 1. tablonun üstünde gösterilecek bağlam notu (ör. YEKDEM etkisi) */
+  context?: React.ReactNode;
+  /** Ek sütun: belirli bir dönemde (ör. YEKDEM yılları) her kullanım şeklinin durumu */
+  period?: { label: string; values: Partial<Record<K, string>> };
 }) {
   const [showAll, setShowAll] = useState(false);
   const best = result.rows[0];
@@ -61,10 +65,11 @@ function ComboSection<K extends string>({
       </Verdict>
 
       <h4 className="combo-h">1 · Her kullanım şekli ne getiriyor?</h4>
+      {context && <div className="ctx-note">{context}</div>}
       <div className="tablewrap">
         <table className="combo-uses">
           <thead>
-            <tr><th>Kullanım şekli</th><th>Tek başına NPV</th><th style={{ width: '28%' }} />{result.marginal.length > 0 && <th>Diğerlerinin yanına eklenince</th>}</tr>
+            <tr><th>Kullanım şekli</th>{period && <th>{period.label}</th>}<th>Tek başına NPV</th><th style={{ width: '28%' }} />{result.marginal.length > 0 && <th>Diğerlerinin yanına eklenince</th>}</tr>
           </thead>
           <tbody>
             {all.map((u) => {
@@ -72,6 +77,7 @@ function ComboSection<K extends string>({
               return (
                 <tr key={u}>
                   <td>{labels[u]}</td>
+                  {period && <td className="txt">{period.values[u] ?? '—'}</td>}
                   <td className={a && a.npv < 0 ? 'neg' : 'pos'}>{a ? usd(a.npv) : '—'}</td>
                   <td>{a && <span className={`bb-bar ${a.npv < 0 ? 'neg' : ''}`} style={{ width: `${(Math.abs(a.npv) / maxAbs) * 100}%` }} />}</td>
                   {result.marginal.length > 0 && (
@@ -152,6 +158,7 @@ export function UtilityUsagePanel({
 }) {
   const [pvCapex, setPvCapex] = useState(300);
   const r = useRunner<UtRes>();
+  const ykYears = inputs.regime === 'yekdem' ? Math.max(0, Math.round(inputs.yekdemYears)) : 0;
   const disc = inputs.disc / 100;
   const run = () => r.go(() => ({
     combos: utUseCombos(inputs),
@@ -180,7 +187,16 @@ export function UtilityUsagePanel({
       {r.res && (
         <>
           <ComboSection result={r.res.combos} labels={UT_USE_LABELS} y1Label="1. yıl gelir" y1Fmt={(v) => usd(v)}
-            onApply={(uses) => onApply({ useClip: uses.includes('clip'), useArb: uses.includes('arb'), useAnc: uses.includes('anc'), useImb: uses.includes('imb') })} />
+            onApply={(uses) => onApply({ useClip: uses.includes('clip'), useArb: uses.includes('arb'), useAnc: uses.includes('anc'), useImb: uses.includes('imb') })}
+            context={ykYears === 0
+              ? <>Santral serbest piyasada: arbitraj ilk yıldan itibaren gelir getirir.</>
+              : ykYears >= inputs.life
+                ? <><b>YEKDEM etkisi:</b> santral tüm analiz süresince ({inputs.life} yıl) YEKDEM&apos;de. Fiyat her saat aynı ({nf(inputs.yekdemPrice)} $/MWh) olduğundan <b>arbitraj hiç gelir getirmez</b>. Kırpma kurtarma, yan hizmet ve dengesizlik YEKDEM&apos;de de çalışır.</>
+                : <><b>YEKDEM etkisi:</b> ilk {ykYears} yıl santral YEKDEM&apos;de. Fiyat her saat aynı ({nf(inputs.yekdemPrice)} $/MWh) olduğundan bu yıllarda <b>arbitraj gelir getirmez</b>; arbitraj geliri {ykYears + 1}. yıldan itibaren başlar. Kırpma kurtarma, yan hizmet ve dengesizlik YEKDEM döneminde de çalışır. YEKDEM süresinin etkisi için aşağıdaki 2. bölüme bakın.</>}
+            period={ykYears > 0 ? {
+              label: ykYears >= inputs.life ? 'YEKDEM döneminde' : `YEKDEM yıllarında (1–${ykYears})`,
+              values: { clip: 'Çalışır (YEKDEM fiyatıyla)', arb: 'Gelir yok', anc: 'Çalışır', imb: 'Çalışır' },
+            } : undefined} />
           <YekdemSection rows={r.res.yekdem} inputs={inputs} growth={r.res.growth} onApply={(yy) => onApply({ regime: 'yekdem', yekdemYears: yy })} />
           <AncSection cells={r.res.anc} inputs={inputs} onApply={(mw) => onApply({ useAnc: mw > 0, ancMw: mw })} />
           <ArbSection rows={r.res.arb} inputs={inputs} />

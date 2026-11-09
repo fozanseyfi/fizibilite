@@ -75,7 +75,7 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
         </div>
       </div>
 
-      <div className="mdl">
+      <div className="mdl classic">
         <div className="m-header">
           <div className="hwrap">
             <div className="eyebrow">Sadece Batarya · Utility · Lisanslı GES&apos;e ekleme</div>
