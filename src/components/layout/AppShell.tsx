@@ -18,6 +18,10 @@ const isAuthRoute = (p: string) => AUTH_ROUTES.some((r) => p === r || p.startsWi
 const PUBLIC_ROUTES = ["/p"];
 const isPublicRoute = (p: string) => PUBLIC_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
 
+/** Diğer platformlarla ortak şablonu koruyan sayfalar: klasik görünüm uygulanmaz */
+const PLATFORM_ROUTES = ['/admin/users', '/admin/account', '/admin/platforms', '/admin/contact'];
+const isPlatformRoute = (p: string) => PLATFORM_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
+
 /**
  * Uygulama kabuğu + istemci tarafı oturum koruması.
  * - Auth sayfaları: sadece içerik (oturum varsa ana sayfaya atar).
@@ -59,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-background">
         <AppSidebar />
         <div className="sidebar-aware flex min-h-screen flex-col pt-14">
-          <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className={`mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8 ${isPlatformRoute(pathname) ? '' : 'ui-classic'}`}>{children}</main>
           <AppFooter />
         </div>
       </div>

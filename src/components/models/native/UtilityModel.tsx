@@ -129,7 +129,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
         </div>
       </div>
 
-      <div className="mdl">
+      <div className="mdl classic">
         <div className="m-header">
           <div className="hwrap">
             <div className="eyebrow">Solar + Storage · Proje Finansmanı Analiz Aracı</div>

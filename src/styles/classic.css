@@ -1,7 +1,7 @@
 /*
- * Klasik görünüm — yalnızca Utility batarya modeli (.mdl.classic).
+ * Klasik görünüm — tüm modeller (.mdl.classic).
  * Kurumsal rapor sadeliği + ölçülü vurgu; tablolar Excel benzeri (ızgara çizgili, gri başlık).
- * model.css'teki genel stillerin üzerine yazar; diğer modelleri etkilemez.
+ * model.css'teki genel stillerin üzerine yazar.
  */
 
 .mdl.classic {
@@ -92,3 +92,48 @@
 /* ---- Grafik üzerine gelince kutusu ---- */
 .mdl.classic .hc-tip { border-radius: 3px; box-shadow: 0 2px 8px rgba(0, 0, 0, .12); font-family: var(--sans); }
 .mdl.classic svg text { font-family: var(--sans); }
+
+/* =====================================================================
+ * Uygulama sayfaları (.ui-classic): dashboard, projeler, paylaşım, rehberler…
+ * Kullanıcılar / hesabım / diğer platformlar / iletişim hariç (AppShell'de).
+ * ===================================================================== */
+.ui-classic {
+  --primary: 214 64% 33%;          /* lacivert #1f4e8c */
+  --primary-foreground: 0 0% 100%;
+  --ring: 214 64% 33%;
+  --accent: 214 38% 42%;           /* yeşil vurgu yerine sakin lacivert-gri */
+  --accent-foreground: 0 0% 100%;
+  --radius: 4px;
+  --border: 214 16% 86%;
+  --secondary: 214 20% 95%;
+  --muted: 214 20% 95%;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Köşeler: az yuvarlak; gölge yok */
+.ui-classic .rounded-sm, .ui-classic .rounded, .ui-classic .rounded-md,
+.ui-classic .rounded-lg, .ui-classic .rounded-xl, .ui-classic .rounded-2xl, .ui-classic .rounded-3xl { border-radius: 4px; }
+.ui-classic .rounded-full:not([class*="h-1"]):not([class*="h-2"]):not([class*="size-"]):not([class*="w-"]) { border-radius: 3px; }
+.ui-classic .shadow, .ui-classic .shadow-sm, .ui-classic .shadow-md, .ui-classic .shadow-lg, .ui-classic .shadow-xl,
+.ui-classic .shadow-soft, .ui-classic .shadow-medium, .ui-classic .shadow-large,
+.ui-classic [class*="hover\:shadow"]:hover { box-shadow: none !important; }
+
+/* Gradyanlar düz renge */
+.ui-classic .gradient-solar, .ui-classic .gradient-eco, .ui-classic .gradient-navy { background: #16304f; }
+.ui-classic .bg-gradient-to-br, .ui-classic .bg-gradient-to-r, .ui-classic .bg-gradient-to-b { background-image: none; background-color: #f6f7f9; }
+.ui-classic .bg-soft-gradient { background: hsl(var(--background)); }
+
+/* Başlıklar: sade, lacivert */
+.ui-classic h1:not(.mdl h1) { color: #16304f; letter-spacing: 0; }
+.ui-classic h2:not(.mdl h2), .ui-classic h3:not(.mdl h3) { letter-spacing: 0; }
+
+/* Animasyonlu girişleri kapat (sakin görünüm) */
+.ui-classic .animate-slide-up, .ui-classic [class*="animate-slide-up-delay"], .ui-classic .animate-in-up { animation: none; }
+
+/* Tablolar: Excel benzeri (model ve rapor tabloları kendi stillerini kullanır) */
+.ui-classic table:not(.mdl table):not(#mdl-report table) { border-collapse: collapse; border: 1px solid #b9c0ca; font-size: 13px; }
+.ui-classic table:not(.mdl table):not(#mdl-report table) th,
+.ui-classic table:not(.mdl table):not(#mdl-report table) td { border: 1px solid #d4d9e0; padding-top: 6px; padding-bottom: 6px; }
+.ui-classic table:not(.mdl table):not(#mdl-report table) thead tr,
+.ui-classic table:not(.mdl table):not(#mdl-report table) th { background: #e9edf2; color: #1d2733; font-weight: 700; }
+.ui-classic table:not(.mdl table):not(#mdl-report table) tbody tr:hover td { background: #eef4fb; }

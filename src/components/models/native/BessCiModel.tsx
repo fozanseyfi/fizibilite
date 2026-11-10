@@ -70,7 +70,7 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
         </div>
       </div>
 
-      <div className="mdl">
+      <div className="mdl classic">
         <div className="m-header">
           <div className="hwrap">
             <div className="eyebrow">Sadece Batarya · C&I / Mesken · Mevcut GES&apos;e ekleme</div>

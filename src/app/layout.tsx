@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import '@/styles/model.css';
-import '@/styles/bess-classic.css';
+import '@/styles/classic.css';
 import { cookies } from 'next/headers';
 import { Locale } from '@/lib/i18n';
 import { AppShell } from '@/components/layout/AppShell';

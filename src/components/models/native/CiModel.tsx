@@ -149,7 +149,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
         </div>
       </div>
 
-      <div className="mdl">
+      <div className="mdl classic">
         <div className="m-header">
           <div className="hwrap">
             <div className="eyebrow">C&I Solar · EPDK Karar 14531 · Saatlik Mahsuplaşma</div>
