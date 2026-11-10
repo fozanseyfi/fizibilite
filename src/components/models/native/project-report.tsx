@@ -1,5 +1,7 @@
 'use client';
 
+import { numLocale } from '@/lib/i18n';
+
 import { useCallback, useState } from 'react';
 import { FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +19,7 @@ import { computeBessUtility, type BessUtilityInputs } from '@/lib/models/bess/ut
 import { bessCiFromSaved, bessUtilityFromSaved } from '@/lib/models/bess/defaults';
 import { reportBessCi, reportBessUtility } from '@/components/models/native/bess-report';
 
-const today = () => new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+const today = () => new Date().toLocaleDateString(numLocale(), { day: 'numeric', month: 'long', year: 'numeric' });
 
 /** Kayıtlı projenin girdilerinden, model ekranındaki "Rapor çıktısı al" ile aynı raporu üretir. */
 export function buildReportHtml(project: StoredProject): string {

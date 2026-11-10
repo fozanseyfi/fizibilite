@@ -1,9 +1,7 @@
 'use client';
+import { numLocale } from '@/lib/i18n';
 
 import { useCallback, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Tipbox, NumF, TxtF, SelF, PrintReport, SeriesChart } from '@/components/models/native/mdl-kit';
 import { BreakdownTable, DayLegend, UseCard, DayChart } from '@/components/models/native/bess-kit';
 import { OptPanel, SohCard, TabActions } from '@/components/models/native/bess-panels';
@@ -67,14 +65,6 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
   return (
     <>
       <Tipbox />
-      <div className="flex items-center justify-between gap-3 flex-wrap no-print mb-3">
-        <Button asChild variant="ghost" size="sm"><Link href={projectId ? '/projects' : '/projects/new'}><ArrowLeft className="h-4 w-4 mr-1" /> {projectId ? 'Projeler' : 'Model seçimi'}</Link></Button>
-        <div className="flex items-center gap-2 flex-wrap">
-          {err && <span className="text-xs text-destructive">{err}</span>}
-          {projectId && <Button variant="outline" size="sm" onClick={del} className="text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 mr-1" /> Sil</Button>}
-        </div>
-      </div>
-
       <div className="mdl classic">
         <div className="m-header">
           <div className="hwrap">
@@ -92,7 +82,7 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
               <button className={tab === 'usage' ? 'active' : ''} onClick={() => setTab('usage')}>4 · Kullanım analizi</button>
               <button className={tab === 'soh' ? 'active' : ''} onClick={() => setTab('soh')}>5 · Sağlık şartı stratejisi</button>
             </nav>
-            <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} />
+            <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} onDelete={projectId ? del : undefined} err={err} />
           </div>
         </div>
 
@@ -288,7 +278,7 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
       </div>
 
       <PrintReport open={printing} onClose={() => setPrinting(false)}>
-        <div dangerouslySetInnerHTML={{ __html: reportBessUtility(inputs, m, { title: inputs.pname || 'Batarya Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }) }} />
+        <div dangerouslySetInnerHTML={{ __html: reportBessUtility(inputs, m, { title: inputs.pname || 'Batarya Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString(numLocale(), { day: 'numeric', month: 'long', year: 'numeric' }) }) }} />
       </PrintReport>
     </>
   );

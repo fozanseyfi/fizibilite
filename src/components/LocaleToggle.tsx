@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getClientLocale, setClientLocale, Locale } from '@/lib/i18n';
 
+/** TR | EN seçici. Seçim cookie'ye yazılır, sayfa yeniden yüklenir (sunucu da aynı dili render eder). */
 export function LocaleToggle() {
   const [locale, setLocaleState] = useState<Locale>('tr');
 
@@ -12,24 +12,33 @@ export function LocaleToggle() {
     setLocaleState(getClientLocale());
   }, []);
 
-  function switchLocale() {
-    const next: Locale = locale === 'tr' ? 'en' : 'tr';
+  function choose(next: Locale) {
+    if (next === locale) return;
     setClientLocale(next);
     setLocaleState(next);
-    // Server component'leri yeniden render için reload (cookie set edildi)
-    if (typeof window !== 'undefined') window.location.reload();
+    window.location.reload();
   }
 
-  return (
+  const btn = (l: Locale, label: string, title: string) => (
     <button
       type="button"
-      onClick={switchLocale}
-      className={cn('inline-flex h-9 items-center gap-1.5 px-2.5 rounded-md border border-border/40 bg-secondary hover:bg-secondary/80 transition-colors text-xs font-medium')}
-      aria-label={locale === 'tr' ? 'Switch to English' : 'Türkçe\'ye geç'}
-      title={locale === 'tr' ? 'Switch to English' : "Türkçe'ye geç"}
+      onClick={() => choose(l)}
+      aria-pressed={locale === l}
+      title={title}
+      data-no-i18n
+      className={cn(
+        'h-full px-2.5 text-xs font-semibold transition-colors',
+        locale === l ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
+      )}
     >
-      <Globe className="h-3.5 w-3.5" />
-      {locale === 'tr' ? 'TR' : 'EN'}
+      {label}
     </button>
+  );
+
+  return (
+    <div className="inline-flex h-9 items-center overflow-hidden rounded-md border border-border bg-secondary" data-no-i18n>
+      {btn('tr', 'TR', 'Türkçe')}
+      {btn('en', 'EN', 'English')}
+    </div>
   );
 }

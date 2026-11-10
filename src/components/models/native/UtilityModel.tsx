@@ -1,9 +1,7 @@
 'use client';
+import { numLocale } from '@/lib/i18n';
 
 import { useCallback, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Loader2, Trash2, FileDown } from 'lucide-react';
 import { computeUtility, computeUtilityHuawei, type UtilityInputs } from '@/lib/models/utility/engine';
 import { defaultUtilityInputs } from '@/lib/models/utility/defaults';
 import { Tipbox, NumF, TxtF, SelF, ChkF, SeriesChart, PrintReport } from '@/components/models/native/mdl-kit';
@@ -11,6 +9,7 @@ import * as R from '@/components/models/native/utility-render';
 import { musd, pct, nf } from '@/lib/models/fmt';
 import type { ProjectSummary } from '@/lib/models/types';
 import { useProjectSave } from '@/components/models/native/use-project-save';
+import { TabActions } from '@/components/models/native/bess-panels';
 
 const T = {
   mw: 'Santralin DC kurulu gücü (panellerin toplam gücü). Modeldeki her şey bununla ölçeklenir: CAPEX = MWp×1000×$/kWp, üretim E₁ = MWp×1000×spesifik üretim×…',
@@ -119,16 +118,6 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
   return (
     <>
       <Tipbox />
-      <div className="flex items-center justify-between gap-3 flex-wrap no-print mb-3">
-        <Button asChild variant="ghost" size="sm"><Link href={projectId ? '/projects' : '/projects/new'}><ArrowLeft className="h-4 w-4 mr-1" /> {projectId ? 'Projeler' : 'Model seçimi'}</Link></Button>
-        <div className="flex items-center gap-2">
-          {err && <span className="text-xs text-destructive">{err}</span>}
-          {projectId && <Button variant="outline" size="sm" onClick={del} disabled={saving} className="text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 mr-1" /> Sil</Button>}
-          <Button onClick={() => setPrinting(true)} disabled={saving} size="sm"><FileDown className="h-4 w-4 mr-1.5" /> Rapor çıktısı al</Button>
-          <Button onClick={save} disabled={saving} size="sm">{saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}{projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'}</Button>
-        </div>
-      </div>
-
       <div className="mdl classic">
         <div className="m-header">
           <div className="hwrap">
@@ -138,12 +127,13 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
           </div>
         </div>
         <div className="m-tabs">
-          <div className="hwrap">
+          <div className="hwrap tabs-row">
             <nav role="tablist">
               <button className={tab === 'fiz' ? 'active' : ''} onClick={() => setTab('fiz')}>1 · Fizibilite Modeli</button>
               <button className={tab === 'hw' ? 'active' : ''} onClick={() => setTab('hw')}>2 · Huawei Değer Analizi</button>
               <button className={tab === 'sum' ? 'active' : ''} onClick={() => setTab('sum')}>3 · Sonuçlar</button>
             </nav>
+            <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} onDelete={projectId ? del : undefined} err={err} saving={saving} />
           </div>
         </div>
 
@@ -464,7 +454,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
       </div>
 
       <PrintReport open={printing} onClose={() => setPrinting(false)}>
-        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(inputs, p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }, scens) }} />
+        <div dangerouslySetInnerHTML={{ __html: R.reportUtility(inputs, p, m, hw, { title: inputs.pname || 'Utility Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString(numLocale(), { day: 'numeric', month: 'long', year: 'numeric' }) }, scens) }} />
       </PrintReport>
     </>
   );

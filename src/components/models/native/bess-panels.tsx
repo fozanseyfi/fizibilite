@@ -232,11 +232,16 @@ export function OptPanel({
 // ============================ SEKME SATIRI DÜĞMELERİ ============================
 
 /** Kurulum / Sonuçlar sekmeleriyle aynı hizada, sağda Rapor ve Kaydet */
-export function TabActions({ onReport, onSave, saveLabel }: { onReport: () => void; onSave: () => void; saveLabel: string }) {
+export function TabActions({ onReport, onSave, saveLabel, onDelete, saving, err }: {
+  onReport: () => void; onSave: () => void; saveLabel: string;
+  onDelete?: () => void; saving?: boolean; err?: string | null;
+}) {
   return (
     <div className="tab-actions no-print">
-      <button type="button" className="ta-btn ghost" onClick={onReport}>Rapor çıktısı al</button>
-      <button type="button" className="ta-btn primary" onClick={onSave}>{saveLabel}</button>
+      {err && <span className="ta-err">{err}</span>}
+      {onDelete && <button type="button" className="ta-btn danger" onClick={onDelete} disabled={saving}>Sil</button>}
+      <button type="button" className="ta-btn ghost" onClick={onReport} disabled={saving}>Rapor çıktısı al</button>
+      <button type="button" className="ta-btn primary" onClick={onSave} disabled={saving}>{saving ? 'Kaydediliyor…' : saveLabel}</button>
     </div>
   );
 }

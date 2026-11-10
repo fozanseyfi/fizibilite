@@ -1,5 +1,7 @@
 'use client';
 
+import { numLocale } from '@/lib/i18n';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -78,7 +80,7 @@ export default function DashboardPage() {
                 {rows.map((r) => (
                   <tr key={r.id} className="hover:bg-secondary/30">
                     <td className="px-5 py-3">
-                      <Link href={`/projects/${r.id}`} className="font-medium text-foreground hover:underline">
+                      <Link href={`/projects/${r.id}`} className="font-medium text-foreground hover:underline" data-no-i18n>
                         {r.name}
                       </Link>
                       {(r.firm || r.loc) && (
@@ -100,7 +102,7 @@ export default function DashboardPage() {
                         : '—'}
                     </td>
                     <td className="hidden px-3 py-3 text-right text-xs text-muted-foreground lg:table-cell">
-                      {new Date(r.updatedAt).toLocaleDateString('tr-TR')}
+                      {new Date(r.updatedAt).toLocaleDateString(numLocale())}
                     </td>
                     <td className="px-5 py-2 text-right">
                       <ReportButton busy={report.busyId === r.id} onClick={() => report.print(r.project)} />

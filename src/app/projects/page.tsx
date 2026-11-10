@@ -1,5 +1,7 @@
 'use client';
 
+import { numLocale } from '@/lib/i18n';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,9 +62,9 @@ function ProjectCard({ r }: { r: Row }) {
               {isUtil ? <Building2 className="h-3 w-3" /> : <Home className="h-3 w-3" />}
               {KIND_SHORT[r.kind as keyof typeof KIND_SHORT] ?? r.kind}
             </span>
-            <span className="text-[10px] text-muted-foreground">{new Date(r.updatedAt).toLocaleDateString('tr-TR')}</span>
+            <span className="text-[10px] text-muted-foreground">{new Date(r.updatedAt).toLocaleDateString(numLocale())}</span>
           </div>
-          <CardTitle className="text-base leading-snug">{r.name}</CardTitle>
+          <CardTitle className="text-base leading-snug" data-no-i18n>{r.name}</CardTitle>
           <CardDescription className="text-xs">{r.summary.capacityLabel}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">

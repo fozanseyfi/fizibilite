@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, FolderOpen, Plus, BookOpen, FlaskConical, BookText, HelpCircle,
-  MessageCircle, Users, Share2, ScrollText, UserCircle2, Boxes,
+  MessageCircle, Users, Share2, UserCircle2, Boxes,
   ChevronLeft, ChevronRight, ChevronDown, Menu, X, LogOut,
 } from 'lucide-react';
 import { BrandMark } from '@/components/layout/BrandMark';
@@ -44,7 +44,6 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/admin/users', icon: Users, label: 'Kullanıcılar' },
       { href: '/admin/share', icon: Share2, label: 'Paylaşım Linkleri' },
-      { href: '/admin/audit', icon: ScrollText, label: 'Aktivite Kayıtları' },
       { href: '/admin/account', icon: UserCircle2, label: 'Hesabım' },
     ],
   },
@@ -321,7 +320,7 @@ function UserMenu({ compact = false }: { compact?: boolean }) {
         {!compact && (
           <>
             <div className="min-w-0 leading-tight">
-              <p className="truncate text-[13px] font-semibold text-foreground">{session.fullName}</p>
+              <p className="truncate text-[13px] font-semibold text-foreground" data-no-i18n>{session.fullName}</p>
               <p className="truncate text-[11px] text-muted-foreground">{session.email}</p>
             </div>
             <ChevronDown className={cn('size-3.5 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} />
@@ -336,7 +335,7 @@ function UserMenu({ compact = false }: { compact?: boolean }) {
           )}
         >
           <div className="border-b bg-secondary/40 px-3 py-2">
-            <p className="truncate text-sm font-semibold text-foreground">{session.fullName}</p>
+            <p className="truncate text-sm font-semibold text-foreground" data-no-i18n>{session.fullName}</p>
             <p className="truncate text-xs text-muted-foreground">
               {session.email} · {ROLE_LABELS[session.role]}
             </p>

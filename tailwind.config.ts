@@ -64,16 +64,16 @@ const config: Config = {
           dark: '#047857',
         },
         navy: {
-          DEFAULT: '#0f172a',
+          DEFAULT: 'rgb(var(--c-navy) / <alpha-value>)',
           light: '#1e293b',
         },
         // ---------- Admin/Yönetim sayfaları (emerald tema) ----------
         // Düz isimler (text2, bg2, accent2, blue2) — eski "shadcn" tema bozulmaz.
         // NOT: "accent" zaten shadcn block'unda HSL emerald-tone tanımlı; admin sayfaları da o değeri kullanır.
         accent2: '#047857',
-        text: '#0f172a',    text2: '#475569',   text3: '#94a3b8',
-        bg: '#ffffff',      bg2: '#f8fafc',     bg3: '#f1f5f9',  bg4: '#e2e8f0',
-        border2: '#cbd5e1',
+        text: 'rgb(var(--c-text) / <alpha-value>)',    text2: 'rgb(var(--c-text2) / <alpha-value>)',   text3: 'rgb(var(--c-text3) / <alpha-value>)',
+        bg: 'rgb(var(--c-bg) / <alpha-value>)',      bg2: 'rgb(var(--c-bg2) / <alpha-value>)',     bg3: 'rgb(var(--c-bg3) / <alpha-value>)',  bg4: 'rgb(var(--c-bg4) / <alpha-value>)',
+        border2: 'rgb(var(--c-border2) / <alpha-value>)',
         blue: '#3b82f6',    blue2: '#2563eb',
         green: '#059669',
         red: '#ef4444',

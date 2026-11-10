@@ -91,7 +91,7 @@ export default function AccountPage() {
                 <UserCircle2 className="size-3" />
                 Hesabım
               </span>
-              <h1 className="truncate text-2xl font-bold tracking-tight">{session.fullName}</h1>
+              <h1 className="truncate text-2xl font-bold tracking-tight" data-no-i18n>{session.fullName}</h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
                 <span className="inline-flex items-center gap-1.5 rounded-md border bg-card px-2 py-0.5 font-semibold">
                   <Shield className="size-3 text-primary" />

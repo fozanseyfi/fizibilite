@@ -1,3 +1,4 @@
+import { numLocale } from '@/lib/i18n';
 // Utility — mevcut lisanslı GES santraline sonradan batarya ekleme fizibilitesi
 // (üretim tesisine bütünleşik depolama).
 //
@@ -193,7 +194,7 @@ export function computeBessUtility(inputs: BessUtilityInputs): BessUtilityModel 
   if (p.useArb && yekdemAll) warnings.push('YEKDEM süresi analiz süresini kapsıyor: YEKDEM fiyatı her saat aynı olduğundan arbitraj kazancı sıfır çıkar.');
   if (p.useClip && p.clipPct === 0 && p.curtPct === 0) warnings.push('Kırpma ve kısıntı oranı %0: kurtarılacak enerji yok. PVsyst raporundaki inverter kırpma kaybını ve kısıntı varsayımını girin.');
   if (p.useAnc) warnings.push('Yan hizmet geliri iyimser senaryodur: santral içi bataryanın PFK/SFK\'ya katılımı TEİAŞ testleri ve anlaşmasına bağlıdır; saatlik teklif usulü 1 Ocak 2027\'de başlar.');
-  if (p.bMw > p.acMw * 1.001) warnings.push(`Batarya gücü (${p.bMw.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} MW) şebeke bağlantı gücünü (${p.acMw.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} MW AC) aşıyor. Santral içi depolamada verilebilecek güç bağlantı gücüyle sınırlı; aşan kısım ne arbitrajda ne yan hizmette kullanılabilir — daha düşük C-oranı seçin.`);
+  if (p.bMw > p.acMw * 1.001) warnings.push(`Batarya gücü (${p.bMw.toLocaleString(numLocale(), { maximumFractionDigits: 1 })} MW) şebeke bağlantı gücünü (${p.acMw.toLocaleString(numLocale(), { maximumFractionDigits: 1 })} MW AC) aşıyor. Santral içi depolamada verilebilecek güç bağlantı gücüyle sınırlı; aşan kısım ne arbitrajda ne yan hizmette kullanılabilir — daha düşük C-oranı seçin.`);
   if (p.useAnc && p.ancMw >= p.bMw && p.bMw > 0) warnings.push('Bataryanın tamamı yan hizmete ayrıldı; arbitraj ve kırpma kurtarma için güç kalmadı.');
 
   const capex = p.bMwh * 1000 * p.over * p.capexKwh + p.bMw * 1000 * p.capexKw;

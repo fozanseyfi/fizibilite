@@ -1,9 +1,7 @@
 'use client';
+import { numLocale } from '@/lib/i18n';
 
 import { useCallback, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Loader2, Trash2, FileDown } from 'lucide-react';
 import { computeCi, type CiInputs } from '@/lib/models/ci/engine';
 import { defaultCiInputs } from '@/lib/models/ci/defaults';
 import {
@@ -15,6 +13,7 @@ import * as R from '@/components/models/native/ci-render';
 import { nf, usd, pct } from '@/lib/models/fmt';
 import type { ProjectSummary } from '@/lib/models/types';
 import { useProjectSave } from '@/components/models/native/use-project-save';
+import { TabActions } from '@/components/models/native/bess-panels';
 
 // ---- % grid yardımcıları (HTML buildPctGrid / rescaleZones portu) ----
 function setPctCell(arr: number[], k: number, raw: number): number[] {
@@ -139,16 +138,6 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   return (
     <>
       <Tipbox />
-      <div className="flex items-center justify-between gap-3 flex-wrap no-print mb-3">
-        <Button asChild variant="ghost" size="sm"><Link href={projectId ? '/projects' : '/projects/new'}><ArrowLeft className="h-4 w-4 mr-1" /> {projectId ? 'Projeler' : 'Model seçimi'}</Link></Button>
-        <div className="flex items-center gap-2">
-          {err && <span className="text-xs text-destructive">{err}</span>}
-          {projectId && <Button variant="outline" size="sm" onClick={del} disabled={saving} className="text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 mr-1" /> Sil</Button>}
-          <Button onClick={() => setPrinting(true)} disabled={saving} size="sm"><FileDown className="h-4 w-4 mr-1.5" /> Rapor çıktısı al</Button>
-          <Button onClick={save} disabled={saving} size="sm">{saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}{projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'}</Button>
-        </div>
-      </div>
-
       <div className="mdl classic">
         <div className="m-header">
           <div className="hwrap">
@@ -158,7 +147,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
           </div>
         </div>
         <div className="m-tabs">
-          <div className="hwrap">
+          <div className="hwrap tabs-row">
             <nav role="tablist">
               {chip(tab === 'fiz', '1 · Fizibilite Modeli', () => setTab('fiz'))}
               {chip(tab === 'hours', '2 · Saatlik Veri', () => setTab('hours'))}
@@ -166,6 +155,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               {chip(tab === 'cmp', '4 · Saatlik vs Aylık', () => setTab('cmp'))}
               {chip(tab === 'sum', '5 · Sonuçlar', () => setTab('sum'))}
             </nav>
+            <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} onDelete={projectId ? del : undefined} err={err} saving={saving} />
           </div>
         </div>
 
@@ -556,7 +546,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
 
       {modal && <Modal title={modal.title} onClose={() => setModal(null)}><Html html={modal.body} /></Modal>}
       <PrintReport open={printing} onClose={() => setPrinting(false)}>
-        <div dangerouslySetInnerHTML={{ __html: R.reportCi(inputs, m, { title: inputs.pname || 'C&I Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }), profileLabel: PROFILE_LABELS[inputs.profileId as ProfileKey] || inputs.profileId }) }} />
+        <div dangerouslySetInnerHTML={{ __html: R.reportCi(inputs, m, { title: inputs.pname || 'C&I Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString(numLocale(), { day: 'numeric', month: 'long', year: 'numeric' }), profileLabel: PROFILE_LABELS[inputs.profileId as ProfileKey] || inputs.profileId }) }} />
       </PrintReport>
     </>
   );

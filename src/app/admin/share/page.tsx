@@ -7,6 +7,7 @@ import {
   Share2, Copy, Check, Plus, X, Mail, MessageSquare, QrCode, Download, Send, Trash2, ExternalLink, Loader2,
 } from "lucide-react";
 import { useStore, type ShareLink } from "@/lib/admin-store";
+import { appLocale } from "@/lib/i18n";
 import { useSession } from "@/lib/auth-store";
 import { useMyProjects } from "@/lib/project-store";
 import { encodeShare, shareUrl } from "@/lib/share-link";
@@ -82,7 +83,7 @@ export default function SharePage() {
               <tbody>
                 {links.map((l) => (
                   <tr key={l.id} className="border-b border-border last:border-0">
-                    <td className="py-2.5 px-1 font-medium text-text">{l.projectName}</td>
+                    <td className="py-2.5 px-1 font-medium text-text" data-no-i18n>{l.projectName}</td>
                     <td className="py-2.5 px-1 text-text2 whitespace-nowrap">{formatDate(l.createdAt)}</td>
                     <td className="py-2.5 px-1 whitespace-nowrap">
                       {isExpired(l) ? (
@@ -283,12 +284,16 @@ function SendDialog({ link, onClose }: { link: ShareLink; onClose: () => void })
   const [showQr, setShowQr] = useState(false);
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
-  const subject = `${link.projectName} — fizibilite raporu`;
-  const body =
-    `Merhaba,\n\n“${link.projectName}” projesinin fizibilite raporunu aşağıdaki linkten görüntüleyebilirsiniz:\n\n${link.url}\n\n` +
-    (link.expiresAt ? `Link ${formatDate(link.expiresAt)} tarihine kadar geçerlidir.\n\n` : "") +
-    (session?.fullName ?? "");
-  const shortText = `“${link.projectName}” fizibilite raporu: ${link.url}`;
+  const en = appLocale() === "en";
+  const subject = en ? `${link.projectName} — feasibility report` : `${link.projectName} — fizibilite raporu`;
+  const body = en
+    ? `Hello,\n\nYou can view the feasibility report of the “${link.projectName}” project at the link below:\n\n${link.url}\n\n` +
+      (link.expiresAt ? `The link is valid until ${formatDate(link.expiresAt)}.\n\n` : "") +
+      (session?.fullName ?? "")
+    : `Merhaba,\n\n“${link.projectName}” projesinin fizibilite raporunu aşağıdaki linkten görüntüleyebilirsiniz:\n\n${link.url}\n\n` +
+      (link.expiresAt ? `Link ${formatDate(link.expiresAt)} tarihine kadar geçerlidir.\n\n` : "") +
+      (session?.fullName ?? "");
+  const shortText = en ? `“${link.projectName}” feasibility report: ${link.url}` : `“${link.projectName}” fizibilite raporu: ${link.url}`;
 
   useEffect(() => {
     QRCode.toDataURL(link.url, { errorCorrectionLevel: "L", margin: 2, width: 320, color: { dark: "#0B2350", light: "#ffffff" } })

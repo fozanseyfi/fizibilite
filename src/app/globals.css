@@ -26,6 +26,10 @@
     --input: 214 32% 91%;
     --ring: 38 92% 50%;
     --radius: 0.625rem;
+    /* Yönetim sayfası renkleri (tailwind text, text2, text3, bg, bg2-4, border2, navy) */
+    --c-text: 15 23 42; --c-text2: 71 85 105; --c-text3: 148 163 184;
+    --c-bg: 255 255 255; --c-bg2: 248 250 252; --c-bg3: 241 245 249; --c-bg4: 226 232 240;
+    --c-border2: 203 213 225; --c-navy: 15 23 42;
   }
 
   .dark {
@@ -48,6 +52,9 @@
     --border: 217 33% 20%;
     --input: 217 33% 20%;
     --ring: 38 92% 55%;
+    --c-text: 226 232 240; --c-text2: 160 174 192; --c-text3: 113 128 150;
+    --c-bg: 17 24 39; --c-bg2: 22 30 46; --c-bg3: 28 38 56; --c-bg4: 41 53 74;
+    --c-border2: 51 65 85; --c-navy: 203 213 225;
   }
 
   * {
@@ -134,3 +141,13 @@ details > summary::-webkit-details-marker { display: none; }
   .break-avoid { break-inside: avoid; }
   body { background: #fff; }
 }
+
+/* Gece modu: sabit beyaz zeminler ve beyaza giden geçişler karta uyar */
+.dark .bg-white:not(.keep-white) { background-color: hsl(var(--card)); }
+.dark .bg-white\/95 { background-color: hsl(var(--card) / .95); }
+.dark [class*="to-white"] { --tw-gradient-to: hsl(var(--card)) var(--tw-gradient-to-position); }
+.dark [class*="via-white"] { --tw-gradient-stops: var(--tw-gradient-from), hsl(var(--card)) var(--tw-gradient-via-position), var(--tw-gradient-to); }
+.dark .bg-\[\#F4F6FA\] { background-color: hsl(var(--secondary)); }
+
+/* EN: sayfa çevrilene kadar Türkçe metin görünmesin (en fazla 2,5 sn) */
+html.i18n-pending body { visibility: hidden; }

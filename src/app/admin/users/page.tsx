@@ -188,7 +188,7 @@ export default function UsersPage() {
                   const me = u.id === session.id;
                   return (
                     <tr key={u.id} className="hover:bg-secondary/30">
-                      <td className="px-4 py-3 font-medium">{u.fullName}</td>
+                      <td className="px-4 py-3 font-medium" data-no-i18n>{u.fullName}</td>
                       <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                       <td className="px-4 py-3">
                         {me || !isAdmin ? (

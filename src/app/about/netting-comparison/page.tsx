@@ -1,3 +1,4 @@
+import { numLocale } from '@/lib/i18n';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -130,22 +131,22 @@ export default function NettingComparisonPage() {
               <ComparisonRow label="Yıllık Tüketim" m="50.000 kWh" h="50.000 kWh" diff="0 — aynı" />
               <ComparisonRow
                 label="Mahsuplaşılan (kWh)"
-                m={`${monthlyNetted.toLocaleString('tr-TR')} kWh`}
-                h={`${hourlyNetted.toLocaleString('tr-TR')} kWh`}
-                diff={`−${(monthlyNetted - hourlyNetted).toLocaleString('tr-TR')} kWh`}
+                m={`${monthlyNetted.toLocaleString(numLocale())} kWh`}
+                h={`${hourlyNetted.toLocaleString(numLocale())} kWh`}
+                diff={`−${(monthlyNetted - hourlyNetted).toLocaleString(numLocale())} kWh`}
                 negative
               />
               <ComparisonRow
                 label="Fazla Üretim (kWh)"
-                m={`${monthlySurplus.toLocaleString('tr-TR')} kWh`}
-                h={`${hourlySurplus.toLocaleString('tr-TR')} kWh`}
-                diff={`+${(hourlySurplus - monthlySurplus).toLocaleString('tr-TR')} kWh`}
+                m={`${monthlySurplus.toLocaleString(numLocale())} kWh`}
+                h={`${hourlySurplus.toLocaleString(numLocale())} kWh`}
+                diff={`+${(hourlySurplus - monthlySurplus).toLocaleString(numLocale())} kWh`}
               />
               <ComparisonRow
                 label="Şebekeden Çekilen (kWh)"
                 m="0 (mahsup kapsadı)"
-                h={`${hourlyNetConsumption.toLocaleString('tr-TR')} kWh`}
-                diff={`+${hourlyNetConsumption.toLocaleString('tr-TR')} kWh`}
+                h={`${hourlyNetConsumption.toLocaleString(numLocale())} kWh`}
+                diff={`+${hourlyNetConsumption.toLocaleString(numLocale())} kWh`}
                 negative
               />
               <tr className="border-t-2 border-foreground/30 bg-secondary/40">
@@ -153,29 +154,29 @@ export default function NettingComparisonPage() {
               </tr>
               <ComparisonRow
                 label="Mahsup Tasarrufu (× alış)"
-                m={`${monthlySavings.toLocaleString('tr-TR')} TL`}
-                h={`${hourlySavings.toLocaleString('tr-TR')} TL`}
-                diff={`−${(monthlySavings - hourlySavings).toLocaleString('tr-TR')} TL`}
+                m={`${monthlySavings.toLocaleString(numLocale())} TL`}
+                h={`${hourlySavings.toLocaleString(numLocale())} TL`}
+                diff={`−${(monthlySavings - hourlySavings).toLocaleString(numLocale())} TL`}
                 negative
               />
               <ComparisonRow
                 label="Fazla Üretim Satışı (× satış)"
-                m={`${monthlySaleRevenue.toLocaleString('tr-TR')} TL`}
-                h={`${hourlySaleRevenue.toLocaleString('tr-TR')} TL`}
-                diff={`+${(hourlySaleRevenue - monthlySaleRevenue).toLocaleString('tr-TR')} TL`}
+                m={`${monthlySaleRevenue.toLocaleString(numLocale())} TL`}
+                h={`${hourlySaleRevenue.toLocaleString(numLocale())} TL`}
+                diff={`+${(hourlySaleRevenue - monthlySaleRevenue).toLocaleString(numLocale())} TL`}
               />
               <ComparisonRow
                 label="Şebekeden Alış Faturası (× alış)"
                 m="0"
-                h={`−${hourlyNetBill.toLocaleString('tr-TR')} TL`}
-                diff={`−${hourlyNetBill.toLocaleString('tr-TR')} TL`}
+                h={`−${hourlyNetBill.toLocaleString(numLocale())} TL`}
+                diff={`−${hourlyNetBill.toLocaleString(numLocale())} TL`}
                 negative
               />
               <tr className="border-t-2 border-foreground/60 bg-primary/5 font-bold">
                 <td className="px-3 py-2 whitespace-nowrap">NET YILLIK FAYDA</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{monthlyTotal.toLocaleString('tr-TR')} TL</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{hourlyTotal.toLocaleString('tr-TR')} TL</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap text-destructive">−{difference.toLocaleString('tr-TR')} TL (-%{((difference / monthlyTotal) * 100).toFixed(0)})</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">{monthlyTotal.toLocaleString(numLocale())} TL</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">{hourlyTotal.toLocaleString(numLocale())} TL</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap text-destructive">−{difference.toLocaleString(numLocale())} TL (-%{((difference / monthlyTotal) * 100).toFixed(0)})</td>
               </tr>
             </tbody>
           </table>

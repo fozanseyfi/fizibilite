@@ -1,5 +1,7 @@
 'use client';
 
+import { numLocale } from '@/lib/i18n';
+
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -111,9 +113,9 @@ export function NettingCalculator() {
 
       {/* Sonuçlar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <Metric label="Üretim" value={`${totals.sumGen.toLocaleString('tr-TR')} kWh`} color="solar" />
-        <Metric label="Tüketim" value={`${totals.sumCons.toLocaleString('tr-TR')} kWh`} color="navy" />
-        <Metric label="Mahsup" value={`${totals.sumNetted.toLocaleString('tr-TR')} kWh`} color="eco" />
+        <Metric label="Üretim" value={`${totals.sumGen.toLocaleString(numLocale())} kWh`} color="solar" />
+        <Metric label="Tüketim" value={`${totals.sumCons.toLocaleString(numLocale())} kWh`} color="navy" />
+        <Metric label="Mahsup" value={`${totals.sumNetted.toLocaleString(numLocale())} kWh`} color="eco" />
         <Metric label="Öz Tüketim Oranı" value={`%${(totals.selfConsumption * 100).toFixed(0)}`} color="eco" sub={`Otonomi: %${(totals.autonomy * 100).toFixed(0)}`} />
       </div>
 
@@ -122,15 +124,15 @@ export function NettingCalculator() {
         <div className="text-xs font-semibold mb-3 text-muted-foreground">GÜNLÜK FİNANSAL ETKİ (Ticarethane LV tarife)</div>
         <table className="w-full text-sm">
           <tbody>
-            <FinRow label="Mahsuplaşma tasarrufu" value={`+${totals.savings.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} TL`} note={`${totals.sumNetted.toFixed(0)} kWh × ${PURCHASE_PRICE} TL`} positive />
-            <FinRow label="Fazla üretim satışı" value={`+${totals.surplusRevenue.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} TL`} note={`${totals.sumSurplus.toFixed(0)} kWh × ${SALE_PRICE} TL`} positive />
-            <FinRow label="Şebekeden alış (akşam/gece)" value={`−${totals.gridBill.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} TL`} note={`${totals.sumNetCons.toFixed(0)} kWh × ${PURCHASE_PRICE} TL`} negative />
+            <FinRow label="Mahsuplaşma tasarrufu" value={`+${totals.savings.toLocaleString(numLocale(), { maximumFractionDigits: 0 })} TL`} note={`${totals.sumNetted.toFixed(0)} kWh × ${PURCHASE_PRICE} TL`} positive />
+            <FinRow label="Fazla üretim satışı" value={`+${totals.surplusRevenue.toLocaleString(numLocale(), { maximumFractionDigits: 0 })} TL`} note={`${totals.sumSurplus.toFixed(0)} kWh × ${SALE_PRICE} TL`} positive />
+            <FinRow label="Şebekeden alış (akşam/gece)" value={`−${totals.gridBill.toLocaleString(numLocale(), { maximumFractionDigits: 0 })} TL`} note={`${totals.sumNetCons.toFixed(0)} kWh × ${PURCHASE_PRICE} TL`} negative />
             <tr className="border-t-2 border-foreground/40 font-bold">
               <td className="py-2">Net Günlük Fayda</td>
               <td className="py-2 text-right tabular-nums whitespace-nowrap text-primary">
-                {totals.netDailyBenefit >= 0 ? '+' : ''}{totals.netDailyBenefit.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} TL/gün
+                {totals.netDailyBenefit >= 0 ? '+' : ''}{totals.netDailyBenefit.toLocaleString(numLocale(), { maximumFractionDigits: 0 })} TL/gün
               </td>
-              <td className="py-2 text-right text-xs text-muted-foreground">≈ {(totals.netDailyBenefit * 365).toLocaleString('tr-TR', { maximumFractionDigits: 0 })} TL/yıl</td>
+              <td className="py-2 text-right text-xs text-muted-foreground">≈ {(totals.netDailyBenefit * 365).toLocaleString(numLocale(), { maximumFractionDigits: 0 })} TL/yıl</td>
             </tr>
           </tbody>
         </table>

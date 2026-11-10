@@ -251,13 +251,13 @@ function AncSection({ cells, inputs, onApply }: { cells: AncCell[]; inputs: Bess
     <div className="card">
       <h3>Yan hizmet olursa ne çıkar? <small>· ayrılan güç × kapasite bedeli, NPV (USD)</small></h3>
       <Verdict tone={bestAtPrice.npv > 0 ? 'ok' : 'bad'}>
-        Yan hizmetsiz NPV {usd(none.npv)}. Girilen fiyatla ({nf(inputs.ancPrice)} TL/MW-saat) en iyi ayrım: <b>{nf(bestAtPrice.mw, 1)} MW</b> (güç payı %{nf(bestAtPrice.mwShare * 100)}) — NPV {usd(bestAtPrice.npv)}.
-        Fiyat yarıya inerse en iyi ayrım {nf(bestAtHalf.mw, 1)} MW (güç payı %{nf(bestAtHalf.mwShare * 100)}) — NPV {usd(bestAtHalf.npv)}.{' '}
+        Yan hizmetsiz NPV {usd(none.npv)}. Girilen fiyatla ({nf(inputs.ancPrice)} TL/MW-saat) en iyi ayrım: <b>{nf(bestAtPrice.mw, 1)} MW</b> (güç payı {pct(bestAtPrice.mwShare * 100, 0)}) — NPV {usd(bestAtPrice.npv)}.
+        Fiyat yarıya inerse en iyi ayrım {nf(bestAtHalf.mw, 1)} MW (güç payı {pct(bestAtHalf.mwShare * 100, 0)}) — NPV {usd(bestAtHalf.npv)}.{' '}
         <button className="btn-mini" onClick={() => onApply(bestAtPrice.mw)}>{nf(bestAtPrice.mw, 1)} MW uygula</button>
       </Verdict>
       <div className="tablewrap">
         <table>
-          <thead><tr><th>Fiyat (TL/MW-saat)</th>{shares.map((s) => <th key={s}>%{nf(s * 100)} güç</th>)}</tr></thead>
+          <thead><tr><th>Fiyat (TL/MW-saat)</th>{shares.map((s) => <th key={s}>{pct(s * 100, 0)} güç</th>)}</tr></thead>
           <tbody>
             {factors.map((f) => (
               <tr key={f}>
@@ -311,7 +311,7 @@ function DcSection({ rows, inputs, pvCapex, onApply }: { rows: DcRow[]; inputs: 
     <div className="card">
       <h3>DC kapasiteyi artırırsam? <small>· AC / lisans gücü sabit, kırpma artar</small></h3>
       <Verdict tone={bestWith.deltaWithBess > 0 ? 'ok' : 'bad'}>
-        Bataryasız en iyisi DC&apos;yi <b>%{bestNo.addPct}</b> artırmak ({signed(bestNo.deltaNoBess)}); bataryalı en iyisi <b>%{bestWith.addPct}</b> ({signed(bestWith.deltaWithBess)}, DC/AC {nf(bestWith.ratio, 2)}).
+        Bataryasız en iyisi DC&apos;yi <b>{pct(bestNo.addPct, 0)}</b> artırmak ({signed(bestNo.deltaNoBess)}); bataryalı en iyisi <b>{pct(bestWith.addPct, 0)}</b> ({signed(bestWith.deltaWithBess)}, DC/AC {nf(bestWith.ratio, 2)}).
         {bestWith.addPct > bestNo.addPct ? ' Batarya kırpılan enerjiyi kurtardığı için daha fazla DC eklemeyi kârlı kılıyor.' : ''}
         {bestWith === rows[rows.length - 1] ? ' Bu, denenen en büyük artış; daha fazlası da kârlı görünebilir — ancak mevzuattaki mekanik güç sınırını, inverter DC giriş sınırlarını ve kırpma tahmininin kabalığını göz önünde bulundurun.' : ''}{' '}
         {bestWith.addPct > 0 && <button className="btn-mini" onClick={() => onApply(bestWith)}>DC {nf(bestWith.dcMwp, 1)} MWp uygula</button>}
@@ -331,7 +331,7 @@ function DcSection({ rows, inputs, pvCapex, onApply }: { rows: DcRow[]; inputs: 
         </table>
       </div>
       <div className="note">
-        Kırpma oranı: girilen %{nf(inputs.clipPct, 1)} + açık / parçalı bulutlu / kapalı gün tipleriyle öngörülen artış (kaba tahmin; kesin değer için PVsyst). Fark sütunları, mevcut duruma göre bugünkü değer farkıdır ve ek panel yatırımı ({nf(pvCapex)} $/kWp) düşülmüştür; ek panelin bakım gideri dahil değildir.
+        Kırpma oranı: girilen {pct(inputs.clipPct, 1)} + açık / parçalı bulutlu / kapalı gün tipleriyle öngörülen artış (kaba tahmin; kesin değer için PVsyst). Fark sütunları, mevcut duruma göre bugünkü değer farkıdır ve ek panel yatırımı ({nf(pvCapex)} $/kWp) düşülmüştür; ek panelin bakım gideri dahil değildir.
         Lisanslı santralde DC (mekanik) güç artışı lisans ve ilgili mevzuat sınırlarına tabidir — uygulamadan önce kontrol edin.
       </div>
     </div>
@@ -445,7 +445,7 @@ export function SohStrategyPanel({
           <Verdict tone={best.npv > 0 ? 'ok' : 'bad'}>
             {zero && zero.oversizePct === 0 && <>Bu kayıp oranıyla şart, ekleme ve fazla kapasite olmadan zaten sağlanıyor; aşağıdaki eklemeler şart için değil, kaybolan kapasiteyi geri kazanıp gelir artırmak içindir. </>}
             En iyi yol: <b>{stratName(best)}</b> — bugün <b>{capText(best)}</b> kurulur{best.augYear > 0 ? <>, {best.augYear}. yılda {usd(best.augUsd)} harcanıp modül eklenir</> : ''}. NPV {usd(best.npv)}.{' '}
-            {spread < tiny && <> Seçenekler arasındaki fark çok küçük (en fazla {usd(spread)}, yatırımın %{nf((spread / Math.max(1, best.capex)) * 100, 2)}&apos;si) — bu karar projenin sonucunu belirlemiyor.</>}{' '}
+            {spread < tiny && <> Seçenekler arasındaki fark çok küçük (en fazla {usd(spread)}, yatırımın {pct((spread / Math.max(1, best.capex)) * 100, 2)}&apos;si) — bu karar projenin sonucunu belirlemiyor.</>}{' '}
             <button className="btn-mini" onClick={() => onApply(best)}>Bunu uygula</button>
           </Verdict>
 

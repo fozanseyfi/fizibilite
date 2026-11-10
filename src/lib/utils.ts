@@ -1,3 +1,4 @@
+import { numLocale } from '@/lib/i18n';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -14,7 +15,7 @@ export function formatTl(n: number, opts: { compact?: boolean; decimals?: number
     if (abs >= 1e6) return `${(n / 1e6).toFixed(2)} M ₺`;
     if (abs >= 1e3) return `${(n / 1e3).toFixed(1)} B ₺`;
   }
-  return new Intl.NumberFormat('tr-TR', {
+  return new Intl.NumberFormat(numLocale(), {
     style: 'currency',
     currency: 'TRY',
     maximumFractionDigits: decimals,
@@ -56,7 +57,7 @@ export function formatKwh(n: number, opts: { compact?: boolean } = {}): string {
     if (abs >= 1e6) return `${(n / 1e6).toFixed(2)} GWh`;
     if (abs >= 1e3) return `${(n / 1e3).toFixed(1)} MWh`;
   }
-  return `${new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(n)} kWh`;
+  return `${new Intl.NumberFormat(numLocale(), { maximumFractionDigits: 0 }).format(n)} kWh`;
 }
 
 export function formatPct(n: number, decimals = 1): string {
@@ -79,7 +80,7 @@ export function formatDate(iso: string | Date): string {
   if (!iso) return '—';
   const d = typeof iso === 'string' ? new Date(iso) : iso;
   if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString(numLocale(), { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 /** ISO datetime → "25 May 2026, 14:30" */
@@ -87,7 +88,7 @@ export function formatDateTime(iso: string | Date): string {
   if (!iso) return '—';
   const d = typeof iso === 'string' ? new Date(iso) : iso;
   if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleString(numLocale(), { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 /** Date → "YYYY-MM-DD" */

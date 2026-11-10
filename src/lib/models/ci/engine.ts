@@ -1,3 +1,4 @@
+import { numLocale } from '@/lib/i18n';
 // C&I / Mesken (Saatlik Mahsuplaşma) modeli — hesap motoru.
 // Kaynak: "C&I Saatlik Mahsuplaşma Fizibilite Kokpiti — EPDK 14531" HTML'inin JS motoru.
 // Matematik birebir korunmuştur; yalnızca TypeScript tipleri eklenmiştir.
@@ -360,7 +361,7 @@ export function ciSummary(inputs: CiInputs, m: CiModel): import('../types').Proj
     paybackYears: m.pb,
     selfConsumption: selfC,
     capacityLabel: inputs.bessOn
-      ? `${inputs.kwp.toLocaleString('tr-TR')} kWp + ${inputs.bKwh.toLocaleString('tr-TR')} kWh`
-      : `${inputs.kwp.toLocaleString('tr-TR')} kWp`,
+      ? `${inputs.kwp.toLocaleString(numLocale())} kWp + ${inputs.bKwh.toLocaleString(numLocale())} kWh`
+      : `${inputs.kwp.toLocaleString(numLocale())} kWp`,
   };
 }

@@ -118,3 +118,15 @@ export function t(key: string, locale: Locale = 'tr'): string {
 // Backwards compat
 export const getLocale = getClientLocale;
 export const setLocale = setClientLocale;
+
+// ---------- Etkin dil (sayı/tarih biçimi için) ----------
+// İstemci: cookie. Sunucu: layout render sırasında globalThis.__APP_LOCALE'e yazılır.
+
+export function appLocale(): Locale {
+  if (typeof document !== 'undefined') return getClientLocale();
+  const g = globalThis as { __APP_LOCALE?: Locale };
+  return g.__APP_LOCALE === 'en' ? 'en' : 'tr';
+}
+
+/** Intl biçimlendirme yereli: 'tr-TR' veya 'en-US' */
+export const numLocale = (): string => (appLocale() === 'en' ? 'en-US' : 'tr-TR');

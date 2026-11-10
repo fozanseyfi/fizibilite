@@ -1,3 +1,4 @@
+import { numLocale } from '@/lib/i18n';
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -96,4 +97,4 @@ export function FeatureChip({
 }
 
 export const formatDateTr = (iso: string) =>
-  new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
+  new Intl.DateTimeFormat(numLocale(), { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));

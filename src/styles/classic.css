@@ -137,3 +137,107 @@
 .ui-classic table:not(.mdl table):not(#mdl-report table) thead tr,
 .ui-classic table:not(.mdl table):not(#mdl-report table) th { background: #e9edf2; color: #1d2733; font-weight: 700; }
 .ui-classic table:not(.mdl table):not(#mdl-report table) tbody tr:hover td { background: #eef4fb; }
+
+/* =====================================================================
+ * GECE MODU (html.dark) — modeller ve uygulama sayfaları
+ * ===================================================================== */
+.dark .ui-classic {
+  --primary: 214 60% 62%;
+  --primary-foreground: 222 47% 8%;
+  --ring: 214 60% 62%;
+  --accent: 214 35% 55%;
+  --accent-foreground: 222 47% 8%;
+  --border: 217 25% 22%;
+  --secondary: 217 28% 16%;
+  --muted: 217 28% 16%;
+}
+.dark .ui-classic h1:not(.mdl h1) { color: #dbe5f3; }
+.dark .ui-classic .bg-gradient-to-br, .dark .ui-classic .bg-gradient-to-r, .dark .ui-classic .bg-gradient-to-b { background-color: hsl(var(--card)); }
+.dark .ui-classic .bg-white { background-color: hsl(var(--card)); }
+.dark .ui-classic .gradient-solar, .dark .ui-classic .gradient-eco, .dark .ui-classic .gradient-navy { background: #1d3557; }
+.dark .ui-classic table:not(.mdl table):not(#mdl-report table) { border-color: #34425a; }
+.dark .ui-classic table:not(.mdl table):not(#mdl-report table) th,
+.dark .ui-classic table:not(.mdl table):not(#mdl-report table) td { border-color: #2a3647; }
+.dark .ui-classic table:not(.mdl table):not(#mdl-report table) thead tr,
+.dark .ui-classic table:not(.mdl table):not(#mdl-report table) th { background: #1b2636; color: #dbe5f3; }
+.dark .ui-classic table:not(.mdl table):not(#mdl-report table) tbody tr:hover td { background: #1a2a40; }
+
+/* ---- Modeller ---- */
+.dark .mdl {
+  --bg: #0d1420; --surface: #121b28; --ink: #e2e8f0; --ink-soft: #9aa7b8; --line: #2a3647;
+  --navy: #4f7fc4; --navy-deep: #0b1a2f; --gold-soft: #2a2414;
+  --green: #4cc38a; --green-soft: #12291e; --red: #f07a73; --red-soft: #2c1617;
+  color: var(--ink);
+}
+.dark .mdl.classic { --ink: #e2e8f0; --ink-soft: #9aa7b8; --line: #2a3647; --navy: #4f7fc4; --navy-deep: #0b1a2f; --green: #4cc38a; --red: #f07a73; }
+.dark .mdl .m-tabs { border-bottom-color: #060e1a; }
+.dark .mdl nav button.active { background: var(--surface); color: #e2e8f0; }
+.dark .mdl .ta-btn.primary { background: #dbe5f3; border-color: #dbe5f3; color: #0b1a2f; }
+
+/* Başlık/vurgu metinleri: lacivert yerine açık renk */
+.dark .mdl .card h3, .dark .mdl .step-head h2, .dark .mdl .combo-h, .dark .mdl .kpi .kv,
+.dark .mdl .subst, .dark .mdl h4 { color: #dbe5f3; }
+.dark .mdl .kpi.good .kv { color: var(--green); }
+.dark .mdl .kpi.bad .kv { color: var(--red); }
+.dark .mdl .step-head { background: #17212f; }
+
+/* Açık zeminli kutular */
+.dark .mdl .formula-card, .dark .mdl .formula, .dark .mdl .codechip { background: #172234; border-color: #2c3b52; }
+.dark .mdl .subst { border-top-color: #34445c; }
+.dark .mdl .note { background: #172030; border-color: var(--line); color: var(--ink-soft); }
+.dark .mdl .ctx-note { background: #142236; border-color: #2c3e58; color: var(--ink); }
+.dark .mdl .soh-status.ok { background: #12291e; border-color: #24533a; color: #a6e3c3; }
+.dark .mdl .soh-status.bad { background: #2c1617; border-color: #5a2a2a; color: #f3b2ad; }
+.dark .mdl .duo .dcard.g { border-color: #24533a; }
+.dark .mdl .duo .dcard.r { border-color: #5a2a2a; }
+.dark .mdl .usecard.on { background: #162336; }
+.dark .mdl .chips button { background: var(--surface); }
+.dark .mdl .btn-mini { background: transparent; color: #a9c4ec; border-color: #4f7fc4; }
+.dark .mdl .btn-mini:hover { background: #4f7fc4; color: #fff; }
+
+/* Giriş alanları */
+.dark .mdl .field input[type=number], .dark .mdl .field input[type=text], .dark .mdl .field select,
+.dark .mdl .hgrid input, .dark .mdl input, .dark .mdl select, .dark .mdl textarea {
+  background: #0f1724; border-color: #34425a; color: var(--ink);
+}
+.dark .mdl .field .unit, .dark .mdl .hlbl { color: #7d8aa0; }
+
+/* Tablolar */
+.dark .mdl table { border-color: #34425a; }
+.dark .mdl th, .dark .mdl td { border-color: #2a3647; }
+.dark .mdl th { background: #1b2636; color: #dbe5f3; }
+.dark .mdl tbody tr:hover td { background: #1a2a40; }
+.dark .mdl tr.opt-best td { background: #3a3215; color: #f5e7b5; }
+.dark .mdl tr.checkpoint td { background: #1a2230; }
+.dark .mdl .senstable td.base { background: #2a2414; }
+.dark .mdl .bb-bar { background: #4f6f9c !important; }
+.dark .mdl .bb-bar.neg { background: #9c5550 !important; }
+
+/* Grafikler (SVG): metin ve ızgara */
+.dark .mdl svg text { fill: #a9b4c4; }
+.dark .mdl svg [stroke="#E2E7EF"], .dark .mdl svg [stroke="#e2e7ef"], .dark .mdl svg [stroke="#EEF1F6"] { stroke: #2a3647; }
+.dark .mdl svg [stroke="#5A6478"] { stroke: #8391a5; }
+.dark .mdl svg rect[fill="#fff"], .dark .mdl svg rect[fill="#FFFFFF"], .dark .mdl svg rect[fill="#ffffff"] { fill: var(--surface); }
+.dark .mdl .hc-tip { background: #0f1724; color: var(--ink); border-color: #34425a; }
+
+/* Açılır pencere (tablo detayı) */
+.dark #mdl-modal .m-card { background: #121b28; color: #e2e8f0; }
+.dark #mdl-modal .m-h { border-bottom-color: #2a3647; }
+.dark #mdl-modal .m-x { background: #1b2636; color: #9aa7b8; }
+.dark #mdl-modal .m-b table { border-color: #2a3647; }
+.dark #mdl-modal .m-b th { background: #1b2636; color: #dbe5f3; }
+.dark #mdl-modal .m-b td { border-top-color: #2a3647; }
+.dark #mdl-modal .m-b .mnote { color: #9aa7b8; }
+.dark .mdl .soh-bar { background: #233044; }
+.dark .mdl .pill.ok { background: #17382a; color: #9be0bd; }
+.dark .mdl .pill.bad { background: #3d1c1a; color: #f3b2ad; }
+.dark .mdl svg [fill="#C9D3E4"] { fill: #4a5d7a; }
+.dark .mdl i[style*="#C9D3E4"] { background: #4a5d7a !important; }
+.dark .hc-tip { background: #0f1724; color: #e2e8f0; border-color: #34425a; }
+
+/* Sekme satırındaki işlem düğmeleri: Sil / Rapor / Kaydet */
+.mdl .tab-actions { align-items: center; }
+.mdl .ta-btn.danger { background: transparent; color: #ffb4ad; border: 1px solid rgba(255, 140, 130, .55); }
+.mdl .ta-btn.danger:hover { background: rgba(199, 0, 11, .25); color: #fff; }
+.mdl .ta-btn:disabled { opacity: .6; cursor: default; }
+.mdl .ta-err { font-size: 12px; color: #ffb4ad; max-width: 260px; }
