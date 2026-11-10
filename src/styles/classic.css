@@ -241,3 +241,29 @@
 .mdl .ta-btn.danger:hover { background: rgba(199, 0, 11, .25); color: #fff; }
 .mdl .ta-btn:disabled { opacity: .6; cursor: default; }
 .mdl .ta-err { font-size: 12px; color: #ffb4ad; max-width: 260px; }
+
+/* ---- Adım çizgisi (modelin solundaki boşlukta, step-rail.tsx) ---- */
+.step-rail { position: fixed; z-index: 15; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+.step-rail .sr-line { position: absolute; top: calc(var(--sr-size) / 2); bottom: calc(var(--sr-size) / 2); left: 50%; width: 2px; transform: translateX(-50%); background: #c9d3e0; }
+.step-rail .sr-dot {
+  position: relative; width: var(--sr-size); height: var(--sr-size); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex: none;
+  font: 700 11px/1 var(--font-inter), 'Segoe UI', Arial, sans-serif; font-variant-numeric: tabular-nums;
+  background: #ffffff; color: #55606e; border: 1.5px solid #b9c3d1; cursor: pointer; padding: 0;
+  transition: background .15s, color .15s, border-color .15s, transform .15s;
+}
+.step-rail .sr-dot:hover { border-color: #1f4e8c; color: #1f4e8c; transform: scale(1.08); }
+.step-rail .sr-dot.past { background: #e3eaf4; border-color: #8fa9cc; color: #1f4e8c; }
+.step-rail .sr-dot.on { background: #16304f; border-color: #16304f; color: #ffffff; }
+.step-rail .sr-dot:focus-visible { outline: 2px solid #1f4e8c; outline-offset: 2px; }
+.step-rail .sr-tip {
+  position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+  white-space: nowrap; background: #16304f; color: #fff; font-weight: 600; font-size: 12px;
+  padding: 5px 9px; border-radius: 3px; pointer-events: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+}
+.dark .step-rail .sr-line { background: #2f3d52; }
+.dark .step-rail .sr-dot { background: #121b28; color: #9aa7b8; border-color: #3a4a62; }
+.dark .step-rail .sr-dot.past { background: #1b2a40; border-color: #4f6f9c; color: #a9c4ec; }
+.dark .step-rail .sr-dot.on { background: #4f7fc4; border-color: #4f7fc4; color: #fff; }
+.dark .step-rail .sr-tip { background: #dbe5f3; color: #0b1a2f; }
+@media print { .step-rail { display: none !important; } }

@@ -14,6 +14,7 @@ import { nf, usd, pct } from '@/lib/models/fmt';
 import type { ProjectSummary } from '@/lib/models/types';
 import { useProjectSave } from '@/components/models/native/use-project-save';
 import { TabActions } from '@/components/models/native/bess-panels';
+import { StepRail } from '@/components/models/native/step-rail';
 
 // ---- % grid yardımcıları (HTML buildPctGrid / rescaleZones portu) ----
 function setPctCell(arr: number[], k: number, raw: number): number[] {
@@ -139,6 +140,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
     <>
       <Tipbox />
       <div className="mdl classic">
+        <StepRail />
         <div className="m-header">
           <div className="hwrap">
             <div className="eyebrow">C&I Solar · EPDK Karar 14531 · Saatlik Mahsuplaşma</div>

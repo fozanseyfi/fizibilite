@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Tipbox, NumF, TxtF, SelF, PrintReport, SeriesChart } from '@/components/models/native/mdl-kit';
 import { BreakdownTable, DayLegend, UseCard, DayChart } from '@/components/models/native/bess-kit';
 import { OptPanel, SohCard, TabActions } from '@/components/models/native/bess-panels';
+import { StepRail } from '@/components/models/native/step-rail';
 import { SohStrategyPanel, UtilityUsagePanel } from '@/components/models/native/bess-analysis';
 import { sohStrategiesUtility } from '@/lib/models/bess/soh-strategy';
 import { optimizeBessUtility } from '@/lib/models/bess/optimize';
@@ -66,6 +67,7 @@ export function BessUtilityModel({ projectId, initialInputs }: { projectId?: str
     <>
       <Tipbox />
       <div className="mdl classic">
+        <StepRail />
         <div className="m-header">
           <div className="hwrap">
             <div className="eyebrow">Sadece Batarya · Utility · Lisanslı GES&apos;e ekleme</div>

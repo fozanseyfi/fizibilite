@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Tipbox, NumF, TxtF, SelF, PrintReport, SeriesChart } from '@/components/models/native/mdl-kit';
 import { BreakdownTable, DayLegend, UseCard, DayChart } from '@/components/models/native/bess-kit';
 import { OptPanel, TabActions } from '@/components/models/native/bess-panels';
+import { StepRail } from '@/components/models/native/step-rail';
 import { CiUsagePanel } from '@/components/models/native/bess-analysis';
 import { CI_USE_LABELS, reportBessCi } from '@/components/models/native/bess-report';
 import { useProjectSave } from '@/components/models/native/use-project-save';
@@ -61,6 +62,7 @@ export function BessCiModel({ projectId, initialInputs }: { projectId?: string; 
     <>
       <Tipbox />
       <div className="mdl classic">
+        <StepRail />
         <div className="m-header">
           <div className="hwrap">
             <div className="eyebrow">Sadece Batarya · C&I / Mesken · Mevcut GES&apos;e ekleme</div>

@@ -10,6 +10,7 @@ import { musd, pct, nf } from '@/lib/models/fmt';
 import type { ProjectSummary } from '@/lib/models/types';
 import { useProjectSave } from '@/components/models/native/use-project-save';
 import { TabActions } from '@/components/models/native/bess-panels';
+import { StepRail } from '@/components/models/native/step-rail';
 
 const T = {
   mw: 'Santralin DC kurulu gücü (panellerin toplam gücü). Modeldeki her şey bununla ölçeklenir: CAPEX = MWp×1000×$/kWp, üretim E₁ = MWp×1000×spesifik üretim×…',
@@ -119,6 +120,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
     <>
       <Tipbox />
       <div className="mdl classic">
+        <StepRail />
         <div className="m-header">
           <div className="hwrap">
             <div className="eyebrow">Solar + Storage · Proje Finansmanı Analiz Aracı</div>
