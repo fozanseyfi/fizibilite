@@ -21,13 +21,36 @@ function titleOf(el: HTMLElement): string {
   return raw.replace(/\s+/g, ' ').split(' · ')[0].trim().slice(0, 80) || 'Bölüm';
 }
 
+/** Bölüm olmayan ara başlıklar (Sonuçlar sayfasındaki "Temel Göstergeler", tablo başlıkları vb.) */
+const HEAD_SEL = '.exec-sect, h3.sect';
+/** Tek büyük bölümün içindeki alt başlıklar */
+const SUB_SEL = '.card, .chartcard, .sucard, .formula-card, h3, h4, .exec-sect, .sect';
+
+const visible = (el: HTMLElement) => el.offsetParent !== null && el.offsetHeight > 8;
+const outermost = (list: HTMLElement[]) => list.filter((el) => !list.some((o) => o !== el && o.contains(el)));
+const textTitle = (el: HTMLElement) => (el.textContent ?? '').replace(/\s+/g, ' ').split(' · ')[0].trim().slice(0, 80);
+
 function collect(root: HTMLElement): Item[] {
   const tab = root.querySelector('.tab.active') as HTMLElement | null;
   if (!tab) return [];
-  const all = Array.from(tab.querySelectorAll(SECTION_SEL)) as HTMLElement[];
-  // İç içe olanları ele (yalnız en dıştaki bölüm), görünmeyenleri at
-  const outer = all.filter((el) => !all.some((o) => o !== el && o.contains(el)) && el.offsetParent !== null && el.offsetHeight > 24);
-  return outer.map((el) => ({ el, title: titleOf(el) }));
+  const sections = outermost(Array.from(tab.querySelectorAll(SECTION_SEL)) as HTMLElement[]).filter((el) => visible(el) && el.offsetHeight > 24);
+  // Bölüm dışında kalan ara başlıklar; hemen ardından bir bölüm geliyorsa o bölüm zaten sayılır
+  const heads = (Array.from(tab.querySelectorAll(HEAD_SEL)) as HTMLElement[]).filter((h) => {
+    if (!visible(h) || sections.some((s) => s.contains(h))) return false;
+    const next = h.nextElementSibling as HTMLElement | null;
+    return !(next && sections.includes(next));
+  });
+  const els = [...sections, ...heads].sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+  let items = els.map((el) => ({ el, title: heads.includes(el) ? textTitle(el) : titleOf(el) }));
+
+  // Sekmede tek bölüm varsa: onun içindeki alt başlıkları nokta yap
+  if (items.length === 1) {
+    const only = items[0];
+    const subs = outermost((Array.from(only.el.querySelectorAll(SUB_SEL)) as HTMLElement[]).filter((e) => visible(e) && !e.closest('.step-head') && textTitle(e)))
+      .filter((e) => !e.closest('table'));
+    if (subs.length >= 2) items = [only, ...subs.map((el) => ({ el, title: /^(H3|H4)$/.test(el.tagName) || el.matches('.exec-sect, .sect') ? textTitle(el) : titleOf(el) }))];
+  }
+  return items.map((it) => ({ el: it.el, title: it.title || 'Bölüm' }));
 }
 
 export function StepRail() {
@@ -57,9 +80,17 @@ export function StepRail() {
         const pad = parseFloat(getComputedStyle(main).paddingLeft) || 0;
         const mainLeft = main.getBoundingClientRect().left;
         const size = Math.min(24, pad - 6);
-        setGeo(size >= 16 ? { x: mainLeft + pad / 2, size, top: offset() } : null);
+        setGeo(size >= 16 ? { x: mainLeft + pad / 2, size, top: railTop() } : null);
       });
     };
+    // Ray, başlık kapağının bittiği yerden (sekme çubuğunun altından) başlar; sekme çubuğu
+    // yapıştıktan sonra onunla birlikte sabit kalır.
+    const railTop = () => {
+      const tabs = root.querySelector('.m-tabs') as HTMLElement | null;
+      return Math.round((tabs ? tabs.getBoundingClientRect().bottom : 104) + 14);
+    };
+    const onScroll = () => setGeo((g) => (g ? (g.top === railTop() ? g : { ...g, top: railTop() }) : g));
+    window.addEventListener('scroll', onScroll, { passive: true });
     rebuild();
     const mo = new MutationObserver(rebuild);
     mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'open'] });
@@ -67,7 +98,7 @@ export function StepRail() {
     // Sidebar daraltma gibi yerleşim değişiklikleri
     const ro = new ResizeObserver(rebuild);
     ro.observe(main);
-    return () => { cancelAnimationFrame(raf); mo.disconnect(); ro.disconnect(); window.removeEventListener('resize', rebuild); };
+    return () => { cancelAnimationFrame(raf); mo.disconnect(); ro.disconnect(); window.removeEventListener('resize', rebuild); window.removeEventListener('scroll', onScroll); };
   }, [offset]);
 
   // Kaydırırken bulunulan bölüm
@@ -92,8 +123,8 @@ export function StepRail() {
     window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset() + 2, behavior: 'smooth' });
   };
 
-  const show = geo && items.length > 1;
-  const gap = show ? Math.max(4, Math.min(12, (window.innerHeight - geo.top - 40 - items.length * geo.size) / Math.max(1, items.length - 1))) : 0;
+  const show = geo && items.length > 0;
+  const gap = show ? Math.max(4, Math.min(12, (window.innerHeight - geo.top - 24 - items.length * geo.size) / Math.max(1, items.length - 1))) : 0;
 
   return (
     <>
