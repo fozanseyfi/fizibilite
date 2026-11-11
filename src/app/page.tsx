@@ -68,7 +68,7 @@ export default function DashboardPage() {
               <thead>
                 <tr className="bg-secondary/50 text-left text-xs text-muted-foreground">
                   <th className="px-5 py-2.5 font-medium">Proje</th>
-                  <th className="px-3 py-2.5 font-medium">Tip</th>
+                  <th className="hidden px-3 py-2.5 font-medium sm:table-cell">Tip</th>
                   <th className="hidden px-3 py-2.5 font-medium md:table-cell">Kapasite</th>
                   <th className="px-3 py-2.5 text-right font-medium">IRR</th>
                   <th className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">Geri Ödeme</th>
@@ -79,7 +79,7 @@ export default function DashboardPage() {
               <tbody className="divide-y">
                 {rows.map((r) => (
                   <tr key={r.id} className="hover:bg-secondary/30">
-                    <td className="px-5 py-3">
+                    <td className="min-w-[150px] px-5 py-3">
                       <Link href={`/projects/${r.id}`} className="font-medium text-foreground hover:underline" data-no-i18n>
                         {r.name}
                       </Link>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
                         </p>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-xs text-muted-foreground">
+                    <td className="hidden px-3 py-3 text-xs text-muted-foreground sm:table-cell">
                       {KIND_SHORT[r.kind] ?? r.kind}
                     </td>
                     <td className="hidden px-3 py-3 tabular-nums md:table-cell">{r.summary?.capacityLabel ?? '—'}</td>

@@ -267,3 +267,54 @@
 .dark .step-rail .sr-dot.on { background: #4f7fc4; border-color: #4f7fc4; color: #fff; }
 .dark .step-rail .sr-tip { background: #dbe5f3; color: #0b1a2f; }
 @media print { .step-rail { display: none !important; } }
+
+/* Sekme satırı düğmeleri: biraz küçük, dikeyde ortalı; sekme alanı daralınca düğmeler aynı
+   satırda kalır, sekmeler yatay kayar. Telefon genişliğinde düğmeler alt satırda ortalanır. */
+.mdl .tabs-row { flex-wrap: nowrap; align-items: stretch; }
+.mdl .tabs-row nav { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.mdl .tabs-row nav::-webkit-scrollbar { display: none; }
+.mdl .tabs-row nav button { white-space: nowrap; flex: 0 0 auto; }
+.mdl .tab-actions { flex: none; align-self: center; padding: 6px 0; gap: 6px; }
+.mdl.classic .ta-btn { font-size: 12.5px; padding: 5px 11px; }
+@media (max-width: 1100px) { .mdl.classic nav button { padding: 9px 12px; font-size: 13.5px; } }
+@media (max-width: 640px) {
+  .mdl .tabs-row { flex-wrap: wrap; }
+  .mdl .tab-actions { width: 100%; justify-content: center; padding: 4px 0 8px; }
+  .mdl .ta-btn { flex: 0 1 auto; }
+}
+
+/* =====================================================================
+ * TELEFON (≤640px)
+ * ===================================================================== */
+@media (max-width: 640px) {
+  /* Model başlığı daha kısa, sekme + düğme satırı daha az yer kaplasın */
+  .mdl.classic .m-header { padding: 14px 14px 8px; }
+  .mdl.classic .sub { font-size: 12.5px; line-height: 1.45; }
+  .mdl .tab-actions { padding: 2px 0 6px; gap: 6px; }
+  .mdl.classic .ta-btn { font-size: 12px; padding: 4px 10px; }
+  /* KPI rakamları tek satırda kalsın */
+  .mdl.classic .kpi { padding: 10px 11px; }
+  .mdl.classic .kpi .kv { font-size: clamp(15px, 4.6vw, 19px); white-space: nowrap; letter-spacing: -.01em; }
+  .mdl .sucard .kv, .mdl .exec-stat .v { white-space: nowrap; }
+  /* Onay kutusu ve küçük denetimler: daha büyük dokunma alanı */
+  .mdl input[type=checkbox] { width: 20px; height: 20px; }
+}
+
+/* Footer sosyal ikonları ve küçük ikon düğmeleri: telefonda dokunma alanı ≥ 32px */
+@media (pointer: coarse) {
+  footer a[aria-label] { padding: 8px; margin: -8px -4px; }
+}
+
+/* =====================================================================
+ * Paylaşılan rapor (/p) — telefon düzeni
+ * ===================================================================== */
+@media (max-width: 640px) {
+  .shared-report #mdl-report .r-cover { padding: 16px 16px 14px; }
+  .shared-report #mdl-report .r-cover h1 { font-size: 21px; }
+  .shared-report #mdl-report .r-cover .r-stats { grid-template-columns: repeat(2, 1fr); gap: 10px 12px; }
+  .shared-report #mdl-report .r-kpis { grid-template-columns: repeat(2, 1fr); }
+  .shared-report #mdl-report .r-cover .r-stat .v, .shared-report #mdl-report .r-kpi .v { white-space: nowrap; }
+  .shared-report #mdl-report table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .shared-report #mdl-report td, .shared-report #mdl-report th { white-space: nowrap; }
+  .shared-report #mdl-report .r-su { grid-template-columns: 1fr; }
+}

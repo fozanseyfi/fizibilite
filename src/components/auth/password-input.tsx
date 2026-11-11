@@ -13,7 +13,7 @@ export function PasswordInput(props: Omit<InputProps, "type">) {
       <button
         type="button"
         onClick={() => setShow((s) => !s)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+        className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
         aria-label={show ? "Şifreyi gizle" : "Şifreyi göster"}
       >
         {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}

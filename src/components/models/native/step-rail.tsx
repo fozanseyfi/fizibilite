@@ -81,6 +81,14 @@ export function StepRail() {
         const mainLeft = main.getBoundingClientRect().left;
         const size = Math.min(24, pad - 6);
         setGeo(size >= 16 ? { x: mainLeft + pad / 2, size, top: railTop() } : null);
+        // Dar ekranda sekme çubuğu yana kayar: seçili sekme görünür alanda kalsın
+        const nav = root.querySelector('.m-tabs nav') as HTMLElement | null;
+        const act = nav?.querySelector('button.active') as HTMLElement | null;
+        if (nav && act && nav.scrollWidth > nav.clientWidth) {
+          const l = act.offsetLeft - nav.offsetLeft, r = l + act.offsetWidth;
+          if (l < nav.scrollLeft) nav.scrollLeft = Math.max(0, l - 12);
+          else if (r > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = r - nav.clientWidth + 12;
+        }
       });
     };
     // Ray, başlık kapağının bittiği yerden (sekme çubuğunun altından) başlar; sekme çubuğu

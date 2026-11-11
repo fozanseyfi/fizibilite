@@ -113,7 +113,7 @@ export function AppSidebar() {
           </button>
           <Link href="/" className="flex min-w-0 items-center gap-2">
             <BrandMark className="size-8 shrink-0" />
-            <span className="truncate text-sm font-semibold">Fizibilite Platformu</span>
+            <span className="truncate text-sm font-semibold">Fizibilite<span className="max-[420px]:hidden"> Platformu</span></span>
           </Link>
         </div>
 

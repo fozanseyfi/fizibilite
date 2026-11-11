@@ -27,7 +27,7 @@ export function LocaleToggle() {
       title={title}
       data-no-i18n
       className={cn(
-        'h-full px-2.5 text-xs font-semibold transition-colors',
+        'h-full px-2 text-xs font-semibold transition-colors sm:px-2.5',
         locale === l ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
       )}
     >
