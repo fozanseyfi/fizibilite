@@ -2,7 +2,7 @@
 import { numLocale } from '@/lib/i18n';
 
 import { useCallback, useMemo, useState } from 'react';
-import { computeCi, type CiInputs } from '@/lib/models/ci/engine';
+import { computeCi, ciDefaultDayW, type CiInputs } from '@/lib/models/ci/engine';
 import { defaultCiInputs } from '@/lib/models/ci/defaults';
 import {
   MONTHS, PROFILE_LABELS, WE_RATIO, shapesForProfile, monthlyForSeason,
@@ -16,6 +16,7 @@ import { useProjectSave } from '@/components/models/native/use-project-save';
 import { TabActions } from '@/components/models/native/bess-panels';
 import { StepRail } from '@/components/models/native/step-rail';
 import { NetSankey } from '@/components/models/native/net-sankey';
+import { DragBars } from '@/components/models/native/drag-bars';
 
 // ---- % grid yardımcıları (HTML buildPctGrid / rescaleZones portu) ----
 function setPctCell(arr: number[], k: number, raw: number): number[] {
@@ -29,6 +30,9 @@ function setPctCell(arr: number[], k: number, raw: number): number[] {
   next[n - 1] = Math.round((100 - others - v) * 10) / 10;
   return next;
 }
+const ZONE_COL = { g: '#E2B33C', p: '#C0392B', n: '#1f4e8c' } as const;
+const DOW = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+const MONTHS_LONG = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 const zoneOf = (h: number): 'g' | 'p' | 'n' => (h >= 6 && h <= 16 ? 'g' : h >= 17 && h <= 21 ? 'p' : 'n');
 function zoneSums(arr: number[]): { g: number; p: number; n: number } {
   const s = { g: 0, p: 0, n: 0 };
@@ -45,8 +49,8 @@ function rescaleZone(arr: number[], g0: number, p0: number): number[] {
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
 // ---- düzenlenebilir yüzde grid bileşeni (hücreler doğrudan .hgrid altında) ----
-function PctGrid({ labels, values, onChange }: { labels: string[]; values: number[]; onChange: (a: number[]) => void }) {
-  const n = values.length, per = n === 24 ? 12 : n;
+function PctGrid({ labels, values, onChange, cols }: { labels: string[]; values: number[]; onChange: (a: number[]) => void; cols?: number }) {
+  const n = values.length, per = cols ?? (n === 24 ? 12 : n);
   const cells: React.ReactNode[] = [];
   for (let off = 0; off < n; off += per) {
     for (let i = off; i < off + per; i++) cells.push(<div key={'l' + i} className="hlbl">{labels[i]}</div>);
@@ -58,7 +62,7 @@ function PctGrid({ labels, values, onChange }: { labels: string[]; values: numbe
         onChange={last ? undefined : (e) => onChange(setPctCell(values, i, parseFloat(e.target.value)))} />);
     }
   }
-  return <div className="hgrid">{cells}</div>;
+  return <div className="hgrid" style={{ gridTemplateColumns: `repeat(${per}, minmax(0, 1fr))` }}>{cells}</div>;
 }
 
 const HLBL = Array.from({ length: 24 }, (_, h) => h + ':00');
@@ -91,8 +95,6 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   // Eski kayıtlarda weSplit yok: o projeler hafta içi/sonu ayrımıyla kaydedildi, aynen korunur
   const [inputs, setInputs] = useState<CiInputs>(() => ({ ...defaultCiInputs(), ...(initialInputs ?? {}), ...(initialInputs && initialInputs.weSplit === undefined ? { weSplit: true } : {}) }));
   const [tab, setTab] = useState<'fiz' | 'net' | 'hours' | 'bill' | 'cmp' | 'sum'>('fiz');
-  const [adv, setAdv] = useState(false);
-  const [cg, setCg] = useState<R.ConsChartState>({ level: 'y', mi: 5, dt: 'wd' });
   const [nv, setNv] = useState<R.NetChartState>({ mi: 5, view: 'd', wd: true, we: true });
   // Enerji akışı (Sankey) kendi filtresiyle çalışır — mahsuplaşma grafiğinden bağımsız
   const [fv, setFv] = useState<R.NetChartState>({ mi: 'y', view: 'm', wd: true, we: true });
@@ -123,7 +125,24 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
     set(dt, rescaleZone(inputs[dt], g, p));
   };
 
-  const cons = useMemo(() => R.consChart(inputs, cg), [inputs, cg]);
+  // Ay içi gün dağılımı: seçili ay (dm) — elle girilmişse dayW[dm], değilse varsayılan
+  const [dm, setDm] = useState(5);
+  const customDay = !!inputs.dayW?.[dm];
+  const dayVals = useMemo(() => inputs.dayW?.[dm] ?? ciDefaultDayW(inputs, dm), [inputs, dm]);
+  const setDay = (d: number, v: number) => setInputs((p) => {
+    const cur = p.dayW?.[dm] ?? ciDefaultDayW(p, dm);
+    const all = Array.from({ length: 12 }, (_, k) => p.dayW?.[k] ?? null);
+    all[dm] = setPctCell(cur, d, v);
+    return { ...p, dayW: all };
+  });
+  const resetDays = () => setInputs((p) => {
+    const all = Array.from({ length: 12 }, (_, k) => p.dayW?.[k] ?? null);
+    all[dm] = null;
+    return { ...p, dayW: all.some(Boolean) ? all : undefined };
+  });
+  // Gün içi saatler: hangi gün tipi düzenleniyor (ayrım yoksa her zaman hafta içi = her gün)
+  const [hd, setHd] = useState<'wd' | 'we'>('wd');
+  const hdE: 'wd' | 'we' = split ? hd : 'wd';
   const net = useMemo(() => R.netChart(inputs, nvE), [inputs, nv, split]);
   const flows = useMemo(() => R.netFlows(inputs, fvE, split), [inputs, fv, split]);
 
@@ -184,85 +203,132 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
             </div>
 
             <Step no="ADIM 1" title="Tesis ve Tüketim Profili" why="Saatlik rejimde fizibilitenin kalbi tüketim profilidir: aynı üretimle net fayda %30+ değişir.">
-              <Card>
-                <div className="grid3">
-                  <SelF label="Abone grubu" tip={R.CI_TIPS.i_abone} value={inputs.abone} onChange={(v) => set('abone', v)} options={[{ value: 'ci', label: 'Ticarethane / Sanayi (C&I — saatlik rejim)' }, { value: 'mesken', label: 'Mesken (aylık rejim, limitsiz)' }]} />
-                  <NumF label="Yıllık tüketim" unit="kWh" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={10000} />
-                  <NumF label="Önceki yıl tüketimi" unit="kWh, limit bazı" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} />
-                  <SelF label="Tüketim profili (hazır)" tip={R.CI_TIPS.i_profile} value={inputs.profileId} onChange={onProfile}
-                    options={(Object.keys(PROFILE_LABELS) as ProfileKey[]).map((k) => ({ value: k, label: PROFILE_LABELS[k] }))} />
-                  {split && <NumF label="Hafta sonu günlük tüketim" unit="hafta içinin %'si" value={inputs.weRatio} onChange={(v) => set('weRatio', v)} step={5} />}
-                  <SelF label="Aylık dağılım ön ayarı" tip={R.CI_TIPS.i_season} value={inputs.season} onChange={onSeason} options={[{ value: 'flat', label: 'Düz (yıl boyu eşit)' }, { value: 'yaz', label: 'Yaz pik (klima/soğutma)' }, { value: 'kis', label: 'Kış pik (ısıtma)' }]} />
-                </div>
-                {!mesken && (
-                  <div className="we-split">
-                    <ChkF label="Hafta içi ve hafta sonu tüketimim farklı — ayrı ayrı detaylı girmek istiyorum" checked={split} onChange={(v) => set('weSplit', v)} />
-                    <p className="tsub">{split
-                      ? 'Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda hafta içi / hafta sonu ayrı gösterilir.'
-                      : 'İşaretlemezseniz her gün (hafta sonu dahil) aynı tüketim profiliyle hesaplanır. Hafta sonu tüketiminiz belirgin şekilde farklıysa (ör. fabrika hafta sonu kapalı) işaretleyip ayrıca girin.'}</p>
+              {/* ---------- 1) YIL ---------- */}
+              <Card title="Yıllık tüketim" small="· abone, toplam tüketim ve hazır profiller">
+                <div className="prof-row">
+                  <div className="prof-left">
+                    <SelF label="Abone grubu" tip={R.CI_TIPS.i_abone} value={inputs.abone} onChange={(v) => set('abone', v)} options={[{ value: 'ci', label: 'Ticarethane / Sanayi (C&I — saatlik rejim)' }, { value: 'mesken', label: 'Mesken (aylık rejim, limitsiz)' }]} />
+                    <div className="row2">
+                      <NumF label="Yıllık tüketim" unit="kWh" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={10000} />
+                      <NumF label="Önceki yıl tüketimi" unit="kWh, limit bazı" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} />
+                    </div>
+                    {!mesken && (
+                      <div className="we-split">
+                        <ChkF label="Hafta içi ve hafta sonu tüketimim farklı — ayrı ayrı detaylı girmek istiyorum" checked={split} onChange={(v) => set('weSplit', v)} />
+                        <p className="tsub">{split
+                          ? 'Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda hafta içi / hafta sonu ayrı gösterilir.'
+                          : 'İşaretlemezseniz her gün (hafta sonu dahil) aynı tüketim profiliyle hesaplanır. Hafta sonu tüketiminiz belirgin şekilde farklıysa (ör. fabrika hafta sonu kapalı) işaretleyip ayrıca girin.'}</p>
+                        {split && <NumF label="Hafta sonu günlük tüketim" unit="hafta içinin %'si" value={inputs.weRatio} onChange={(v) => set('weRatio', v)} step={5} />}
+                      </div>
+                    )}
                   </div>
-                )}
-                <div className="note">Tüm dağılımlar <b>yüzdedir</b> ve her grid tam <b>%100</b>&apos;e kapanır: son hücre otomatik &quot;kalan&quot; olarak hesaplanır. Hazır profil seçmek gridleri doldurur; sonra her hücreyi elle inceltebilirsin.</div>
+                  <div className="prof-right">
+                    <div className="prof-chart-h">Yıl boyunca aylık tüketim <small>· MWh · toplam {nf(inputs.consY / 1000, 1)} MWh</small></div>
+                    <DragBars readOnly values={inputs.monthly.map((v) => (inputs.consY * v) / 100 / 1000)} labels={MONTHS}
+                      fmt={(v) => `${nf(v, 1)} MWh`} color={() => '#4A86C8'} height={210} ariaLabel="Aylık tüketim (MWh)" />
+                    <p className="tsub">Aylık dağılımı aşağıdaki grafikten değiştirin; bu grafik onu MWh olarak gösterir.</p>
+                  </div>
+                </div>
               </Card>
 
+              {/* ---------- 2) AYLAR ---------- */}
               <Card title="Aylık tüketim dağılımı" small="· yılın %'si · Aralık otomatik kalan">
-                <PctGrid labels={MONTHS} values={inputs.monthly} onChange={(a) => set('monthly', a)} />
+                <div className="prof-row">
+                  <div className="prof-left">
+                    <SelF label="Aylık dağılım ön ayarı" tip={R.CI_TIPS.i_season} value={inputs.season} onChange={onSeason} options={[{ value: 'flat', label: 'Düz (yıl boyu eşit)' }, { value: 'yaz', label: 'Yaz pik (klima/soğutma)' }, { value: 'kis', label: 'Kış pik (ısıtma)' }]} />
+                    <PctGrid labels={MONTHS} values={inputs.monthly} onChange={(a) => set('monthly', a)} cols={4} />
+                    <p className="tsub">Kutulara yazabilir ya da sağdaki grafikte bir ayın çubuğunu tutup yukarı/aşağı çekebilirsiniz. Aralık, toplamı 100&apos;e tamamlayan kalan değerdir.</p>
+                  </div>
+                  <div className="prof-right">
+                    <DragBars values={inputs.monthly} labels={MONTHS} fullLabel={(i) => MONTHS_LONG[i]}
+                      onSet={(i, v) => set('monthly', setPctCell(inputs.monthly, i, v))}
+                      extra={(i, v) => `${nf((inputs.consY * v) / 100 / 1000, 1)} MWh`}
+                      color={() => '#1f4e8c'} ariaLabel="Aylık tüketim dağılımı (%)" />
+                  </div>
+                </div>
               </Card>
 
               {mesken ? (
                 <div className="note" style={{ borderLeftColor: 'var(--green)', background: 'var(--green-soft)' }}>
-                  <b>Mesken abonesi = aylık mahsuplaşma.</b> EPDK Karar 14531 mesken abonelerini saatlik rejimin dışında bıraktı; bu modda üretim ile tüketim <b>ay toplamı</b> üzerinden nettleşir ve saat uyumu aranmaz. Bu yüzden gün içi dağılım sonucu etkilemez ve gizlendi — yalnızca <b>aylık dağılım</b> yüzdeleri anlamlıdır. Bedelli üretim limiti de mesken için uygulanmaz.
+                  <b>Mesken abonesi = aylık mahsuplaşma.</b> EPDK Karar 14531 mesken abonelerini saatlik rejimin dışında bıraktı; bu modda üretim ile tüketim <b>ay toplamı</b> üzerinden nettleşir ve saat uyumu aranmaz. Bu yüzden ay içi ve gün içi dağılım sonucu etkilemez ve gizlendi — yalnızca <b>aylık dağılım</b> yüzdeleri anlamlıdır. Bedelli üretim limiti de mesken için uygulanmaz.
                 </div>
               ) : (
                 <>
-                  <Card title="Gün içi dağılım — puant dilimleri" small="· günün %'si · Gece otomatik kalan">
-                    <div className="grid3" style={{ alignItems: 'end' }}>
-                      <NumF label={split ? 'Hafta içi · Gündüz' : 'Gündüz'} unit="06–17 (%)" value={r1(zone.wd.g)} onChange={(v) => editZone('wd', 'g', v)} />
-                      <NumF label={split ? 'Hafta içi · Puant' : 'Puant'} unit="17–22 (%)" value={r1(zone.wd.p)} onChange={(v) => editZone('wd', 'p', v)} />
-                      <NumF label={split ? 'Hafta içi · Gece' : 'Gece'} unit="22–06 (otomatik)" value={r1(zone.wd.n)} onChange={() => { }} disabled />
-                      {split && <>
-                        <NumF label="Hafta sonu · Gündüz" unit="06–17 (%)" value={r1(zone.we.g)} onChange={(v) => editZone('we', 'g', v)} />
-                        <NumF label="Hafta sonu · Puant" unit="17–22 (%)" value={r1(zone.we.p)} onChange={(v) => editZone('we', 'p', v)} />
-                        <NumF label="Hafta sonu · Gece" unit="22–06 (otomatik)" value={r1(zone.we.n)} onChange={() => { }} disabled />
-                      </>}
+                  {/* ---------- 3) AY İÇİ GÜNLER ---------- */}
+                  <Card title="Ay içi günlük dağılım" small={`· ${MONTHS_LONG[dm]} ayının %'si · son gün otomatik kalan`}>
+                    <div className="chips">
+                      {MONTHS.map((mo, k) => chip(dm === k, mo, () => setDm(k), 'dm' + k))}
                     </div>
-                    <p className="tsub">Dilim yüzdesi değişince, seçili profilin dilim içi saat şekli korunarak yeniden ölçeklenir. Gündüz + Puant toplamı 100&apos;ü aşamaz; Gece kalanı otomatik alır.</p>
-                    <button type="button" className="btn-mini" onClick={() => setAdv((a) => !a)}>{adv ? '▲ Saatlik detayı gizle (dilimlerle devam et)' : '🕐 Gün içi saatlik ayarla (detay — 24 hücre)'}</button>
+                    <div className="prof-row">
+                      <div className="prof-left">
+                        <div className="cal-grid">
+                          {DOW.map((w, k) => <div key={'w' + k} className={`cal-dow${k >= 5 && split ? ' we' : ''}`}>{w}</div>)}
+                          {dayVals.map((v, d) => {
+                            const last = d === dayVals.length - 1;
+                            return (
+                              <label key={d} className={`cal-cell${d % 7 >= 5 && split ? ' we' : ''}`}>
+                                <span>{d + 1}</span>
+                                <input type="number" min={0} max={100} step={0.1} value={r1(v)} readOnly={last} className={last ? 'rem' : undefined}
+                                  title={last ? 'Otomatik kalan: 100 − diğer günler' : undefined}
+                                  onChange={last ? undefined : (e) => setDay(d, parseFloat(e.target.value))} />
+                              </label>
+                            );
+                          })}
+                        </div>
+                        <p className="tsub">Ayın 1&apos;i pazartesi varsayılır{split ? '; hafta sonu günleri altın renkli' : ''}. {customDay ? 'Bu ay elle düzenlendi.' : 'Varsayılan: her gün eşit' + (split ? ' (hafta sonu, hafta sonu oranıyla)' : '') + '.'}</p>
+                        {customDay && <button type="button" className="btn-mini" onClick={resetDays}>↺ Bu ayı varsayılana döndür</button>}
+                      </div>
+                      <div className="prof-right">
+                        <DragBars values={dayVals} labels={dayVals.map((_, d) => String(d + 1))} labelEvery={dayVals.length > 20 ? 2 : 1}
+                          fullLabel={(d) => `${d + 1} ${MONTHS_LONG[dm]} (${DOW[d % 7]})`}
+                          onSet={(d, v) => setDay(d, v)} step={0.1}
+                          extra={(d, v) => `${nf(((inputs.consY * inputs.monthly[dm]) / 100) * v / 100, 0)} kWh`}
+                          color={(d) => (d % 7 >= 5 && split ? '#C9922A' : '#2F6B4F')} ariaLabel="Ay içi günlük dağılım (%)" />
+                      </div>
+                    </div>
                   </Card>
-                  {adv && (
-                    <>
-                      <Card title={split ? 'Hafta içi saatlik dağılım' : 'Saatlik dağılım'} small="· günün %'si · 23:00 otomatik kalan"><PctGrid labels={HLBL} values={inputs.wd} onChange={(a) => set('wd', a)} /></Card>
-                      {split && <Card title="Hafta sonu saatlik dağılım" small="· günün %'si · 23:00 otomatik kalan"><PctGrid labels={HLBL} values={inputs.we} onChange={(a) => set('we', a)} /></Card>}
-                    </>
-                  )}
+
+                  {/* ---------- 4) GÜN İÇİ SAATLER ---------- */}
+                  <Card title="Gün içi saatlik dağılım" small="· günün %'si · 23:00 otomatik kalan">
+                    {split && (
+                      <div className="chips">
+                        {chip(hd === 'wd', 'Hafta içi günü', () => setHd('wd'))}
+                        {chip(hd === 'we', 'Hafta sonu günü', () => setHd('we'))}
+                      </div>
+                    )}
+                    <div className="prof-row">
+                      <div className="prof-left">
+                        <SelF label="Tüketim profili (hazır)" tip={R.CI_TIPS.i_profile} value={inputs.profileId} onChange={onProfile}
+                          options={(Object.keys(PROFILE_LABELS) as ProfileKey[]).map((k) => ({ value: k, label: PROFILE_LABELS[k] }))} />
+                        <div className="row3">
+                          <NumF label="Gündüz" unit="06–17 (%)" value={r1(zone[hdE].g)} onChange={(v) => editZone(hdE, 'g', v)} />
+                          <NumF label="Puant" unit="17–22 (%)" value={r1(zone[hdE].p)} onChange={(v) => editZone(hdE, 'p', v)} />
+                          <NumF label="Gece" unit="22–06 (oto)" value={r1(zone[hdE].n)} onChange={() => { }} disabled />
+                        </div>
+                        <PctGrid labels={HLBL} values={inputs[hdE]} onChange={(a) => set(hdE, a)} cols={6} />
+                        <p className="tsub">Dilim kutuları, o dilimdeki saatleri şekli koruyarak birlikte ölçekler. Saat kutuları ya da sağdaki grafik tek tek saat değiştirir.</p>
+                      </div>
+                      <div className="prof-right">
+                        <DragBars values={inputs[hdE]} labels={HLBL} labelEvery={3} fullLabel={(h) => `${HLBL[h]}–${HLBL[(h + 1) % 24]}`}
+                          onSet={(h, v) => set(hdE, setPctCell(inputs[hdE], h, v))}
+                          color={(h) => ZONE_COL[zoneOf(h)]} ariaLabel="Gün içi saatlik dağılım (%)" />
+                        <div className="legend">
+                          <span><i style={{ background: ZONE_COL.g }} />Gündüz 06–17</span>
+                          <span><i style={{ background: ZONE_COL.p }} />Puant 17–22</span>
+                          <span><i style={{ background: ZONE_COL.n }} />Gece 22–06</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </>
               )}
 
               <div className="formula">
                 <div className="fl">Formül · saatlik tüketimin kuruluşu</div>
                 <span className="ml"><span className="lbl">Ay:</span>Ay tüketimi = Yıllık tüketim × Ay yüzdesi</span>
-                {split
-                  ? <span className="ml"><span className="lbl">Gün:</span>Hafta içi günlük = Ay tüketimi ÷ ( Hİ gün + HS gün × HS oranı ) · Hafta sonu günlük = Hİ günlük × HS oranı</span>
-                  : <span className="ml"><span className="lbl">Gün:</span>Günlük tüketim = Ay tüketimi ÷ Ayın gün sayısı (her gün aynı profil)</span>}
-                <span className="ml"><span className="lbl">Saat:</span>Saat tüketimi = Günlük toplam × Saat yüzdesi</span>
+                <span className="ml"><span className="lbl">Gün:</span>Gün tüketimi = Ay tüketimi × Gün yüzdesi (ay içi dağılım)</span>
+                <span className="ml"><span className="lbl">Saat:</span>Saat tüketimi = Gün tüketimi × Saat yüzdesi{split ? ' (hafta içi / hafta sonu profili)' : ''}</span>
               </div>
-
-              <Card title="Tüketim Grafiği" small="· çubuklara tıklayarak in: yıl → ay → gün">
-                <div className="chips">
-                  {chip(cg.level === 'y', 'Yıllık', () => setCg((c) => ({ ...c, level: 'y' })))}
-                  {cg.level !== 'y' && chip(cg.level === 'm', `› ${MONTHS[cg.mi]}`, () => setCg((c) => ({ ...c, level: 'm' })))}
-                  {cg.level === 'd' && chip(true, `› Günlük (${cg.dt === 'wd' ? 'Hİ' : 'HS'})`, () => { })}
-                </div>
-                <svg viewBox="0 0 900 260" width="100%" style={{ cursor: 'default' }}
-                  onClick={(e) => {
-                    const rect = (e.target as HTMLElement).closest('rect');
-                    if (!rect) return;
-                    const b = cons.bars[+(rect.getAttribute('data-i') || -1)];
-                    if (b?.click) setCg((c) => ({ ...c, level: b.click!.level as 'y' | 'm' | 'd', mi: b.click!.mi ?? c.mi, dt: b.click!.dt ?? c.dt }));
-                  }}
-                  dangerouslySetInnerHTML={{ __html: cons.svg }} />
-                <p className="tsub">{cons.hint}</p>
-              </Card>
             </Step>
 
             <Step no="ADIM 2" title="GES ve Üretim" why="Üretim, aylık güneş dağılımı × gün eğrisiyle saatlere yayılır; doğu-batı yerleşim eğriyi yayar.">

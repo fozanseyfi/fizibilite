@@ -337,3 +337,51 @@
 .mdl .we-split { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: #f6f7f9; }
 .mdl .we-split .tsub { margin: 4px 0 0 28px; }
 .dark .mdl .we-split { background: #172030; }
+
+/* =====================================================================
+ * C&I Adım 1 — değerler solda, grafik sağda (yıl / ay / gün / saat)
+ * ===================================================================== */
+.mdl .prof-row { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.mdl .prof-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.mdl .prof-right { min-width: 0; }
+.mdl .prof-chart-h { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.mdl .prof-chart-h small { font-weight: 400; color: var(--ink-soft); }
+.mdl .row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 980px) { .mdl .prof-row { grid-template-columns: 1fr; } }
+
+/* Takvim ızgarası (ay içi günler) */
+.mdl .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.mdl .cal-dow { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); text-align: center; text-transform: uppercase; letter-spacing: .04em; }
+.mdl .cal-dow.we, .mdl .cal-cell.we span { color: #9a6a0e; }
+.mdl .cal-cell { display: flex; flex-direction: column; align-items: stretch; gap: 1px; }
+.mdl .cal-cell span { font-size: 10px; color: var(--ink-soft); text-align: center; }
+.mdl .cal-cell input { width: 100%; font-size: 11.5px; padding: 4px 2px; text-align: center; border: 1px solid var(--line); border-radius: 3px; background: #fff; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mdl .cal-cell.we input { background: #fdf7ea; }
+.mdl .cal-cell input.rem, .mdl .hgrid input.rem { background: #eef1f6; color: var(--ink-soft); }
+.dark .mdl .cal-cell input { background: #0f1724; border-color: #34425a; }
+.dark .mdl .cal-cell.we input { background: #231d10; }
+.dark .mdl .cal-cell input.rem, .dark .mdl .hgrid input.rem { background: #1b2636; }
+
+/* Sürüklenebilir çubuklar */
+.mdl .dbars svg { display: block; outline: none; border-radius: 4px; }
+.mdl .dbars svg:focus-visible { box-shadow: 0 0 0 2px #8fa9cc; }
+.mdl .dbars .db-grid { stroke: #e2e7ef; }
+.mdl .dbars .db-ax { font-size: 10px; fill: #6b7686; }
+.mdl .dbars .db-bar { transition: y .05s linear, height .05s linear; }
+.mdl .dbars svg.dragging .db-bar { transition: none; }
+.mdl .dbars .db-bar.on { stroke: #0b1a2f; stroke-width: 1.2; }
+.mdl .dbars .db-handle { fill: #0b1a2f; opacity: 0; pointer-events: none; }
+.mdl .dbars g:hover .db-handle, .mdl .dbars .db-bar.on + .db-handle { opacity: .55; }
+.mdl .dbars .db-tip { font-size: 11px; font-weight: 700; fill: #0b1a2f; paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+.mdl .dbars .db-ctrl { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; min-height: 32px; margin-top: 4px; font-size: 12.5px; color: var(--ink); }
+.mdl .dbars .db-hint { color: var(--ink-soft); font-size: 12px; }
+.mdl .dbars .db-extra { color: var(--ink-soft); }
+.mdl .dbars .db-btns { display: inline-flex; gap: 4px; }
+.mdl .dbars .db-btns button { min-width: 32px; height: 28px; border: 1px solid #b9c3d1; background: #fff; color: var(--navy-deep); font-weight: 700; border-radius: 3px; cursor: pointer; font-size: 13px; }
+.mdl .dbars .db-btns button:hover { background: #eef4fb; }
+.dark .mdl .dbars .db-grid { stroke: #2a3647; }
+.dark .mdl .dbars .db-ax { fill: #8391a5; }
+.dark .mdl .dbars .db-tip { fill: #ffffff; stroke: #121b28; }
+.dark .mdl .dbars .db-bar.on { stroke: #ffffff; }
+.dark .mdl .dbars .db-btns button { background: #0f1724; color: #dbe5f3; border-color: #34425a; }
+.mdl .prof-left > .btn-mini { align-self: flex-start; margin-top: 0; }

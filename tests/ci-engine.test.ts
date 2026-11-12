@@ -67,3 +67,19 @@ describe('C&I engine — hafta içi / hafta sonu ayrımı', () => {
     expect(ciDayCons(i, 5, 'we').reduce((a, b) => a + b, 0)).toBeLessThan(ciDayCons(i, 5, 'wd').reduce((a, b) => a + b, 0));
   });
 });
+
+describe('C&I engine — ay içi gün dağılımı (dayW)', () => {
+  it('varsayılan dağılım elle girilince sonuç değişmez; dağılım değişince ay toplamı korunur', async () => {
+    const { ciDefaultDayW } = await import('@/lib/models/ci/engine');
+    const base = defaultCiInputs();
+    const dw = Array.from({ length: 12 }, (_, m) => ciDefaultDayW(base, m));
+    const a = computeCi(base), b = computeCi({ ...base, dayW: dw });
+    expect(Math.abs(b.npv - a.npv) / Math.abs(a.npv)).toBeLessThan(0.001); // yüzdeler 0,1 hassasiyetle yuvarlanır
+    // Ocak: ilk 10 güne ağırlık ver
+    const jan = dw[0].map((v, d) => (d < 10 ? v * 2 : v));
+    const s = jan.reduce((x, y) => x + y, 0);
+    const c = computeCi({ ...base, dayW: [jan.map((v) => (v * 100) / s), ...dw.slice(1)] });
+    expect(c.years[0].s.monthly[0].cons).toBeCloseTo(a.years[0].s.monthly[0].cons, 3);
+    expect(c.years[0].s.monthly[0].mah).not.toBeCloseTo(a.years[0].s.monthly[0].mah, 0);
+  });
+});

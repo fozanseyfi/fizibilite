@@ -282,7 +282,7 @@ export function netChart(i: CiInputs, nv: NetChartState): { svg: string; hint: s
     const mi = nv.mi as number, nd = DAYS[mi];
     for (let d = 0; d < nd; d++) {
       const we = d % 7 >= 5, on = nv[we ? 'we' : 'wd'];
-      const T = ciDayDetail(i, mi, we ? 'we' : 'wd', ciDayFactor(mi, d));
+      const T = ciDayDetail(i, mi, we ? 'we' : 'wd', ciDayFactor(mi, d), d);
       cols.push({ lab: (d + 1) % 5 === 0 || d === 0 ? String(d + 1) : '', dim: !on, mah: S(T.mah), sh: S(T.dch), fz: S(T.faz), ck: S(T.cek), pr: S(T.prod), cn: S(T.cons) });
     }
     hint = `${MONTHS[mi]} · gün gün (pazartesi başlar varsayılır): üretim, ay içi mevsim eğimiyle gün gün değişir (aylık ortalamalar arası interpolasyon; ay toplamı korunur). Birim: kWh/gün.`;
@@ -400,7 +400,7 @@ export function csvAllYear(i: CiInputs): string {
   for (let mi = 0; mi < 12; mi++) {
     for (let d = 0; d < DAYS[mi]; d++) {
       const we = d % 7 >= 5, lab = we ? 'Hafta sonu' : 'Hafta içi';
-      const T = ciDayDetail(i, mi, we ? 'we' : 'wd', ciDayFactor(mi, d));
+      const T = ciDayDetail(i, mi, we ? 'we' : 'wd', ciDayFactor(mi, d), d);
       for (let h = 0; h < 24; h++) {
         csv += [MONTHS[mi], d + 1, lab, h + ':00', num(T.prod[h]), num(T.cons[h]), num(T.mah[h]), num(T.ch[h]), num(T.dch[h]), num(T.faz[h]), num(T.cek[h])].join(sep) + '\r\n';
       }
@@ -507,7 +507,7 @@ export function netFlows(i: CiInputs, nv: NetChartState, split = true): NetFlows
     const mi = nv.mi;
     for (let d = 0; d < DAYS[mi]; d++) {
       const dt = d % 7 >= 5 ? 'we' : 'wd';
-      if (nv[dt]) add(ciDayDetail(i, mi, dt, ciDayFactor(mi, d)), 1);
+      if (nv[dt]) add(ciDayDetail(i, mi, dt, ciDayFactor(mi, d), d), 1);
     }
     f.label = MONTHS[mi] + ' ayı toplamı' + typeLab;
   } else {
