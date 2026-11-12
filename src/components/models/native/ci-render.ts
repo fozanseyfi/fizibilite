@@ -487,3 +487,32 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
     + `<p class="r-note">Motor, her işletme yılını 12 ay × takvim günü (hafta içi/sonu) deseniyle saatlik simüle eder; mahsup = Σ min(üretim, tüketim). Ay içi üretim, aylık ortalamalar arası interpolasyonla gün gün eğimlendirilir (ay toplamı korunur). Bedelli üretim limiti = önceki yıl tüketimi × 2; bedelli satış = min(yıllık fazla, limit − mahsup); kalan miktar YEKDEM'e bedelsiz yazılır (EPDK Karar 14531, MADDE 7 ve 9). BESS günlük döngüsel dispatch: fazladan şarj, çekişe RTE ile deşarj — arbitraj modellenmez. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır; hava durumu rastgeleliği bilinçli modellenmez (P50). Bu bir ön fizibilitedir; tarife, bedelli limit ve şebeke bağlantı koşulları güncel mevzuat ve ilgili şebeke işletmecisinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>`
     + `<div class="r-foot"><span>© 2026 <b>Fizibilite Platformu</b> · Furkan Ozan Seyfi</span><span>EPDK Karar 14531 · ${esc(meta.date)}</span></div></div>`;
 }
+
+/** Enerji akışı toplamları (kWh) — mahsuplaşma görünümünde seçili dönem ve gün tipleri için. */
+export interface NetFlows { prod: number; cons: number; mah: number; ch: number; dch: number; faz: number; cek: number; label: string }
+export function netFlows(i: CiInputs, nv: NetChartState): NetFlows {
+  const S = (a: number[]) => a.reduce((x, y) => x + y, 0);
+  const f: NetFlows = { prod: 0, cons: 0, mah: 0, ch: 0, dch: 0, faz: 0, cek: 0, label: '' };
+  const add = (T: ReturnType<typeof ciDayDetail>, k: number) => {
+    f.prod += S(T.prod) * k; f.cons += S(T.cons) * k; f.mah += S(T.mah) * k; f.ch += S(T.ch) * k;
+    f.dch += S(T.dch) * k; f.faz += S(T.faz) * k; f.cek += S(T.cek) * k;
+  };
+  const types = (['wd', 'we'] as const).filter((t) => nv[t]);
+  const typeLab = types.length === 2 ? '' : types[0] === 'wd' ? ' · hafta içi' : ' · hafta sonu';
+  if (nv.mi === 'y') {
+    for (let mi = 0; mi < 12; mi++) types.forEach((dt) => add(ciDayDetail(i, mi, dt), DAYS[mi] * (dt === 'wd' ? 5 : 2) / 7));
+    f.label = 'Yıl toplamı' + typeLab;
+  } else if (nv.view === 'm') {
+    const mi = nv.mi;
+    for (let d = 0; d < DAYS[mi]; d++) {
+      const dt = d % 7 >= 5 ? 'we' : 'wd';
+      if (nv[dt]) add(ciDayDetail(i, mi, dt, ciDayFactor(mi, d)), 1);
+    }
+    f.label = MONTHS[mi] + ' ayı toplamı' + typeLab;
+  } else {
+    const mi = nv.mi;
+    types.forEach((dt) => add(ciDayDetail(i, mi, dt), 1));
+    f.label = MONTHS[mi] + ' · temsili ' + (types.length === 2 ? 'hafta içi + hafta sonu günü' : types[0] === 'wd' ? 'hafta içi günü' : 'hafta sonu günü');
+  }
+  return f;
+}

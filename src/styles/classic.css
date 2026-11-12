@@ -318,3 +318,19 @@
   .shared-report #mdl-report td, .shared-report #mdl-report th { white-space: nowrap; }
   .shared-report #mdl-report .r-su { grid-template-columns: 1fr; }
 }
+
+/* ---- Enerji akışı (Sankey) · C&I mahsuplaşma görünümü ---- */
+.mdl .ns-title { font-size: 15px; font-weight: 700; color: var(--navy-deep); margin: 18px 0 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.mdl .ns-title small { font-weight: 400; font-size: 12.5px; color: var(--ink-soft); }
+.mdl .net-sankey .ns-head { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.mdl .net-sankey .ns-period { font-weight: 400; color: var(--ink-soft); text-align: center; }
+.mdl .net-sankey svg text { font-family: var(--sans); }
+.mdl .net-sankey .ns-name { fill: #ffffff; font-size: 13px; font-weight: 700; }
+.mdl .net-sankey .ns-val { fill: #ffffff; font-size: 15px; font-weight: 700; }
+.mdl .net-sankey .ns-pct { fill: #ffffff; font-size: 12.5px; font-weight: 600; opacity: .9; }
+.mdl .net-sankey .ns-tip { font-size: 13px; color: var(--ink); background: #f6f7f9; border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; margin-top: 6px; min-height: 38px; }
+.dark .mdl .net-sankey .ns-tip { background: #172030; }
+.dark .mdl .ns-title { color: #dbe5f3; }
+.dark .mdl .net-sankey svg text.ns-name, .dark .mdl .net-sankey svg text.ns-val, .dark .mdl .net-sankey svg text.ns-pct { fill: #ffffff; }
+@media (max-width: 640px) { .mdl .net-sankey .ns-period { display: none; } }
+.mdl .net-sankey .ns-inline { font-weight: 600; font-size: 12px; fill: #ffffff; opacity: .92; }

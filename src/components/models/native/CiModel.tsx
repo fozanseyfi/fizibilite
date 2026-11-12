@@ -15,6 +15,7 @@ import type { ProjectSummary } from '@/lib/models/types';
 import { useProjectSave } from '@/components/models/native/use-project-save';
 import { TabActions } from '@/components/models/native/bess-panels';
 import { StepRail } from '@/components/models/native/step-rail';
+import { NetSankey } from '@/components/models/native/net-sankey';
 
 // ---- % grid yardımcıları (HTML buildPctGrid / rescaleZones portu) ----
 function setPctCell(arr: number[], k: number, raw: number): number[] {
@@ -88,7 +89,7 @@ function Html({ html, className }: { html: string; className?: string }) { retur
 
 export function CiModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: CiInputs }) {
   const [inputs, setInputs] = useState<CiInputs>(() => ({ ...defaultCiInputs(), ...(initialInputs ?? {}) }));
-  const [tab, setTab] = useState<'fiz' | 'hours' | 'bill' | 'cmp' | 'sum'>('fiz');
+  const [tab, setTab] = useState<'fiz' | 'net' | 'hours' | 'bill' | 'cmp' | 'sum'>('fiz');
   const [adv, setAdv] = useState(false);
   const [cg, setCg] = useState<R.ConsChartState>({ level: 'y', mi: 5, dt: 'wd' });
   const [nv, setNv] = useState<R.NetChartState>({ mi: 5, view: 'd', wd: true, we: true });
@@ -115,6 +116,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
 
   const cons = useMemo(() => R.consChart(inputs, cg), [inputs, cg]);
   const net = useMemo(() => R.netChart(inputs, nv), [inputs, nv]);
+  const flows = useMemo(() => R.netFlows(inputs, nv), [inputs, nv]);
 
   function downloadCsv() {
     const blob = new Blob(['﻿' + R.csvAllYear(inputs)], { type: 'text/csv;charset=utf-8' });
@@ -152,10 +154,11 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
           <div className="hwrap tabs-row">
             <nav role="tablist">
               {chip(tab === 'fiz', '1 · Fizibilite Modeli', () => setTab('fiz'))}
-              {chip(tab === 'hours', '2 · Saatlik Veri', () => setTab('hours'))}
-              {chip(tab === 'bill', '3 · Fatura Analizi', () => setTab('bill'))}
-              {chip(tab === 'cmp', '4 · Saatlik vs Aylık', () => setTab('cmp'))}
-              {chip(tab === 'sum', '5 · Sonuçlar', () => setTab('sum'))}
+              {chip(tab === 'net', '2 · Mahsuplaşma', () => setTab('net'))}
+              {chip(tab === 'hours', '3 · Saatlik Veri', () => setTab('hours'))}
+              {chip(tab === 'bill', '4 · Fatura Analizi', () => setTab('bill'))}
+              {chip(tab === 'cmp', '5 · Saatlik vs Aylık', () => setTab('cmp'))}
+              {chip(tab === 'sum', '6 · Sonuçlar', () => setTab('sum'))}
             </nav>
             <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} onDelete={projectId ? del : undefined} err={err} saving={saving} />
           </div>
@@ -259,7 +262,86 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               </Card>
             </Step>
 
-            <Step no="ADIM 3" title="Saatlik Mahsuplaşma Motoru" why="Her saat: mahsup = min(üretim, tüketim). Yıllık fazla, bedelli limitle sınanır.">
+            <Step no="ADIM 3" title="Tarife ve Fiyatlar" why="Mahsup ve çekiş alış fiyatından; bedelli fazla satış fiyatından; limit üstü 0 TL.">
+              <Card>
+                <div className="grid3">
+                  <div className="field"><label><Tip tip={R.CI_TIPS.i_tarpre}>Tarife ön ayarı</Tip></label>
+                    <select value="" onChange={(e) => onTarpre(e.target.value)}><option value="" disabled>Seç…</option><option value="tic">Ticarethane AG (4,28 / 3,95)</option><option value="mesken">Mesken AG (3,10 / 2,85 — temsilî)</option></select></div>
+                  <NumF label="Alış fiyatı" unit="TL/kWh, aktif enerji" tip={R.CI_TIPS.i_pBuy} value={inputs.pBuy} onChange={(v) => set('pBuy', v)} step={0.01} />
+                  <NumF label="Satış fiyatı" unit="TL/kWh, bedelli fazla" tip={R.CI_TIPS.i_pSell} value={inputs.pSell} onChange={(v) => set('pSell', v)} step={0.01} />
+                  <NumF label="TL enflasyonu, ilk 5 yıl" unit="%/yıl → tarife & OPEX zammı" tip={R.CI_TIPS.i_esc1} value={inputs.esc1} onChange={(v) => set('esc1', v)} />
+                  <NumF label="TL enflasyonu, sonrası" unit="%/yıl" tip={R.CI_TIPS.i_esc2} value={inputs.esc2} onChange={(v) => set('esc2', v)} />
+                  <NumF label="Tarife reel artışı" unit="%/yıl, enflasyon üstü" value={inputs.preal} onChange={(v) => set('preal', v)} step={0.5} />
+                  <NumF label="Başlangıç kuru" unit="TL/USD" value={inputs.fx0} onChange={(v) => set('fx0', v)} step={0.5} />
+                  <NumF label="USD enflasyonu" unit="%/yıl" value={inputs.piUS} onChange={(v) => set('piUS', v)} step={0.5} />
+                  <SelF label="Kur artışı" value={inputs.fxMode} onChange={(v) => set('fxMode', v)} options={[{ value: 'ppp', label: 'SAGP: enflasyon farkı kadar' }, { value: 'man', label: 'Manuel oran' }]} />
+                  {inputs.fxMode === 'man' && <NumF label="Manuel kur artışı" unit="%/yıl" value={inputs.fxMan} onChange={(v) => set('fxMan', v)} />}
+                  <NumF label="Limit üstü SKB" unit="TL/kWh, ops. maliyet" tip={R.CI_TIPS.i_skb} value={inputs.skb} onChange={(v) => set('skb', v)} step={0.05} />
+                </div>
+                <div className="formula">
+                  <div className="fl">Formül · yıllık fayda</div>
+                  <span className="ml"><span className="lbl">Tasarruf:</span>Mahsup (+BESS kaydırma) × Alış fiyatı<sub>yıl</sub></span>
+                  <span className="ml"><span className="lbl">Gelir:</span>Bedelli satış × Satış fiyatı<sub>yıl</sub></span>
+                  <span className="ml"><span className="lbl">Kur:</span>Kur<sub>t</sub> = Kur<sub>0</sub> × Π (1+π<sub>TL</sub>) ÷ (1+π<sub>USD</sub>) <span className="lbl">(SAGP) veya manuel oran</span></span>
+                  <Html className="subst" html={R.sTar(inputs, m)} />
+                </div>
+                <div className="note">Alış &gt; satış olduğundan öz tüketilen her kWh, satılandan daha değerlidir. SAGP altında kritik sonuç: tarifenin enflasyonla zamlanması USD getiriyi büyütmez — USD fayda yalnız USD enflasyonu (+reel artış) kadar büyür.</div>
+              </Card>
+            </Step>
+
+            <Step no="ADIM 4" title="Batarya (BESS)" why="Gündüz fazlası akşama kayar: satış fiyatı alış fiyatına terfi eder.">
+              <Card>
+                <ChkF label="BESS'i modele dahil et" tip={R.CI_TIPS.b_on} checked={inputs.bessOn} onChange={(v) => set('bessOn', v)} />
+                <div className="grid3" style={{ marginTop: 12 }}>
+                  <NumF label="Kapasite" unit="kWh" tip={R.CI_TIPS.b_kwh} value={inputs.bKwh} onChange={(v) => set('bKwh', v)} step={50} disabled={!inputs.bessOn} />
+                  <NumF label="Güç" unit="kW" tip={R.CI_TIPS.b_kw} value={inputs.bKw} onChange={(v) => set('bKw', v)} step={10} disabled={!inputs.bessOn} />
+                  <NumF label="Round-trip verim" unit="%" tip={R.CI_TIPS.b_rte} value={inputs.bRte} onChange={(v) => set('bRte', v)} disabled={!inputs.bessOn} />
+                  <NumF label="Kapasite degradasyonu" unit="%/yıl" tip={R.CI_TIPS.b_degr} value={inputs.bDegr} onChange={(v) => set('bDegr', v)} step={0.5} disabled={!inputs.bessOn} />
+                  <NumF label="BESS CAPEX" unit="$/kWh" tip={R.CI_TIPS.b_capex} value={inputs.bCapex} onChange={(v) => set('bCapex', v)} step={10} disabled={!inputs.bessOn} />
+                  <NumF label="BESS OPEX" unit="TL/kWh-yıl" tip={R.CI_TIPS.b_opex} value={inputs.bOpex} onChange={(v) => set('bOpex', v)} step={10} disabled={!inputs.bessOn} />
+                </div>
+                <div className="formula">
+                  <div className="fl">Formül · günlük döngü (greedy)</div>
+                  <span className="ml"><span className="lbl">Şarj:</span>Saatlik fazla üretimden → min(fazla, güç, boş kapasite)</span>
+                  <span className="ml"><span className="lbl">Deşarj:</span>Akşam çekişine → depolanan × RTE, min(çekiş, güç) sınırıyla</span>
+                  <span className="ml"><span className="lbl">Değer:</span>Kaydırılan her kWh: satış fiyatı yerine alış fiyatından değerlenir</span>
+                  <Html className="subst" html={R.sBess(inputs, m)} />
+                </div>
+              </Card>
+            </Step>
+
+            <Step no="ADIM 5" title="Yatırım ve Finansman" why="CAPEX ve sonuçlar USD; TL gelirler kur projeksiyonuyla çevrilir. OPEX TL girilir, TL enflasyonuyla büyür.">
+              <Card>
+                <div className="grid3">
+                  <NumF label="GES CAPEX" unit="$/kWp, anahtar teslim" tip={R.CI_TIPS.i_capex} value={inputs.capexU} onChange={(v) => set('capexU', v)} step={10} />
+                  <NumF label="GES OPEX" unit="TL/kWp-yıl" tip={R.CI_TIPS.i_opex} value={inputs.opexU} onChange={(v) => set('opexU', v)} step={10} />
+                  <NumF label="İskonto oranı" unit="%/yıl, USD" tip={R.CI_TIPS.i_r} value={inputs.r} onChange={(v) => set('r', v)} step={0.5} />
+                </div>
+                <div style={{ margin: '14px 0 10px' }}><ChkF label="Kredi kullan" tip={R.CI_TIPS.l_on} checked={inputs.lOn} onChange={(v) => set('lOn', v)} /></div>
+                <div className="grid3">
+                  <NumF label="Kredi oranı" unit="% CAPEX" tip={R.CI_TIPS.l_ratio} value={inputs.lRatio} onChange={(v) => set('lRatio', v)} step={5} disabled={!inputs.lOn} />
+                  <NumF label="USD faiz" unit="%/yıl" tip={R.CI_TIPS.l_rate} value={inputs.lRate} onChange={(v) => set('lRate', v)} step={0.5} disabled={!inputs.lOn} />
+                  <NumF label="Vade" unit="yıl, anüite" tip={R.CI_TIPS.l_term} value={inputs.lTerm} onChange={(v) => set('lTerm', v)} disabled={!inputs.lOn} />
+                </div>
+                <div className="formula">
+                  <div className="fl">Formül · nakit akışı ve karar</div>
+                  <span className="ml"><span className="lbl">CAPEX:</span>Toplam ($) = kWp × $/kWp + BESS kWh × $/kWh</span>
+                  <span className="ml"><span className="lbl">CF<sub>yıl</sub>:</span>( Tasarruf + Bedelli gelir − OPEX − SKB )<sub>TL</sub> ÷ Kur<sub>yıl</sub> → USD</span>
+                  <span className="ml"><span className="lbl">NPV:</span>−CAPEX + Σ CF<sub>t</sub> ÷ (1+r)<sup>t</sup> · IRR: NPV=0</span>
+                  <Html className="subst" html={R.sFin(inputs, m)} />
+                </div>
+                <div className="note">Vergi etkisi bu sürümde modellenmez: mahsuplaşma &quot;tasarrufu&quot; muhasebede gider azaltımıdır ve KV etkisi işletmenin kârlılığına bağlıdır — mali müşavirle netleştirilmelidir. Detaylı BoQ, CAPEX-OPEX hesabı için <a href="https://teklif.fozanseyfi.com/" target="_blank" rel="noopener" style={{ color: 'var(--navy)', fontWeight: 600 }}>buraya tıklayın</a>.</div>
+              </Card>
+            </Step>
+
+            <div className="flex justify-end no-print" style={{ marginTop: 4 }}>
+              <button type="button" className="btn-pdf" onClick={() => { setTab('sum'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Sonuçları gör →</button>
+            </div>
+          </div>
+
+          {/* ==================== TAB 2: MAHSUPLAŞMA ==================== */}
+          <div className={`tab ${tab === 'net' ? 'active' : ''}`}>
+            <Step no="MOTOR" title="Saatlik Mahsuplaşma Motoru" why="Her saat: mahsup = min(üretim, tüketim). Grafik ve enerji akışı seçilen dönem ve gün tipini izler.">
               <Card title="Mahsuplaşma görünümü" small="· dönem ve gün tipini tıkla">
                 <div className="chips">
                   {chip(nv.mi === 'y', 'Yıllık', () => setNv((s) => ({ ...s, mi: 'y' })))}
@@ -284,6 +366,8 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                   <span style={{ color: '#00A651', fontWeight: 700 }}>— Üretim</span><span style={{ color: '#0E2A5E', fontWeight: 700 }}>— Tüketim</span>
                 </div>
                 <p className="tsub">{net.hint}</p>
+                <h4 className="ns-title">Enerji akışı <small>· aynı dönem ve gün tipi</small></h4>
+                <NetSankey f={flows} />
               </Card>
 
               {inputs.bessOn && (
@@ -298,6 +382,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 </Card>
               )}
 
+
               <Card title="Bedelli üretim limiti">
                 <div className="formula">
                   <div className="fl">Formül · EPDK yıllık limit zinciri</div>
@@ -309,106 +394,8 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 </div>
                 <button type="button" className="btn-mini" onClick={() => setModal(R.hourlyModal(inputs, nv))}>🕐 Saat saat mahsuplaşma tablosu</button>
                 <button type="button" className="btn-mini" style={{ marginLeft: 8 }} onClick={downloadCsv}>⤓ CSV indir — tüm yıl (8.760 saat)</button>
-                <div className="grid3" style={{ marginTop: 12 }}>
-                  <NumF label="Limit üstü SKB" unit="TL/kWh, ops. maliyet" tip={R.CI_TIPS.i_skb} value={inputs.skb} onChange={(v) => set('skb', v)} step={0.05} />
-                </div>
                 <div className="note">Usul ve Esaslar MADDE 7(5): limit üstü ihtiyaç fazlası &quot;sistem kullanım bedeli ödemeli&quot; miktardır — gelir yaratmaz, üstelik SKB doğabilir. Mesken abonelerinde limit uygulanmaz.</div>
               </Card>
-            </Step>
-
-            <Step no="ADIM 4" title="Tarife ve Fiyatlar" why="Mahsup ve çekiş alış fiyatından; bedelli fazla satış fiyatından; limit üstü 0 TL.">
-              <Card>
-                <div className="grid3">
-                  <div className="field"><label><Tip tip={R.CI_TIPS.i_tarpre}>Tarife ön ayarı</Tip></label>
-                    <select value="" onChange={(e) => onTarpre(e.target.value)}><option value="" disabled>Seç…</option><option value="tic">Ticarethane AG (4,28 / 3,95)</option><option value="mesken">Mesken AG (3,10 / 2,85 — temsilî)</option></select></div>
-                  <NumF label="Alış fiyatı" unit="TL/kWh, aktif enerji" tip={R.CI_TIPS.i_pBuy} value={inputs.pBuy} onChange={(v) => set('pBuy', v)} step={0.01} />
-                  <NumF label="Satış fiyatı" unit="TL/kWh, bedelli fazla" tip={R.CI_TIPS.i_pSell} value={inputs.pSell} onChange={(v) => set('pSell', v)} step={0.01} />
-                  <NumF label="TL enflasyonu, ilk 5 yıl" unit="%/yıl → tarife & OPEX zammı" tip={R.CI_TIPS.i_esc1} value={inputs.esc1} onChange={(v) => set('esc1', v)} />
-                  <NumF label="TL enflasyonu, sonrası" unit="%/yıl" tip={R.CI_TIPS.i_esc2} value={inputs.esc2} onChange={(v) => set('esc2', v)} />
-                  <NumF label="Tarife reel artışı" unit="%/yıl, enflasyon üstü" value={inputs.preal} onChange={(v) => set('preal', v)} step={0.5} />
-                  <NumF label="Başlangıç kuru" unit="TL/USD" value={inputs.fx0} onChange={(v) => set('fx0', v)} step={0.5} />
-                  <NumF label="USD enflasyonu" unit="%/yıl" value={inputs.piUS} onChange={(v) => set('piUS', v)} step={0.5} />
-                  <SelF label="Kur artışı" value={inputs.fxMode} onChange={(v) => set('fxMode', v)} options={[{ value: 'ppp', label: 'SAGP: enflasyon farkı kadar' }, { value: 'man', label: 'Manuel oran' }]} />
-                  {inputs.fxMode === 'man' && <NumF label="Manuel kur artışı" unit="%/yıl" value={inputs.fxMan} onChange={(v) => set('fxMan', v)} />}
-                </div>
-                <div className="formula">
-                  <div className="fl">Formül · yıllık fayda</div>
-                  <span className="ml"><span className="lbl">Tasarruf:</span>Mahsup (+BESS kaydırma) × Alış fiyatı<sub>yıl</sub></span>
-                  <span className="ml"><span className="lbl">Gelir:</span>Bedelli satış × Satış fiyatı<sub>yıl</sub></span>
-                  <span className="ml"><span className="lbl">Kur:</span>Kur<sub>t</sub> = Kur<sub>0</sub> × Π (1+π<sub>TL</sub>) ÷ (1+π<sub>USD</sub>) <span className="lbl">(SAGP) veya manuel oran</span></span>
-                  <Html className="subst" html={R.sTar(inputs, m)} />
-                </div>
-                <div className="note">Alış &gt; satış olduğundan öz tüketilen her kWh, satılandan daha değerlidir. SAGP altında kritik sonuç: tarifenin enflasyonla zamlanması USD getiriyi büyütmez — USD fayda yalnız USD enflasyonu (+reel artış) kadar büyür.</div>
-              </Card>
-            </Step>
-
-            <Step no="ADIM 5" title="Batarya (BESS)" why="Gündüz fazlası akşama kayar: satış fiyatı alış fiyatına terfi eder.">
-              <Card>
-                <ChkF label="BESS'i modele dahil et" tip={R.CI_TIPS.b_on} checked={inputs.bessOn} onChange={(v) => set('bessOn', v)} />
-                <div className="grid3" style={{ marginTop: 12 }}>
-                  <NumF label="Kapasite" unit="kWh" tip={R.CI_TIPS.b_kwh} value={inputs.bKwh} onChange={(v) => set('bKwh', v)} step={50} disabled={!inputs.bessOn} />
-                  <NumF label="Güç" unit="kW" tip={R.CI_TIPS.b_kw} value={inputs.bKw} onChange={(v) => set('bKw', v)} step={10} disabled={!inputs.bessOn} />
-                  <NumF label="Round-trip verim" unit="%" tip={R.CI_TIPS.b_rte} value={inputs.bRte} onChange={(v) => set('bRte', v)} disabled={!inputs.bessOn} />
-                  <NumF label="Kapasite degradasyonu" unit="%/yıl" tip={R.CI_TIPS.b_degr} value={inputs.bDegr} onChange={(v) => set('bDegr', v)} step={0.5} disabled={!inputs.bessOn} />
-                  <NumF label="BESS CAPEX" unit="$/kWh" tip={R.CI_TIPS.b_capex} value={inputs.bCapex} onChange={(v) => set('bCapex', v)} step={10} disabled={!inputs.bessOn} />
-                  <NumF label="BESS OPEX" unit="TL/kWh-yıl" tip={R.CI_TIPS.b_opex} value={inputs.bOpex} onChange={(v) => set('bOpex', v)} step={10} disabled={!inputs.bessOn} />
-                </div>
-                <div className="formula">
-                  <div className="fl">Formül · günlük döngü (greedy)</div>
-                  <span className="ml"><span className="lbl">Şarj:</span>Saatlik fazla üretimden → min(fazla, güç, boş kapasite)</span>
-                  <span className="ml"><span className="lbl">Deşarj:</span>Akşam çekişine → depolanan × RTE, min(çekiş, güç) sınırıyla</span>
-                  <span className="ml"><span className="lbl">Değer:</span>Kaydırılan her kWh: satış fiyatı yerine alış fiyatından değerlenir</span>
-                  <Html className="subst" html={R.sBess(inputs, m)} />
-                </div>
-              </Card>
-            </Step>
-
-            <Step no="ADIM 6" title="Yatırım ve Finansman" why="CAPEX ve sonuçlar USD; TL gelirler kur projeksiyonuyla çevrilir. OPEX TL girilir, TL enflasyonuyla büyür.">
-              <Card>
-                <div className="grid3">
-                  <NumF label="GES CAPEX" unit="$/kWp, anahtar teslim" tip={R.CI_TIPS.i_capex} value={inputs.capexU} onChange={(v) => set('capexU', v)} step={10} />
-                  <NumF label="GES OPEX" unit="TL/kWp-yıl" tip={R.CI_TIPS.i_opex} value={inputs.opexU} onChange={(v) => set('opexU', v)} step={10} />
-                  <NumF label="İskonto oranı" unit="%/yıl, USD" tip={R.CI_TIPS.i_r} value={inputs.r} onChange={(v) => set('r', v)} step={0.5} />
-                </div>
-                <div style={{ margin: '14px 0 10px' }}><ChkF label="Kredi kullan" tip={R.CI_TIPS.l_on} checked={inputs.lOn} onChange={(v) => set('lOn', v)} /></div>
-                <div className="grid3">
-                  <NumF label="Kredi oranı" unit="% CAPEX" tip={R.CI_TIPS.l_ratio} value={inputs.lRatio} onChange={(v) => set('lRatio', v)} step={5} disabled={!inputs.lOn} />
-                  <NumF label="USD faiz" unit="%/yıl" tip={R.CI_TIPS.l_rate} value={inputs.lRate} onChange={(v) => set('lRate', v)} step={0.5} disabled={!inputs.lOn} />
-                  <NumF label="Vade" unit="yıl, anüite" tip={R.CI_TIPS.l_term} value={inputs.lTerm} onChange={(v) => set('lTerm', v)} disabled={!inputs.lOn} />
-                </div>
-                <div className="formula">
-                  <div className="fl">Formül · nakit akışı ve karar</div>
-                  <span className="ml"><span className="lbl">CAPEX:</span>Toplam ($) = kWp × $/kWp + BESS kWh × $/kWh</span>
-                  <span className="ml"><span className="lbl">CF<sub>yıl</sub>:</span>( Tasarruf + Bedelli gelir − OPEX − SKB )<sub>TL</sub> ÷ Kur<sub>yıl</sub> → USD</span>
-                  <span className="ml"><span className="lbl">NPV:</span>−CAPEX + Σ CF<sub>t</sub> ÷ (1+r)<sup>t</sup> · IRR: NPV=0</span>
-                  <Html className="subst" html={R.sFin(inputs, m)} />
-                </div>
-                <div className="note">Vergi etkisi bu sürümde modellenmez: mahsuplaşma &quot;tasarrufu&quot; muhasebede gider azaltımıdır ve KV etkisi işletmenin kârlılığına bağlıdır — mali müşavirle netleştirilmelidir. Detaylı BoQ, CAPEX-OPEX hesabı için <a href="https://teklif.fozanseyfi.com/" target="_blank" rel="noopener" style={{ color: 'var(--navy)', fontWeight: 600 }}>buraya tıklayın</a>.</div>
-              </Card>
-            </Step>
-
-            <Step no="SONUÇ" title="Fizibilite Özeti" why="Motor: her işletme yılı için 12 ay × hafta içi/sonu saatlik simülasyon. Tüm sonuçlar TL, nominal.">
-              <Kpis list={R.ciKpis(inputs, m)} />
-              <div className={`verdict ${R.ciVerdict(inputs, m).cls}`} dangerouslySetInnerHTML={{ __html: R.ciVerdict(inputs, m).text }} />
-              <Card title="Yıl-1 Enerji Dengesi" small="· saatlik motor çıktısı">
-                <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.balHtml(inputs, m) }} /></div>
-              </Card>
-              <Card title="Aylık Dağılım — Mahsup / Bedelli Satış / Şebekeden Çekiş" small="(MWh, yıl-1)">
-                <svg viewBox="0 0 900 250" width="100%" dangerouslySetInnerHTML={{ __html: R.monthlyChart(m) }} />
-                <div className="legend">
-                  <span><i style={{ background: '#1E7F4F' }} />Mahsuplaşan</span>
-                  <span><i style={{ background: '#E8A020' }} />Fazla üretim (bedelli)</span>
-                  <span><i style={{ background: '#C9D3E4' }} />Şebekeden çekiş</span>
-                  <span><i style={{ background: '#C7000B' }} />Bedelsiz (limit üstü)</span>
-                </div>
-              </Card>
-              <Card title="Kümülatif İskontolu Nakit Akışı" small="(USD) · sıfırı geçtiği an = iskontolu geri ödeme">
-                <svg viewBox="0 0 900 240" width="100%" dangerouslySetInnerHTML={{ __html: R.cumChart(inputs, m) }} />
-              </Card>
-            </Step>
-
-            <Step no="ANALİZ" title="Senaryo Matrisi — Kötümser / Baz / İyimser" why="Tarife, üretim ve CAPEX aynı anda hareket eder — projenin dayanıklılığı.">
-              <div className="senswrap" dangerouslySetInnerHTML={{ __html: R.scenMatrixCi(inputs) }} />
             </Step>
           </div>
 
