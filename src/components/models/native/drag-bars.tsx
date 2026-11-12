@@ -57,8 +57,9 @@ export function DragBars({
   const [frozenMax, setFrozenMax] = useState<number | null>(null);
 
   const labelsOn = showPct || showAbs;
-  const dense = n > 14;
-  const extraTop = labelsOn ? (dense ? 34 : showPct && showAbs ? 24 : 13) : 0;
+  // Sık çubuklarda ya da kWh etiketi varken (geniş metin) etiketler dikey yazılır
+  const dense = n > 14 || (showAbs && n > 8);
+  const extraTop = labelsOn ? (dense ? (showPct && showAbs ? 78 : showAbs ? 48 : 30) : showPct && showAbs ? 24 : 13) : 0;
   const W = 600, H = height + extraTop;
   const pl = 38, pr = 6, pt = 16 + extraTop, pb = 22;
   const plotH = H - pt - pb, colW = (W - pl - pr) / n, bw = Math.max(2, colW * 0.68);
@@ -128,8 +129,13 @@ export function DragBars({
           const top = y(v), h = pt + plotH - top;
           const on = i === sel;
           const cx = x(i) + bw / 2;
-          // Çubuk etiketlerinde birim yazılmaz (üstteki düğme hangisi olduğunu söyler) — sığsın
-          const lab = [showPct ? fmt(v) : '', showAbs ? absTxt(i).replace(/ ?kWh$/, '') : ''].filter(Boolean);
+          // Etiketler: % (lacivert) ve mutlak değer (yeşil, birimi küçük punto)
+          const absRaw = showAbs ? absTxt(i) : '';
+          const absUnit = absRaw.match(/\s?([^\d\s.,−-]+)$/)?.[1] ?? '';
+          const absNum = absUnit ? absRaw.slice(0, absRaw.length - absUnit.length).trim() : absRaw;
+          const pctEl = showPct ? <tspan className="db-pct">{fmt(v)}</tspan> : null;
+          const absEl = showAbs ? <tspan className="db-abs">{absNum}{absUnit && <tspan className="db-unit">{' ' + absUnit}</tspan>}</tspan> : null;
+          const nLab = (showPct ? 1 : 0) + (showAbs ? 1 : 0);
           return (
             <g key={i}>
               <rect
@@ -137,9 +143,12 @@ export function DragBars({
                 fill={remBar ? 'url(#dbHatch)' : on ? SEL_COL : color ? color(i) : '#4A86C8'}
                 className={`db-bar${on ? ' on' : ''}${remBar ? ' rem' : ''}`}
               />
-              {lab.length > 0 && (dense
-                ? <text x={cx + 3} y={top - 4} transform={`rotate(-90 ${cx + 3} ${top - 4})`} className="db-val">{lab.join(' · ')}</text>
-                : lab.map((t, k) => <text key={k} x={cx} y={top - 4 - (lab.length - 1 - k) * 11} textAnchor="middle" className={`db-val${k === 1 ? ' sub' : ''}`}>{t}</text>))}
+              {nLab > 0 && (dense
+                ? <text x={cx + 3} y={top - 4} transform={`rotate(-90 ${cx + 3} ${top - 4})`} className="db-val">{pctEl}{pctEl && absEl ? <tspan className="db-sep"> · </tspan> : null}{absEl}</text>
+                : <>
+                  {pctEl && <text x={cx} y={top - 4 - (absEl ? 11 : 0)} textAnchor="middle" className="db-val">{pctEl}</text>}
+                  {absEl && <text x={cx} y={top - 4} textAnchor="middle" className="db-val">{absEl}</text>}
+                </>)}
               {/* Sütunun tamamı seçme/tutma alanı */}
               <rect
                 x={pl + colW * i} y={pt - 8 - extraTop} width={colW} height={plotH + 8 + extraTop}

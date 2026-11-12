@@ -445,3 +445,13 @@
 .dark .mdl .top-box.osos-box { background: #142236; border-color: #3a5172; }
 .dark .mdl .top-box-h { color: #dbe5f3; }
 @media (max-width: 860px) { .mdl .top-grid3, .mdl .top-grid2 { grid-template-columns: 1fr; } }
+
+/* Çubuk etiketleri: % lacivert, kWh yeşil (birimi küçük) */
+.mdl .dbars .db-val { font-size: 10px; font-weight: 700; }
+.mdl .dbars .db-pct { fill: #1f4e8c; }
+.mdl .dbars .db-abs { fill: #1e7f4f; font-weight: 600; }
+.mdl .dbars .db-unit { font-size: 7.5px; font-weight: 500; fill: #4c8f6c; }
+.mdl .dbars .db-sep { fill: #98a2b6; }
+.dark .mdl .dbars .db-pct { fill: #8fb4ea; }
+.dark .mdl .dbars .db-abs { fill: #6fd6a0; }
+.dark .mdl .dbars .db-unit { fill: #5fb98b; }
