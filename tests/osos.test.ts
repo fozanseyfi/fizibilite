@@ -56,3 +56,16 @@ describe('OSOS Excel okuyucu', () => {
     await expect(parseOsosFile(await asFile(wb))).rejects.toThrow(/okunabilir tüketim/);
   });
 });
+
+describe('OSOS şablonu', () => {
+  it('Aylık ve Yıllık sayfaları saatlik veriden formülle hesaplanır', async () => {
+    const { buildOsosTemplate } = await import('@/lib/models/ci/osos');
+    const wb = await buildOsosTemplate();
+    const m = wb.getWorksheet('Aylık')!, y = wb.getWorksheet('Yıllık')!, h = wb.getWorksheet('Saatlik (OSOS)')!;
+    expect(h.rowCount).toBe(8761);
+    const jan = m.getCell(2, 2).value as { formula: string }, dec = m.getCell(13, 2).value as { formula: string };
+    expect(jan.formula).toContain("MONTH('Saatlik (OSOS)'!$A$2:$A$8761)=1)");
+    expect(dec.formula).toContain('=12)');
+    expect((y.getCell(2, 2).value as { formula: string }).formula).toBe("SUM('Aylık'!B2:B13)");
+  });
+});

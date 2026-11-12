@@ -28,12 +28,15 @@ function toPct(vals: number[]): number[] {
   return out;
 }
 
-export async function downloadOsosTemplate(): Promise<void> {
+/** Şablon çalışma kitabını üretir (indirme ve test için) */
+export async function buildOsosTemplate() {
   const ExcelJS = (await import('exceljs')).default;
   const wb = new ExcelJS.Workbook();
   wb.creator = 'Fizibilite Platformu';
   const head = { font: { bold: true, color: { argb: 'FFFFFFFF' } }, fill: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FF16304F' } } };
   const input = { fill: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFFFF8E1' } } };
+  // Formülle hesaplanan hücreler (mavi zemin)
+  const calc = { fill: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFE8F0FB' } }, font: { color: { argb: 'FF1F4E8C' } } };
 
   const a = wb.addWorksheet('Açıklama');
   a.columns = [{ width: 110 }];
@@ -43,25 +46,33 @@ export async function downloadOsosTemplate(): Promise<void> {
     'Bu dosyayı doldurup Fizibilite Modeli → Adım 1 → "Excel yükle" ile yükleyin. Üç seviyeden yalnızca birini doldurmanız yeterli:',
     '1) En ayrıntılısı: "Saatlik (OSOS)" sayfası — 8.760 saatin her birinin tüketimi (kWh). OSOS portalından aldığınız saatlik veriyi C sütununa yapıştırın.',
     '   Yıllık toplam, ay ay yüzdeler, ay içi gün dağılımı ve gün içi saatlik profil (hafta içi / hafta sonu) bu sayfadan otomatik hesaplanır.',
-    '2) Saatlik veri yoksa: "Aylık" sayfası — 12 ayın toplam tüketimi (kWh). Yıllık toplam ve ay yüzdeleri buradan alınır.',
-    '3) Yalnızca toplam biliniyorsa: "Yıllık" sayfası — yıllık tüketim (kWh).',
+    '   "Aylık" ve "Yıllık" sayfalarındaki tüketimler saatlik veriden FORMÜLLE otomatik hesaplanır (mavi hücreler) — kontrol için bakabilirsiniz.',
+    '2) Saatlik veri yoksa: "Aylık" sayfasında 12 ayın tüketimini mavi formül hücrelerinin ÜZERİNE yazın. Yıllık toplam Aylık sayfasından otomatik gelir.',
+    '3) Yalnızca toplam biliniyorsa: "Yıllık" sayfasında yıllık tüketim hücresinin üzerine yazın.',
     '"Yıllık" sayfasındaki "Önceki yıl tüketimi" bedelli üretim limitinin bazıdır (limit = önceki yıl × 2); her durumda okunur.',
     '',
-    'Sarı hücreler girilecek alanlardır. Tarih ve saat sütunlarını değiştirmeyin. Boş bırakılan saatler 0 kabul edilmez; o sayfa eksik sayılır (en az %80 dolu olmalı).',
+    'Sarı hücreler girilecek alanlardır, mavi hücreler formüldür.  Tarih ve saat sütunlarını değiştirmeyin. Boş bırakılan saatler 0 kabul edilmez; o sayfa eksik sayılır (en az %80 dolu olmalı).',
     'Not: Model, ayın ilk gününü pazartesi kabul eden temsili bir takvim kullanır; günlük tüketimler ayın günü sırasıyla aktarılır.',
   ].forEach((t, i) => { const r = a.addRow([t]); if (i === 0) r.font = { bold: true, size: 14 }; r.alignment = { wrapText: true }; });
 
   const y = wb.addWorksheet('Yıllık');
   y.columns = [{ header: 'Kalem', width: 34 }, { header: 'Tüketim (kWh)', width: 18 }];
   y.getRow(1).eachCell((c) => Object.assign(c, head));
-  y.addRow(['Yıllık tüketim', null]);
+  // Yıllık tüketim = Aylık toplam (formül); Aylık da saatlikten formülle gelir. Saatlik yoksa üzerine yazılabilir.
+  y.addRow(['Yıllık tüketim (Aylık sayfasından otomatik)', { formula: "SUM('Aylık'!B2:B13)" }]);
   y.addRow(['Önceki yıl tüketimi', null]);
-  [2, 3].forEach((r) => Object.assign(y.getCell(r, 2), input, { numFmt: '#,##0' }));
+  Object.assign(y.getCell(2, 2), calc, { numFmt: '#,##0' });
+  Object.assign(y.getCell(3, 2), input, { numFmt: '#,##0' });
+  y.getColumn(1).width = 44;
 
   const m = wb.addWorksheet('Aylık');
   m.columns = [{ header: 'Ay', width: 14 }, { header: 'Tüketim (kWh)', width: 18 }];
   m.getRow(1).eachCell((c) => Object.assign(c, head));
-  MONTHS_TR.forEach((mo, i) => { m.addRow([mo, null]); Object.assign(m.getCell(i + 2, 2), input, { numFmt: '#,##0' }); });
+  // Her ay = Saatlik sayfasında o ayın saatlerinin toplamı (formül). Saatlik veri yoksa üzerine elle yazın.
+  MONTHS_TR.forEach((mo, i) => {
+    m.addRow([mo, { formula: "SUMPRODUCT((MONTH('Saatlik (OSOS)'!$A$2:$A$8761)=" + (i + 1) + ")*('Saatlik (OSOS)'!$C$2:$C$8761))" }]);
+    Object.assign(m.getCell(i + 2, 2), calc, { numFmt: '#,##0' });
+  });
   m.addRow(['Toplam', { formula: 'SUM(B2:B13)' }]).font = { bold: true };
 
   const h = wb.addWorksheet('Saatlik (OSOS)');
@@ -79,6 +90,11 @@ export async function downloadOsosTemplate(): Promise<void> {
   h.getColumn(3).numFmt = '#,##0.00';
   h.getColumn(3).eachCell((c, row) => { if (row > 1) c.fill = input.fill; });
 
+  return wb;
+}
+
+export async function downloadOsosTemplate(): Promise<void> {
+  const wb = await buildOsosTemplate();
   const buf = await wb.xlsx.writeBuffer();
   const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
   const link = document.createElement('a');
