@@ -17,14 +17,12 @@ import { DAYS } from './presets';
 const MONTHS_TR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 const TEMPLATE_YEAR = 2025;
 
-/** Değerleri %'ye çevir (0,1 hassasiyet, son eleman kalan → toplam tam 100) */
+/** Değerleri %'ye çevir — YUVARLAMADAN (Excel'deki kWh, model içinde birebir korunur); son eleman kalan → toplam tam 100 */
 function toPct(vals: number[]): number[] {
   const s = vals.reduce((a, b) => a + b, 0);
   if (s <= 0) return vals.map((_, i) => (i === vals.length - 1 ? 100 : 0));
-  const out: number[] = [];
-  let acc = 0;
-  for (let i = 0; i < vals.length - 1; i++) { const v = Math.round((vals[i] / s) * 1000) / 10; out.push(v); acc += v; }
-  out.push(Math.round((100 - acc) * 10) / 10);
+  const out = vals.map((v) => (v / s) * 100);
+  out[out.length - 1] = 100 - out.slice(0, -1).reduce((a, b) => a + b, 0);
   return out;
 }
 
@@ -124,7 +122,7 @@ const num = (v: unknown): number | null => {
   return null;
 };
 /** Tarih (ve varsa saat) → {ay, gün, saat?, haftaSonu} */
-function parseDate(v: unknown): { mi: number; d: number; h?: number; we: boolean } | null {
+function parseDate(v: unknown): { y: number; mi: number; d: number; h?: number; we: boolean } | null {
   let dt: Date | null = null;
   if (v instanceof Date) dt = v;
   else if (typeof v === 'number' && v > 30000 && v < 80000) dt = new Date(Math.round((v - 25569) * 86400000)); // Excel seri tarih
@@ -134,17 +132,17 @@ function parseDate(v: unknown): { mi: number; d: number; h?: number; we: boolean
     if (m) {
       const h = m[4] !== undefined ? +m[4] : undefined;
       const date = new Date(Date.UTC(+m[3], +m[2] - 1, +m[1]));
-      return { mi: +m[2] - 1, d: +m[1] - 1, h, we: [0, 6].includes(date.getUTCDay()) };
+      return { y: +m[3], mi: +m[2] - 1, d: +m[1] - 1, h, we: [0, 6].includes(date.getUTCDay()) };
     }
     m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}))?/);
     if (m) {
       const date = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
-      return { mi: +m[2] - 1, d: +m[3] - 1, h: m[4] !== undefined ? +m[4] : undefined, we: [0, 6].includes(date.getUTCDay()) };
+      return { y: +m[1], mi: +m[2] - 1, d: +m[3] - 1, h: m[4] !== undefined ? +m[4] : undefined, we: [0, 6].includes(date.getUTCDay()) };
     }
   }
   if (!dt || isNaN(dt.getTime())) return null;
   const hasTime = dt.getUTCHours() !== 0 || dt.getUTCMinutes() !== 0;
-  return { mi: dt.getUTCMonth(), d: dt.getUTCDate() - 1, h: hasTime ? dt.getUTCHours() : undefined, we: [0, 6].includes(dt.getUTCDay()) };
+  return { y: dt.getUTCFullYear(), mi: dt.getUTCMonth(), d: dt.getUTCDate() - 1, h: hasTime ? dt.getUTCHours() : undefined, we: [0, 6].includes(dt.getUTCDay()) };
 }
 const parseHour = (v: unknown): number | null => {
   if (typeof v === 'number') return v >= 0 && v < 1 ? Math.round(v * 24) % 24 : v >= 0 && v <= 24 ? Math.floor(v) % 24 : null; // Excel saat kesri ya da 0–23
@@ -182,6 +180,7 @@ export async function parseOsosFile(file: File): Promise<OsosResult> {
     if (best) hs = best;
   }
   const hourly: { mi: number; d: number; h: number; we: boolean; v: number }[] = [];
+  const years = new Map<number, number>();
   if (hs && hs.rowCount >= 1000) {
     const seq = new Map<string, number>(); // saat sütunu yoksa aynı gün içindeki sıra
     hs.eachRow((row, r) => {
@@ -197,6 +196,7 @@ export async function parseOsosFile(file: File): Promise<OsosResult> {
       }
       if (v === null || v < 0 || h > 23) return;
       hourly.push({ mi: dt.mi, d: dt.d, h, we: dt.we, v });
+      years.set(dt.y, (years.get(dt.y) ?? 0) + 1);
     });
   }
 
@@ -213,20 +213,20 @@ export async function parseOsosFile(file: File): Promise<OsosResult> {
       for (let mi = 0; mi < 12; mi++) for (let d = 0; d < DAYS[mi]; d++) {
         if (only !== undefined && mi !== only) continue;
         if (isWe[mi][d] !== we || day[mi][d] <= 0) continue;
-        hrs[mi][d].forEach((v, h) => { acc[h] += v / day[mi][d]; }); n++; kwh += day[mi][d];
+        hrs[mi][d].forEach((v, h) => { acc[h] += v; }); n++; kwh += day[mi][d];
       }
-      return { pct: n ? toPct(acc.map((v) => v / n)) : null, avg: n ? kwh / n : 0 };
+      return { pct: n && kwh > 0 ? toPct(acc) : null, avg: n ? kwh / n : 0 };
     };
     const wd = shape(false), we = shape(true);
     const shapeAll = (mi: number) => {
-      const acc = Array(24).fill(0); let n = 0;
-      for (let d = 0; d < DAYS[mi]; d++) { if (day[mi][d] <= 0) continue; hrs[mi][d].forEach((v, h) => { acc[h] += v / day[mi][d]; }); n++; }
-      return n ? toPct(acc.map((v) => v / n)) : null;
+      const acc = Array(24).fill(0); let kwh = 0;
+      for (let d = 0; d < DAYS[mi]; d++) { if (day[mi][d] <= 0) continue; hrs[mi][d].forEach((v, h) => { acc[h] += v; }); kwh += day[mi][d]; }
+      return kwh > 0 ? toPct(acc) : null;
     };
     const weRatio = wd.avg > 0 ? Math.round((we.avg / wd.avg) * 100) : 100;
     const shapeDiff = wd.pct && we.pct ? wd.pct.reduce((s, v, h) => s + Math.abs(v - we.pct![h]), 0) : 0;
     const split = Math.abs(weRatio - 100) > 10 || shapeDiff > 15;
-    patch.consY = Math.round(total);
+    patch.consY = total; // yuvarlamadan — Excel toplamı birebir (ekranda tam sayı gösterilir)
     patch.monthly = toPct(mon);
     patch.dayW = day.map((arr) => (arr.some((v) => v > 0) ? toPct(arr) : null));
     if (wd.pct) patch.wd = wd.pct;
@@ -236,6 +236,9 @@ export async function parseOsosFile(file: File): Promise<OsosResult> {
     patch.hourWe = split ? Array.from({ length: 12 }, (_, mi) => shape(true, mi).pct) : undefined;
     patch.weSplit = split;
     patch.weRatio = weRatio;
+    // En çok satırı olan yıl → modelde gerçek takvim (hafta içi / hafta sonu günleri doğru yere düşer)
+    patch.calYear = [...years.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+    patch.osos = { file: file.name, level: 'saatlik' };
     notes.push(`${hourly.length.toLocaleString('tr-TR')} saatlik değer okundu · yıllık ${Math.round(total).toLocaleString('tr-TR')} kWh`);
     notes.push(split ? `hafta sonu farklı (hafta sonu günü hafta içinin %${weRatio}'i) — hafta içi/sonu ayrımı açıldı` : 'hafta içi ve hafta sonu benzer — tek profil kullanıldı');
     return { patch, summary: notes.join(' · '), level: 'saatlik' };
@@ -251,10 +254,11 @@ export async function parseOsosFile(file: File): Promise<OsosResult> {
       const clean = vals.map((v) => (Number.isFinite(v) && v >= 0 ? v : 0));
       const total = clean.reduce((a, b) => a + b, 0);
       if (total > 0) {
-        patch.consY = Math.round(total);
+        patch.consY = total;
         patch.monthly = toPct(clean);
         notes.push(`aylık tüketimler okundu · yıllık ${Math.round(total).toLocaleString('tr-TR')} kWh`);
         if (filled < 12) notes.push(`${12 - filled} ay boş — 0 kabul edildi`);
+        patch.osos = { file: file.name, level: 'aylık' };
         return { patch, summary: notes.join(' · '), level: 'aylık' };
       }
     }
@@ -262,6 +266,7 @@ export async function parseOsosFile(file: File): Promise<OsosResult> {
 
   if (yearly) {
     patch.consY = Math.round(yearly);
+    patch.osos = { file: file.name, level: 'yıllık' };
     notes.push(`yıllık tüketim okundu · ${Math.round(yearly).toLocaleString('tr-TR')} kWh`);
     return { patch, summary: notes.join(' · '), level: 'yıllık' };
   }

@@ -2,7 +2,7 @@
 import { numLocale } from '@/lib/i18n';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { computeCi, ciDefaultDayW, ciDayCons, type CiInputs } from '@/lib/models/ci/engine';
+import { computeCi, ciDefaultDayW, ciDayCons, ciDow, type CiInputs } from '@/lib/models/ci/engine';
 import { downloadOsosTemplate, parseOsosFile } from '@/lib/models/ci/osos';
 import { defaultCiInputs } from '@/lib/models/ci/defaults';
 import {
@@ -34,19 +34,19 @@ function setPctCell(arr: number[], k: number, raw: number): number[] {
 const ZONE_COL = { g: '#E2B33C', p: '#C0392B', n: '#1f4e8c' } as const;
 const DOW = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 /** Ay içi gün dağılımı ön ayarları (ayın 1'i pazartesi varsayımıyla). Ağırlıklar % 'ye çevrilir, son gün kalan. */
-const DAY_PRESETS: { key: string; label: string; w: (d: number, n: number, weR: number) => number }[] = [
+const DAY_PRESETS: { key: string; label: string; w: (d: number, n: number, weR: number, dow: number) => number }[] = [
   { key: 'esit', label: 'Her gün eşit', w: () => 1 },
-  { key: 'model', label: 'Hafta sonu, hafta sonu oranıyla', w: (d, _n, weR) => (d % 7 >= 5 ? weR / 100 : 1) },
-  { key: 'hs50', label: 'Hafta sonu yarı yarıya', w: (d) => (d % 7 >= 5 ? 0.5 : 1) },
-  { key: 'hskapali', label: 'Hafta sonu kapalı (%5)', w: (d) => (d % 7 >= 5 ? 0.05 : 1) },
-  { key: 'pazar', label: 'Yalnız pazar kapalı (%5)', w: (d) => (d % 7 === 6 ? 0.05 : 1) },
+  { key: 'model', label: 'Hafta sonu, hafta sonu oranıyla', w: (_d, _n, weR, dow) => (dow >= 5 ? weR / 100 : 1) },
+  { key: 'hs50', label: 'Hafta sonu yarı yarıya', w: (_d, _n, _w, dow) => (dow >= 5 ? 0.5 : 1) },
+  { key: 'hskapali', label: 'Hafta sonu kapalı (%5)', w: (_d, _n, _w, dow) => (dow >= 5 ? 0.05 : 1) },
+  { key: 'pazar', label: 'Yalnız pazar kapalı (%5)', w: (_d, _n, _w, dow) => (dow === 6 ? 0.05 : 1) },
   { key: 'aybasi', label: 'Ay başı yoğun → ay sonu düşük', w: (d, n) => 1.3 - (0.6 * d) / Math.max(1, n - 1) },
   { key: 'aysonu', label: 'Ay başı düşük → ay sonu yoğun', w: (d, n) => 0.7 + (0.6 * d) / Math.max(1, n - 1) },
   { key: 'ayortasi', label: 'Ay ortası yoğun', w: (d, n) => 0.7 + 0.6 * (1 - Math.abs((2 * d) / Math.max(1, n - 1) - 1)) },
 ];
-function dayPreset(key: string, mi: number, weR: number): number[] {
+function dayPreset(key: string, mi: number, weR: number, dowOf: (d: number) => number): number[] {
   const p = DAY_PRESETS.find((x) => x.key === key) ?? DAY_PRESETS[0];
-  const n = DAYS_IN[mi], w = Array.from({ length: n }, (_, d) => Math.max(0, p.w(d, n, weR)));
+  const n = DAYS_IN[mi], w = Array.from({ length: n }, (_, d) => Math.max(0, p.w(d, n, weR, dowOf(d))));
   const s = w.reduce((a, b) => a + b, 0) || 1;
   const out: number[] = []; let acc = 0;
   for (let d = 0; d < n - 1; d++) { const v = Math.round((w[d] / s) * 1000) / 10; out.push(v); acc += v; }
@@ -129,6 +129,10 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   const mesken = inputs.abone === 'mesken';
   /** Hafta içi / hafta sonu ayrı profil mi? Değilse hafta sonu filtreleri gizlenir, her gün aynı profil. */
   const split = inputs.weSplit !== false;
+  // Excel (OSOS) verisi yüklüyse ön ayarlar / kopyalama kilitli; sürükleme ve elle düzeltme açık
+  const lockAll = inputs.osos?.level === 'saatlik';
+  const lockMonthly = !!inputs.osos && inputs.osos.level !== 'yıllık';
+  const isWe = (mi: number, d: number) => ciDow(inputs, mi, d) >= 5;
   // Ayrım yoksa: gün görünümünde tek temsili gün (hafta içi profili = her gün), ay/yıl toplamında tüm günler
   const eff = (v: R.NetChartState): R.NetChartState => (split ? v : { ...v, wd: true, we: !(v.mi !== 'y' && v.view === 'd') });
   const nvE = eff(nv), fvE = eff(fv);
@@ -227,7 +231,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
     const months = dp.target === 'this' ? [dm] : dp.target === 'all' ? [...Array(12).keys()] : dp.months;
     setInputs((p) => {
       const all = Array.from({ length: 12 }, (_, k) => p.dayW?.[k] ?? null);
-      months.forEach((mi) => { all[mi] = dayPreset(dp.key, mi, p.weSplit === false ? 100 : p.weRatio); });
+      months.forEach((mi) => { all[mi] = dayPreset(dp.key, mi, p.weSplit === false ? 100 : p.weRatio, (d) => ciDow(p, mi, d)); });
       return { ...p, dayW: all.some(Boolean) ? all : undefined };
     });
   };
@@ -357,6 +361,12 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                       </label>
                     </div>
                     {ososMsg && <div className={`soh-status ${ososMsg.ok ? 'ok' : 'bad'}`}>{ososMsg.text}</div>}
+                    {inputs.osos && (
+                      <div className="lock-note">
+                        🔒 Yüklü: <b>{inputs.osos.file}</b> ({inputs.osos.level} veri{inputs.calYear ? `, ${inputs.calYear} takvimi` : ''}). Değerler Excel&apos;den kWh olarak alındı; ön ayarlar kapalı, sürükleme ve elle düzeltme açık.
+                        <button type="button" className="btn-mini" onClick={() => { setInputs((p) => ({ ...p, osos: null })); setOsosMsg(null); }}>Ön ayarları yeniden aç</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -365,7 +375,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               <Card title="Aylık tüketim dağılımı" small="· yılın %'si · Aralık otomatik kalan">
                 <div className="prof-row">
                   <div className="prof-left">
-                    <SelF label="Aylık dağılım ön ayarı" tip={R.CI_TIPS.i_season} value={inputs.season} onChange={onSeason} options={[{ value: 'flat', label: 'Düz (yıl boyu eşit)' }, { value: 'yaz', label: 'Yaz pik (klima/soğutma)' }, { value: 'kis', label: 'Kış pik (ısıtma)' }]} />
+                    {lockMonthly ? <div className="lock-note">🔒 Aylık dağılım Excel verisinden geldi — ön ayar kapalı. Değerleri kutulardan ya da grafikten düzeltebilirsiniz.</div> : <SelF label="Aylık dağılım ön ayarı" tip={R.CI_TIPS.i_season} value={inputs.season} onChange={onSeason} options={[{ value: 'flat', label: 'Düz (yıl boyu eşit)' }, { value: 'yaz', label: 'Yaz pik (klima/soğutma)' }, { value: 'kis', label: 'Kış pik (ısıtma)' }]} />}
                     <PctGrid labels={MONTHS} values={inputs.monthly} onChange={(a) => set('monthly', a)} cols={4} />
                     <p className="tsub">Kutulara yazabilir ya da sağdaki grafikte bir ayın çubuğunu tutup yukarı/aşağı çekebilirsiniz. Aralık, toplamı 100&apos;e tamamlayan kalan değerdir.</p>
                   </div>
@@ -392,7 +402,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     </div>
                     <div className="prof-row">
                       <div className="prof-left">
-                        <div className="preset-box">
+                        {lockAll ? <div className="lock-note">🔒 Günlük dağılım Excel verisinden geldi — ön ayar ve aylara kopyalama kapalı. Değerleri kutulardan ya da grafikten düzeltebilirsiniz.</div> : <div className="preset-box">
                           <div className="row2">
                             <SelF label="Gün dağılımı ön ayarı" value={dp.key} onChange={(v) => setDp((s) => ({ ...s, key: v }))}
                               options={DAY_PRESETS.map((p) => ({ value: p.key, label: p.label }))} />
@@ -405,13 +415,14 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                             </div>
                           )}
                           <button type="button" className="btn-mini" onClick={applyDayPreset} disabled={dp.target === 'pick' && !dp.months.length}>Ön ayarı uygula</button>
-                        </div>
+                        </div>}
                         <div className="cal-grid">
                           {DOW.map((w, k) => <div key={'w' + k} className={`cal-dow${k >= 5 && split ? ' we' : ''}`}>{w}</div>)}
+                          {Array.from({ length: ciDow(inputs, dm, 0) }, (_, k) => <div key={'e' + k} />)}
                           {dayVals.map((v, d) => {
                             const last = d === dayVals.length - 1;
                             return (
-                              <label key={d} className={`cal-cell${d % 7 >= 5 && split ? ' we' : ''}`}>
+                              <label key={d} className={`cal-cell${isWe(dm, d) && split ? ' we' : ''}`}>
                                 <span>{d + 1}</span>
                                 <input type="number" min={0} max={100} step={0.1} value={r1(v)} readOnly={last} className={last ? 'rem' : undefined}
                                   title={last ? 'Otomatik kalan: 100 − diğer günler' : undefined}
@@ -420,14 +431,14 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                             );
                           })}
                         </div>
-                        <p className="tsub">Ayın 1&apos;i pazartesi varsayılır{split ? '; hafta sonu günleri altın renkli' : ''}. {customDay ? 'Bu ay elle düzenlendi.' : 'Varsayılan: her gün eşit' + (split ? ' (hafta sonu, hafta sonu oranıyla)' : '') + '.'}</p>
-                        <div className="copy-row">
+                        <p className="tsub">{inputs.calYear ? `${inputs.calYear} takvimi` : 'Ayın 1\'i pazartesi varsayılır'}{split ? '; hafta sonu günleri altın renkli' : ''}. {customDay ? 'Bu ay elle düzenlendi.' : 'Varsayılan: her gün eşit' + (split ? ' (hafta sonu, hafta sonu oranıyla)' : '') + '.'}</p>
+                        {!lockAll && <div className="copy-row">
                           <button type="button" className="btn-mini" onClick={() => setCopy((c) => (c ? null : MONTHS.map((_, k) => k).filter((k) => k !== dm)))}>
                             {copy ? '▲ Kapat' : `⇉ ${MONTHS_LONG[dm]} dağılımını diğer aylara uygula`}
                           </button>
                           {customDay && <button type="button" className="btn-mini" onClick={resetDays}>↺ Bu ayı varsayılana döndür</button>}
-                        </div>
-                        {copy && (
+                        </div>}
+                        {copy && !lockAll && (
                           <div className="copy-box">
                             <div className="copy-h">{MONTHS_LONG[dm]} ayının gün dağılımı hangi aylara kopyalansın? <small>İstemediğiniz ayların işaretini kaldırın.</small></div>
                             <div className="copy-months">
@@ -451,10 +462,10 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                       <div className="prof-right">
                         {lblToggles}
                         <DragBars values={dayVals} labels={dayVals.map((_, d) => String(d + 1))} labelEvery={dayVals.length > 20 ? 2 : 1}
-                          fullLabel={(d) => `${d + 1} ${MONTHS_LONG[dm]} (${DOW[d % 7]})`}
+                          fullLabel={(d) => `${d + 1} ${MONTHS_LONG[dm]} (${DOW[ciDow(inputs, dm, d)]})`}
                           onSet={(d, v) => setDay(d, v)} step={0.1}
                           abs={(d, v) => kwh(((inputs.consY * inputs.monthly[dm]) / 100) * v / 100)} showPct={lbl.pct} showAbs={lbl.kwh} showLine={lbl.line}
-                          color={(d) => (d % 7 >= 5 && split ? '#C9922A' : '#2F6B4F')} ariaLabel="Ay içi günlük dağılım (%)" />
+                          color={(d) => (isWe(dm, d) && split ? '#C9922A' : '#2F6B4F')} ariaLabel="Ay içi günlük dağılım (%)" />
                       </div>
                     </div>
                   </Card>
@@ -472,7 +483,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     )}
                     <div className="prof-row">
                       <div className="prof-left">
-                        <div className="preset-box">
+                        {lockAll ? <div className="lock-note">🔒 Saatlik profil Excel verisinden geldi (her ayın kendi ortalama günü) — ön ayar ve aylara kopyalama kapalı.</div> : <div className="preset-box">
                           <div className="row2">
                             <SelF label="Saatlik profil ön ayarı" tip={R.CI_TIPS.i_profile} value={hp.key} onChange={(v) => setHp((s) => ({ ...s, key: v }))}
                               options={(Object.keys(PROFILE_LABELS) as ProfileKey[]).map((k) => ({ value: k, label: PROFILE_LABELS[k] }))} />
@@ -485,7 +496,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                             </div>
                           )}
                           <button type="button" className="btn-mini" onClick={applyHourPreset} disabled={hp.target === 'pick' && !hp.months.length}>Ön ayarı uygula</button>
-                        </div>
+                        </div>}
                         <div className="row3">
                           <NumF label="Gündüz" unit="06–17 (%)" value={r1(zoneH.g)} onChange={(v) => editZoneH('g', v)} />
                           <NumF label="Puant" unit="17–22 (%)" value={r1(zoneH.p)} onChange={(v) => editZoneH('p', v)} />
@@ -493,13 +504,13 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                         </div>
                         <PctGrid labels={HLBL} values={hourVals} onChange={(a) => setHourArr(a)} cols={6} />
                         <p className="tsub">{customHour ? `${MONTHS_LONG[hm]} için aya özel profil.` : `${MONTHS_LONG[hm]} ortak profili kullanıyor; değiştirdiğinizde yalnız bu aya özel olur.`} Dilim kutuları o dilimdeki saatleri birlikte ölçekler.</p>
-                        <div className="copy-row">
+                        {!lockAll && <div className="copy-row">
                           <button type="button" className="btn-mini" onClick={() => setHcopy((c) => (c ? null : MONTHS.map((_, k) => k).filter((k) => k !== hm)))}>
                             {hcopy ? '▲ Kapat' : `⇉ ${MONTHS_LONG[hm]} profilini diğer aylara uygula`}
                           </button>
                           {(inputs.hourWd?.[hm] || inputs.hourWe?.[hm]) && <button type="button" className="btn-mini" onClick={resetHours}>↺ Ortak profile döndür</button>}
-                        </div>
-                        {hcopy && (
+                        </div>}
+                        {hcopy && !lockAll && (
                           <div className="copy-box">
                             <div className="copy-h">{MONTHS_LONG[hm]} ayının saatlik profili hangi aylara kopyalansın? <small>İstemediğiniz ayların işaretini kaldırın.{split ? ' Hafta içi ve hafta sonu profili birlikte kopyalanır.' : ''}</small></div>
                             <div className="copy-months">

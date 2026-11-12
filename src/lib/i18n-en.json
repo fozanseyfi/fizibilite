@@ -2903,4 +2903,14 @@
 "Hafta içi ve hafta sonu profili birlikte kopyalanır.":"Weekday and weekend profiles are copied together.",
 "· {0} ayının ortalama hafta içi günü · günün %'si · 23:00 otomatik kalan":"· average weekday of {0} · % of the day · 23:00 is the automatic remainder",
 "· {0} ayının ortalama hafta sonu günü · günün %'si · 23:00 otomatik kalan":"· average weekend day of {0} · % of the day · 23:00 is the automatic remainder",
-"· {0} ayının ortalama günü · günün %'si · 23:00 otomatik kalan":"· average day of {0} · % of the day · 23:00 is the automatic remainder"}
+"· {0} ayının ortalama günü · günün %'si · 23:00 otomatik kalan":"· average day of {0} · % of the day · 23:00 is the automatic remainder",
+"🔒 Aylık dağılım Excel verisinden geldi — ön ayar kapalı. Değerleri kutulardan ya da grafikten düzeltebilirsiniz.":"🔒 The monthly distribution came from the Excel data — the preset is disabled. You can adjust values in the boxes or on the chart.",
+"🔒 Günlük dağılım Excel verisinden geldi — ön ayar ve aylara kopyalama kapalı. Değerleri kutulardan ya da grafikten düzeltebilirsiniz.":"🔒 The daily distribution came from the Excel data — presets and copying to months are disabled. You can adjust values in the boxes or on the chart.",
+"🔒 Saatlik profil Excel verisinden geldi (her ayın kendi ortalama günü) — ön ayar ve aylara kopyalama kapalı.":"🔒 The hourly profile came from the Excel data (each month's own average day) — presets and copying to months are disabled.",
+"🔒 Yüklü:":"🔒 Loaded:",
+"Ön ayarları yeniden aç":"Re-enable presets",
+"{0} takvimi":"{0} calendar",
+"saatlik veri":"hourly data",
+"aylık veri":"monthly data",
+"yıllık veri":"annual data",
+"Değerler Excel'den kWh olarak alındı; ön ayarlar kapalı, sürükleme ve elle düzeltme açık.":"Values were taken from Excel as kWh; presets are disabled, dragging and manual edits remain available."}

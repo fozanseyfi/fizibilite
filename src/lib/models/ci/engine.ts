@@ -28,6 +28,10 @@ export interface CiInputs {
   /** Aya özel gün içi saatlik dağılım (% · 24 saat, toplam 100). Ay için tanımsız/null → ortak wd / we profili. */
   hourWd?: (number[] | null)[];
   hourWe?: (number[] | null)[];
+  /** Gerçek takvim yılı (ör. OSOS verisinin yılı). Tanımsız → her ayın 1'i pazartesi kabul edilir (temsili takvim). */
+  calYear?: number;
+  /** Excel (OSOS) verisi yüklendiyse kaynağı — ön ayarlar kilitlenir */
+  osos?: { file: string; level: 'saatlik' | 'aylık' | 'yıllık' } | null;
 
   // profil/mevsim seçimi (yalnız form/grafik bağlamı, matematiğe girmez)
   profileId: string;
@@ -72,7 +76,7 @@ export interface CiInputs {
 interface CParams {
   pname: string; prep: string;
   abone: 'ci' | 'mesken'; consY: number; consPrev: number;
-  mPct: number[]; weRatio: number; wd: number[]; we: number[]; dayW: (number[] | null)[]; hourWd: (number[] | null)[]; hourWe: (number[] | null)[];
+  mPct: number[]; weRatio: number; wd: number[]; we: number[]; dayW: (number[] | null)[]; hourWd: (number[] | null)[]; hourWe: (number[] | null)[]; dow: number[][];
   kwp: number; spec: number; orient: 's' | 'ew'; degr: number; life: number;
   skb: number;
   pBuy: number; pSell: number; esc1: number; esc2: number; preal: number;
@@ -117,19 +121,21 @@ function dailyProd(p: CParams, m: number, scale: number): number[] {
 function monthCons(p: CParams, mi: number): number {
   return (p.consY * p.mPct[mi]) / 100;
 }
-function calDays(mi: number): { wd: number; we: number } {
+/** Haftanın günü (0 = pazartesi … 6 = pazar) */
+const dowOf = (p: CParams | null, mi: number, d: number): number => (p ? p.dow[mi][d] : d % 7);
+function calDays(mi: number, p: CParams | null = null): { wd: number; we: number } {
   let wd = 0, we = 0;
-  for (let d = 0; d < DAYS[mi]; d++) (d % 7 >= 5 ? we++ : wd++);
+  for (let d = 0; d < DAYS[mi]; d++) (dowOf(p, mi, d) >= 5 ? we++ : wd++);
   return { wd, we };
 }
 /** Ayın d. gününün aylık tüketimdeki payı (0–1). Elle dağılım yoksa: hafta içi eşit, hafta sonu weRatio. */
 function dayShare(p: CParams, mi: number, d: number): number {
   const w = p.dayW[mi];
   if (w) return (w[d] ?? 0) / 100;
-  const { wd, we } = calDays(mi);
-  return (d % 7 >= 5 ? p.weRatio : 1) / (wd + we * p.weRatio);
+  const { wd, we } = calDays(mi, p);
+  return (dowOf(p, mi, d) >= 5 ? p.weRatio : 1) / (wd + we * p.weRatio);
 }
-const dayType = (d: number): 'wd' | 'we' => (d % 7 >= 5 ? 'we' : 'wd');
+const dayType = (p: CParams, mi: number, d: number): 'wd' | 'we' => (dowOf(p, mi, d) >= 5 ? 'we' : 'wd');
 /** Ayın gün tipi için saatlik profil (%): aya özel varsa o, yoksa ortak profil */
 function shapeOf(p: CParams, mi: number, dt: 'wd' | 'we'): number[] {
   if (dt === 'wd') return p.hourWd[mi] ?? p.wd;
@@ -138,13 +144,13 @@ function shapeOf(p: CParams, mi: number, dt: 'wd' | 'we'): number[] {
 /** Belirli bir günün 24 saatlik tüketimi */
 function dayConsAt(p: CParams, mi: number, d: number): number[] {
   const Dday = monthCons(p, mi) * dayShare(p, mi, d);
-  const shape = shapeOf(p, mi, dayType(d));
+  const shape = shapeOf(p, mi, dayType(p, mi, d));
   return shape.map((s) => (Dday * s) / 100);
 }
 /** Gün tipinin temsili (ortalama) günü */
 function dayCons(p: CParams, mi: number, dt: 'wd' | 'we'): number[] {
   let sh = 0, n = 0;
-  for (let d = 0; d < DAYS[mi]; d++) if (dayType(d) === dt) { sh += dayShare(p, mi, d); n++; }
+  for (let d = 0; d < DAYS[mi]; d++) if (dayType(p, mi, d) === dt) { sh += dayShare(p, mi, d); n++; }
   const Dday = n ? monthCons(p, mi) * sh / n : 0;
   const shape = shapeOf(p, mi, dt);
   return shape.map((s) => (Dday * s) / 100);
@@ -203,7 +209,7 @@ function simYear(p: CParams, yr: number): YearSim {
     for (let d = 0; d < DAYS[m]; d++) {
       const f = DAYF[m][d];
       const pdd = pd.map((v) => v * f);
-      const r = hourlyNet(pdd, custom ? dayConsAt(p, m, d) : d % 7 >= 5 ? cdE : cdW, bess);
+      const r = hourlyNet(pdd, custom ? dayConsAt(p, m, d) : dowOf(p, m, d) >= 5 ? cdE : cdW, bess);
       mm += r.mah; mf += r.faz; mc += r.cek; ms += r.shift;
     }
     mah += mm; faz += mf; cek += mc; shift += ms;
@@ -325,6 +331,21 @@ function normDayW(w: CiInputs['dayW']): (number[] | null)[] {
     return Math.abs(sum - 100) < 0.5 && sum > 0 ? a.map((v) => (v * 100) / sum) : null;
   });
 }
+/** Ay×gün → haftanın günü tablosu. Takvim yılı verilmişse gerçek takvim, yoksa her ay pazartesi başlar. */
+const dowCache = new Map<number, number[][]>();
+function dowTable(year?: number): number[][] {
+  const y = year && year > 1900 && year < 2200 ? Math.round(year) : 0;
+  let t = dowCache.get(y);
+  if (!t) {
+    t = DAYS.map((n, mi) => Array.from({ length: n }, (_, d) => (y ? (new Date(Date.UTC(y, mi, d + 1)).getUTCDay() + 6) % 7 : d % 7)));
+    dowCache.set(y, t);
+  }
+  return t;
+}
+/** Haftanın günü (0 = pazartesi … 6 = pazar) — grafik ve tablolar için */
+export function ciDow(inputs: CiInputs, mi: number, d: number): number {
+  return dowTable(inputs.calYear)[mi][d] ?? d % 7;
+}
 /** Aya özel saatlik dağılımı doğrula: 24 değer, toplam ~100; değilse ortak profile düş. */
 function normHourW(w: (number[] | null)[] | undefined): (number[] | null)[] {
   return Array.from({ length: 12 }, (_, m) => {
@@ -351,7 +372,7 @@ export function normalizeCi(i: CiInputs): CParams {
   return {
     pname: i.pname || 'C&I GES Projesi', prep: i.prep,
     abone: i.abone, consY: cl(i.consY, 1, 1e12), consPrev: cl(i.consPrev, 1, 1e12),
-    mPct: i.monthly, weRatio: i.weSplit === false ? 1 : cl(i.weRatio, 0, 300) / 100, wd: i.wd, we: i.weSplit === false ? i.wd : i.we, dayW: normDayW(i.dayW), hourWd: normHourW(i.hourWd), hourWe: i.weSplit === false ? normHourW(i.hourWd) : normHourW(i.hourWe),
+    mPct: i.monthly, weRatio: i.weSplit === false ? 1 : cl(i.weRatio, 0, 300) / 100, wd: i.wd, we: i.weSplit === false ? i.wd : i.we, dayW: normDayW(i.dayW), dow: dowTable(i.calYear), hourWd: normHourW(i.hourWd), hourWe: i.weSplit === false ? normHourW(i.hourWd) : normHourW(i.hourWe),
     kwp: cl(i.kwp, 0, 1e9), spec: cl(i.spec, 0, 5000), orient: i.orient, degr: cl(i.degr, 0, 10) / 100, life: cl(Math.round(i.life), 5, 40),
     skb: cl(i.skb, 0, 1e6),
     pBuy: cl(i.pBuy, 0, 1e6), pSell: cl(i.pSell, 0, 1e6), esc1: cl(i.esc1, -50, 500) / 100, esc2: cl(i.esc2, -50, 500) / 100, preal: cl(i.preal, -50, 50) / 100,
@@ -379,8 +400,8 @@ export function ciDayDetail(inputs: CiInputs, mi: number, dt: 'wd' | 'we', pf = 
 export function ciMonthCons(inputs: CiInputs, mi: number): number {
   return monthCons(normalizeCi(inputs), mi);
 }
-export function ciCalDays(mi: number): { wd: number; we: number } {
-  return calDays(mi);
+export function ciCalDays(mi: number, inputs?: CiInputs): { wd: number; we: number } {
+  return calDays(mi, inputs ? normalizeCi(inputs) : null);
 }
 /** Ay içi üretim eğim faktörü (gün gün; ay ortalaması 1). Net grafiğin gün görünümü için. */
 export function ciDayFactor(mi: number, d: number): number {

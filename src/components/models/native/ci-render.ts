@@ -3,7 +3,7 @@
 // (rich-text/tablo/SVG string) üretir; sonuçlar dangerouslySetInnerHTML ile basılır.
 
 import {
-  computeCi, ciMonthCons, ciDayDetail, ciDayCons, ciDayFactor, ciCompareYear1,
+  computeCi, ciMonthCons, ciDayDetail, ciDayCons, ciDayFactor, ciCompareYear1, ciDow,
   type CiInputs, type CiModel,
 } from '@/lib/models/ci/engine';
 import { SOLAR_M, DAYS, MONTHS } from '@/lib/models/ci/presets';
@@ -237,7 +237,7 @@ export function consChart(i: CiInputs, cg: ConsChartState): { svg: string; hint:
     const mi = cg.mi, nd = DAYS[mi];
     const dw = ciDayCons(i, mi, 'wd').reduce((a, b) => a + b, 0), de = ciDayCons(i, mi, 'we').reduce((a, b) => a + b, 0);
     for (let d = 0; d < nd; d++) {
-      const we = d % 7 >= 5;
+      const we = ciDow(i, mi, d) >= 5;
       bars.push({ lab: (d + 1) % 5 === 0 || d === 0 ? String(d + 1) : '', val: (we ? de : dw) / 1000, c: we ? '#E8A020' : '#18428F', click: { level: 'd', mi, dt: we ? 'we' : 'wd' } });
     }
     hint = `${MONTHS[mi]}: hafta içi günlük ${fmt(dw)} kWh (lacivert), hafta sonu ${fmt(de)} kWh (altın). Ay pazartesi başlar varsayılır. Bir güne tıklayınca 24 saatlik profil açılır. Birim: MWh/gün.`;
@@ -281,7 +281,7 @@ export function netChart(i: CiInputs, nv: NetChartState): { svg: string; hint: s
   } else if (nv.view === 'm') {
     const mi = nv.mi as number, nd = DAYS[mi];
     for (let d = 0; d < nd; d++) {
-      const we = d % 7 >= 5, on = nv[we ? 'we' : 'wd'];
+      const we = ciDow(i, mi, d) >= 5, on = nv[we ? 'we' : 'wd'];
       const T = ciDayDetail(i, mi, we ? 'we' : 'wd', ciDayFactor(mi, d), d);
       cols.push({ lab: (d + 1) % 5 === 0 || d === 0 ? String(d + 1) : '', dim: !on, mah: S(T.mah), sh: S(T.dch), fz: S(T.faz), ck: S(T.cek), pr: S(T.prod), cn: S(T.cons) });
     }
@@ -399,7 +399,7 @@ export function csvAllYear(i: CiInputs): string {
   const num = (x: number) => String(Math.round(x * 100) / 100).replace('.', ',');
   for (let mi = 0; mi < 12; mi++) {
     for (let d = 0; d < DAYS[mi]; d++) {
-      const we = d % 7 >= 5, lab = we ? 'Hafta sonu' : 'Hafta içi';
+      const we = ciDow(i, mi, d) >= 5, lab = we ? 'Hafta sonu' : 'Hafta içi';
       const T = ciDayDetail(i, mi, we ? 'we' : 'wd', ciDayFactor(mi, d), d);
       for (let h = 0; h < 24; h++) {
         csv += [MONTHS[mi], d + 1, lab, h + ':00', num(T.prod[h]), num(T.cons[h]), num(T.mah[h]), num(T.ch[h]), num(T.dch[h]), num(T.faz[h]), num(T.cek[h])].join(sep) + '\r\n';
@@ -506,7 +506,7 @@ export function netFlows(i: CiInputs, nv: NetChartState, split = true): NetFlows
   } else if (nv.view === 'm') {
     const mi = nv.mi;
     for (let d = 0; d < DAYS[mi]; d++) {
-      const dt = d % 7 >= 5 ? 'we' : 'wd';
+      const dt = ciDow(i, mi, d) >= 5 ? 'we' : 'wd';
       if (nv[dt]) add(ciDayDetail(i, mi, dt, ciDayFactor(mi, d), d), 1);
     }
     f.label = MONTHS[mi] + ' ayı toplamı' + typeLab;

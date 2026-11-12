@@ -463,3 +463,6 @@
 .mdl.classic .field input.num { border-color: #c4cbd4; }
 .mdl .field input.num:focus-visible { outline: 2px solid var(--navy); outline-offset: 1px; border-color: var(--navy); }
 .dark .mdl .field input.num { background: #0f1724; border-color: #34425a; color: var(--ink); }
+.mdl .lock-note { font-size: 12.5px; color: #4d3d10; background: #fff8e1; border: 1px solid #ecd9a0; border-radius: 4px; padding: 8px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.mdl .lock-note .btn-mini { margin-top: 0; }
+.dark .mdl .lock-note { background: #2a2414; border-color: #5a4a20; color: #f0dfa8; }

@@ -27,7 +27,7 @@ describe('OSOS Excel okuyucu', () => {
     }
     const r = await parseOsosFile(await asFile(wb));
     expect(r.level).toBe('saatlik');
-    expect(r.patch.consY).toBe(Math.round(total));
+    expect(r.patch.consY).toBeCloseTo(total, 6);
     expect(r.patch.consPrev).toBe(900000);
     expect(r.patch.monthly!.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 6);
     expect(r.patch.monthly![6]).toBeGreaterThan(r.patch.monthly![5]); // Temmuz 1,5×
@@ -67,5 +67,40 @@ describe('OSOS şablonu', () => {
     expect(jan.formula).toContain("MONTH('Saatlik (OSOS)'!$A$2:$A$8761)=1)");
     expect(dec.formula).toContain('=12)');
     expect((y.getCell(2, 2).value as { formula: string }).formula).toBe("SUM('Aylık'!B2:B13)");
+  });
+});
+
+describe('OSOS → model: Excel değerleri birebir korunur', () => {
+  it('aylık, günlük ve ortalama saatlik kWh Excel ile aynı; gerçek takvim kullanılır', async () => {
+    const { computeCi, ciDayCons, ciDow } = await import('@/lib/models/ci/engine');
+    const { defaultCiInputs } = await import('@/lib/models/ci/defaults');
+    const wb = new ExcelJS.Workbook();
+    const h = wb.addWorksheet('Saatlik (OSOS)');
+    h.addRow(['Tarih', 'Saat', 'Tüketim (kWh)']);
+    const mon = Array(12).fill(0), dayK: number[][] = DAYS.map((n) => Array(n).fill(0));
+    const wdHour = Array(24).fill(0); let wdDays = 0; // Mart hafta içi saat toplamları
+    let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+    for (let mi = 0; mi < 12; mi++) for (let d = 1; d <= DAYS[mi]; d++) {
+      const date = new Date(Date.UTC(2025, mi, d)), we = [0, 6].includes(date.getUTCDay());
+      if (mi === 2 && !we) wdDays++;
+      for (let hr = 0; hr < 24; hr++) {
+        const v = Math.round((we ? 40 : 120) * (hr >= 8 && hr < 18 ? 2.5 : 0.7) * (0.6 + rnd()) * 1000) / 1000; // düzensiz, 3 ondalık
+        mon[mi] += v; dayK[mi][d - 1] += v;
+        if (mi === 2 && !we) wdHour[hr] += v;
+        h.addRow([date, `${String(hr).padStart(2, '0')}:00`, v]);
+      }
+    }
+    const r = await parseOsosFile(await asFile(wb));
+    expect(r.patch.calYear).toBe(2025);
+    const inputs = { ...defaultCiInputs(), ...r.patch };
+    expect(ciDow(inputs, 0, 0)).toBe(2); // 1 Ocak 2025 çarşamba
+    const m = computeCi(inputs);
+    m.years[0].s.monthly.forEach((x, mi) => expect(x.cons).toBeCloseTo(mon[mi], 3));
+    // Mart'ın ortalama hafta içi günü, saat saat Excel ortalamasına eşit
+    const rep = ciDayCons(inputs, 2, 'wd');
+    rep.forEach((v, hr) => expect(v).toBeCloseTo(wdHour[hr] / wdDays, 6));
+    // Günlük kWh: ay toplamı × gün payı = Excel günü
+    const marDays = inputs.dayW![2]!.map((p) => (mon[2] * p) / 100);
+    marDays.forEach((v, d) => expect(v).toBeCloseTo(dayK[2][d], 6));
   });
 });
