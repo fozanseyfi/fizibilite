@@ -455,3 +455,7 @@
 .dark .mdl .dbars .db-pct { fill: #8fb4ea; }
 .dark .mdl .dbars .db-abs { fill: #6fd6a0; }
 .dark .mdl .dbars .db-unit { fill: #5fb98b; }
+.mdl .dbars .db-line polyline { fill: none; stroke: #0b1a2f; stroke-width: 1.6; stroke-linejoin: round; opacity: .75; }
+.mdl .dbars .db-line circle { fill: #ffffff; stroke: #0b1a2f; stroke-width: 1.2; opacity: .85; }
+.dark .mdl .dbars .db-line polyline { stroke: #dbe5f3; }
+.dark .mdl .dbars .db-line circle { fill: #121b28; stroke: #dbe5f3; }

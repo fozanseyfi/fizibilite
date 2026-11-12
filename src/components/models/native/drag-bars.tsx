@@ -30,6 +30,8 @@ export interface DragBarsProps {
   fullLabel?: (i: number) => string;
   showPct?: boolean;
   showAbs?: boolean;
+  /** Çubuk tepelerini birleştiren çizgi */
+  showLine?: boolean;
   height?: number;
   ariaLabel?: string;
 }
@@ -44,7 +46,7 @@ const SEL_COL = '#E07B3C';
 
 export function DragBars({
   values, labels, onSet, color, labelEvery = 1, step = 0.1, readOnly = false, remainderLast,
-  fmt = (v) => `%${nf(v, 1)}`, abs, fullLabel, showPct = false, showAbs = false, height = 230, ariaLabel,
+  fmt = (v) => `%${nf(v, 1)}`, abs, fullLabel, showPct = false, showAbs = false, showLine = false, height = 230, ariaLabel,
 }: DragBarsProps) {
   const n = values.length;
   const rem = remainderLast ?? !readOnly;
@@ -162,6 +164,12 @@ export function DragBars({
             </g>
           );
         })}
+        {showLine && (
+          <g className="db-line" pointerEvents="none">
+            <polyline points={values.map((v, i) => `${x(i) + bw / 2},${y(v)}`).join(' ')} />
+            {values.map((v, i) => <circle key={i} cx={x(i) + bw / 2} cy={y(v)} r={n > 14 ? 1.8 : 2.6} />)}
+          </g>
+        )}
         {!labelsOn && tipI !== null && values[tipI] !== undefined && (() => {
           const tx = Math.min(Math.max(x(tipI) + bw / 2, pl + 34), W - 40);
           const ty = Math.max(y(values[tipI]) - 8, pt + 2);

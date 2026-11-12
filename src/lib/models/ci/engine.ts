@@ -25,6 +25,9 @@ export interface CiInputs {
   /** Ay içi gün gün tüketim dağılımı (% · ayın günleri, toplam 100). Ay için tanımsız/null → varsayılan
    *  (hafta içi eşit, hafta sonu weRatio oranında). Grafikten elle düzenlenir. */
   dayW?: (number[] | null)[];
+  /** Aya özel gün içi saatlik dağılım (% · 24 saat, toplam 100). Ay için tanımsız/null → ortak wd / we profili. */
+  hourWd?: (number[] | null)[];
+  hourWe?: (number[] | null)[];
 
   // profil/mevsim seçimi (yalnız form/grafik bağlamı, matematiğe girmez)
   profileId: string;
@@ -69,7 +72,7 @@ export interface CiInputs {
 interface CParams {
   pname: string; prep: string;
   abone: 'ci' | 'mesken'; consY: number; consPrev: number;
-  mPct: number[]; weRatio: number; wd: number[]; we: number[]; dayW: (number[] | null)[];
+  mPct: number[]; weRatio: number; wd: number[]; we: number[]; dayW: (number[] | null)[]; hourWd: (number[] | null)[]; hourWe: (number[] | null)[];
   kwp: number; spec: number; orient: 's' | 'ew'; degr: number; life: number;
   skb: number;
   pBuy: number; pSell: number; esc1: number; esc2: number; preal: number;
@@ -127,10 +130,15 @@ function dayShare(p: CParams, mi: number, d: number): number {
   return (d % 7 >= 5 ? p.weRatio : 1) / (wd + we * p.weRatio);
 }
 const dayType = (d: number): 'wd' | 'we' => (d % 7 >= 5 ? 'we' : 'wd');
+/** Ayın gün tipi için saatlik profil (%): aya özel varsa o, yoksa ortak profil */
+function shapeOf(p: CParams, mi: number, dt: 'wd' | 'we'): number[] {
+  if (dt === 'wd') return p.hourWd[mi] ?? p.wd;
+  return p.hourWe[mi] ?? p.we;
+}
 /** Belirli bir günün 24 saatlik tüketimi */
 function dayConsAt(p: CParams, mi: number, d: number): number[] {
   const Dday = monthCons(p, mi) * dayShare(p, mi, d);
-  const shape = dayType(d) === 'wd' ? p.wd : p.we;
+  const shape = shapeOf(p, mi, dayType(d));
   return shape.map((s) => (Dday * s) / 100);
 }
 /** Gün tipinin temsili (ortalama) günü */
@@ -138,7 +146,7 @@ function dayCons(p: CParams, mi: number, dt: 'wd' | 'we'): number[] {
   let sh = 0, n = 0;
   for (let d = 0; d < DAYS[mi]; d++) if (dayType(d) === dt) { sh += dayShare(p, mi, d); n++; }
   const Dday = n ? monthCons(p, mi) * sh / n : 0;
-  const shape = dt === 'wd' ? p.wd : p.we;
+  const shape = shapeOf(p, mi, dt);
   return shape.map((s) => (Dday * s) / 100);
 }
 
@@ -317,6 +325,15 @@ function normDayW(w: CiInputs['dayW']): (number[] | null)[] {
     return Math.abs(sum - 100) < 0.5 && sum > 0 ? a.map((v) => (v * 100) / sum) : null;
   });
 }
+/** Aya özel saatlik dağılımı doğrula: 24 değer, toplam ~100; değilse ortak profile düş. */
+function normHourW(w: (number[] | null)[] | undefined): (number[] | null)[] {
+  return Array.from({ length: 12 }, (_, m) => {
+    const a = w?.[m];
+    if (!a || a.length !== 24 || a.some((v) => !Number.isFinite(v) || v < 0)) return null;
+    const sum = a.reduce((x, y) => x + y, 0);
+    return Math.abs(sum - 100) < 0.5 && sum > 0 ? a.map((v) => (v * 100) / sum) : null;
+  });
+}
 /** Varsayılan gün dağılımı (%, son gün kalan) — grafikte başlangıç değeri */
 export function ciDefaultDayW(inputs: CiInputs, mi: number): number[] {
   const p = normalizeCi({ ...inputs, dayW: undefined });
@@ -334,7 +351,7 @@ export function normalizeCi(i: CiInputs): CParams {
   return {
     pname: i.pname || 'C&I GES Projesi', prep: i.prep,
     abone: i.abone, consY: cl(i.consY, 1, 1e12), consPrev: cl(i.consPrev, 1, 1e12),
-    mPct: i.monthly, weRatio: i.weSplit === false ? 1 : cl(i.weRatio, 0, 300) / 100, wd: i.wd, we: i.weSplit === false ? i.wd : i.we, dayW: normDayW(i.dayW),
+    mPct: i.monthly, weRatio: i.weSplit === false ? 1 : cl(i.weRatio, 0, 300) / 100, wd: i.wd, we: i.weSplit === false ? i.wd : i.we, dayW: normDayW(i.dayW), hourWd: normHourW(i.hourWd), hourWe: i.weSplit === false ? normHourW(i.hourWd) : normHourW(i.hourWe),
     kwp: cl(i.kwp, 0, 1e9), spec: cl(i.spec, 0, 5000), orient: i.orient, degr: cl(i.degr, 0, 10) / 100, life: cl(Math.round(i.life), 5, 40),
     skb: cl(i.skb, 0, 1e6),
     pBuy: cl(i.pBuy, 0, 1e6), pSell: cl(i.pSell, 0, 1e6), esc1: cl(i.esc1, -50, 500) / 100, esc2: cl(i.esc2, -50, 500) / 100, preal: cl(i.preal, -50, 50) / 100,

@@ -192,15 +192,21 @@ export async function parseOsosFile(file: File): Promise<OsosResult> {
     hourly.forEach((x) => { mon[x.mi] += x.v; day[x.mi][x.d] += x.v; hrs[x.mi][x.d][x.h] += x.v; isWe[x.mi][x.d] = x.we; });
     const total = mon.reduce((a, b) => a + b, 0);
     // Gün içi profil: günlerin saatlik paylarının ortalaması (hafta içi / hafta sonu ayrı)
-    const shape = (we: boolean) => {
+    const shape = (we: boolean, only?: number) => {
       const acc = Array(24).fill(0); let n = 0, kwh = 0;
       for (let mi = 0; mi < 12; mi++) for (let d = 0; d < DAYS[mi]; d++) {
+        if (only !== undefined && mi !== only) continue;
         if (isWe[mi][d] !== we || day[mi][d] <= 0) continue;
         hrs[mi][d].forEach((v, h) => { acc[h] += v / day[mi][d]; }); n++; kwh += day[mi][d];
       }
       return { pct: n ? toPct(acc.map((v) => v / n)) : null, avg: n ? kwh / n : 0 };
     };
     const wd = shape(false), we = shape(true);
+    const shapeAll = (mi: number) => {
+      const acc = Array(24).fill(0); let n = 0;
+      for (let d = 0; d < DAYS[mi]; d++) { if (day[mi][d] <= 0) continue; hrs[mi][d].forEach((v, h) => { acc[h] += v / day[mi][d]; }); n++; }
+      return n ? toPct(acc.map((v) => v / n)) : null;
+    };
     const weRatio = wd.avg > 0 ? Math.round((we.avg / wd.avg) * 100) : 100;
     const shapeDiff = wd.pct && we.pct ? wd.pct.reduce((s, v, h) => s + Math.abs(v - we.pct![h]), 0) : 0;
     const split = Math.abs(weRatio - 100) > 10 || shapeDiff > 15;
@@ -209,6 +215,9 @@ export async function parseOsosFile(file: File): Promise<OsosResult> {
     patch.dayW = day.map((arr) => (arr.some((v) => v > 0) ? toPct(arr) : null));
     if (wd.pct) patch.wd = wd.pct;
     if (we.pct) patch.we = split ? we.pct : wd.pct ?? we.pct;
+    // Ay ay gün içi profil (her ayın kendi ortalama günü)
+    patch.hourWd = Array.from({ length: 12 }, (_, mi) => (split ? shape(false, mi).pct : shapeAll(mi)));
+    patch.hourWe = split ? Array.from({ length: 12 }, (_, mi) => shape(true, mi).pct) : undefined;
     patch.weSplit = split;
     patch.weRatio = weRatio;
     notes.push(`${hourly.length.toLocaleString('tr-TR')} saatlik değer okundu · yıllık ${Math.round(total).toLocaleString('tr-TR')} kWh`);

@@ -134,18 +134,8 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   const nvE = eff(nv), fvE = eff(fv);
   const hvDt: 'wd' | 'we' = split ? hv.dt : 'wd';
 
-  const onProfile = (key: string) => {
-    const sh = shapesForProfile(key as ProfileKey);
-    setInputs((p) => ({ ...p, profileId: key, wd: sh.wd, we: sh.we, weRatio: WE_RATIO[key as ProfileKey] }));
-  };
   const onSeason = (key: string) => setInputs((p) => ({ ...p, season: key, monthly: monthlyForSeason(key as SeasonKey) }));
   const onTarpre = (key: string) => { if (key === 'tic') setInputs((p) => ({ ...p, pBuy: 4.28, pSell: 3.95 })); else setInputs((p) => ({ ...p, pBuy: 3.10, pSell: 2.85 })); };
-  const zone = { wd: zoneSums(inputs.wd), we: zoneSums(inputs.we) };
-  const editZone = (dt: 'wd' | 'we', which: 'g' | 'p', val: number) => {
-    const cur = zoneSums(inputs[dt]);
-    const g = which === 'g' ? val : r1(cur.g), p = which === 'p' ? val : r1(cur.p);
-    set(dt, rescaleZone(inputs[dt], g, p));
-  };
 
   // Ay içi gün dağılımı: seçili ay (dm) — elle girilmişse dayW[dm], değilse varsayılan
   const [dm, setDm] = useState(5);
@@ -165,20 +155,69 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   // Gün içi saatler: hangi gün tipi düzenleniyor (ayrım yoksa her zaman hafta içi = her gün)
   const [hd, setHd] = useState<'wd' | 'we'>('wd');
   const hdE: 'wd' | 'we' = split ? hd : 'wd';
-  // Saat grafiği kWh: seçili ayın (dm) temsili günü
-  const hourKwh = useMemo(() => ciDayCons(inputs, dm, hdE), [inputs, dm, hdE]);
+  // Gün içi saatler aya göre: seçili ay (hm). Aya özel profil yoksa ortak profil (inputs.wd / inputs.we) gösterilir.
+  const [hm, setHm] = useState(5);
+  const hKey = hdE === 'wd' ? 'hourWd' : 'hourWe';
+  const customHour = !!inputs[hKey]?.[hm];
+  const hourVals = inputs[hKey]?.[hm] ?? inputs[hdE];
+  const months12 = (a?: (number[] | null)[]) => Array.from({ length: 12 }, (_, k) => a?.[k] ?? null);
+  const setHourArr = (arr: number[]) => setInputs((p) => {
+    const all = months12(p[hKey]); all[hm] = arr;
+    return { ...p, [hKey]: all };
+  });
+  const zoneH = zoneSums(hourVals);
+  const editZoneH = (which: 'g' | 'p', val: number) => {
+    const g = which === 'g' ? val : r1(zoneH.g), pp = which === 'p' ? val : r1(zoneH.p);
+    setHourArr(rescaleZone(hourVals, g, pp));
+  };
+  const resetHours = () => setInputs((p) => {
+    const wd = months12(p.hourWd), we = months12(p.hourWe); wd[hm] = null; we[hm] = null;
+    return { ...p, hourWd: wd.some(Boolean) ? wd : undefined, hourWe: we.some(Boolean) ? we : undefined };
+  });
+  // Saat grafiği kWh: seçili ayın (hm) temsili günü
+  const hourKwh = useMemo(() => ciDayCons(inputs, hm, hdE), [inputs, hm, hdE]);
+  // Saatlik profil ön ayarı (hazır profil) — bu ay / tüm aylar / seçilen aylar
+  const [hp, setHp] = useState<{ key: string; target: 'this' | 'all' | 'pick'; months: number[] }>({ key: 'tekvardiya', target: 'this', months: [] });
+  const applyHourPreset = () => {
+    const sh = shapesForProfile(hp.key as ProfileKey);
+    if (hp.target === 'all') {
+      // Tüm aylar: ortak profil bu olur, aylara özel profiller temizlenir
+      setInputs((p) => ({ ...p, profileId: hp.key, wd: sh.wd, we: sh.we, weRatio: WE_RATIO[hp.key as ProfileKey], hourWd: undefined, hourWe: undefined }));
+      return;
+    }
+    const months = hp.target === 'this' ? [hm] : hp.months;
+    setInputs((p) => {
+      const wd = months12(p.hourWd), we = months12(p.hourWe);
+      months.forEach((m) => { wd[m] = sh.wd.slice(); we[m] = sh.we.slice(); });
+      return { ...p, hourWd: wd, hourWe: we };
+    });
+  };
+  // Bu ayın saatlik profilini seçilen aylara kopyala (hafta içi ve hafta sonu birlikte)
+  const [hcopy, setHcopy] = useState<number[] | null>(null);
+  useEffect(() => { setHcopy(null); }, [hm]);
+  const applyHourCopy = () => {
+    if (!hcopy?.length) return;
+    setInputs((p) => {
+      const wd = months12(p.hourWd), we = months12(p.hourWe);
+      const srcWd = (p.hourWd?.[hm] ?? p.wd).slice(), srcWe = (p.hourWe?.[hm] ?? p.we).slice();
+      hcopy.forEach((m) => { wd[m] = srcWd.slice(); we[m] = srcWe.slice(); });
+      return { ...p, hourWd: wd, hourWe: we };
+    });
+    setHcopy(null);
+  };
 
   const chip = (active: boolean, label: string, onClick: () => void, key?: string | number) => (
     <button key={key} className={active ? 'active' : ''} onClick={onClick}>{label}</button>
   );
   // Grafik değer etiketleri (tüm dağılım grafikleri için ortak)
-  const [lbl, setLbl] = useState({ pct: false, kwh: false });
+  const [lbl, setLbl] = useState({ pct: false, kwh: false, line: true });
   const kwh = (v: number) => `${nf(v, v < 100 ? 1 : 0)} kWh`;
   const lblToggles = (
     <div className="chips mini lbl-toggles">
-      <span className="lbl-t">Çubuklarda göster:</span>
+      <span className="lbl-t">Grafikte göster:</span>
       {chip(lbl.pct, '% değer', () => setLbl((s) => ({ ...s, pct: !s.pct })))}
       {chip(lbl.kwh, 'kWh', () => setLbl((s) => ({ ...s, kwh: !s.kwh })))}
+      {chip(lbl.line, 'Çizgi', () => setLbl((s) => ({ ...s, line: !s.line })))}
     </div>
   );
 
@@ -334,7 +373,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     {lblToggles}
                     <DragBars values={inputs.monthly} labels={MONTHS} fullLabel={(i) => MONTHS_LONG[i]}
                       onSet={(i, v) => set('monthly', setPctCell(inputs.monthly, i, v))}
-                      abs={(i, v) => kwh((inputs.consY * v) / 100)} showPct={lbl.pct} showAbs={lbl.kwh}
+                      abs={(i, v) => kwh((inputs.consY * v) / 100)} showPct={lbl.pct} showAbs={lbl.kwh} showLine={lbl.line}
                       color={() => '#1f4e8c'} ariaLabel="Aylık tüketim dağılımı (%)" />
                   </div>
                 </div>
@@ -414,37 +453,77 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                         <DragBars values={dayVals} labels={dayVals.map((_, d) => String(d + 1))} labelEvery={dayVals.length > 20 ? 2 : 1}
                           fullLabel={(d) => `${d + 1} ${MONTHS_LONG[dm]} (${DOW[d % 7]})`}
                           onSet={(d, v) => setDay(d, v)} step={0.1}
-                          abs={(d, v) => kwh(((inputs.consY * inputs.monthly[dm]) / 100) * v / 100)} showPct={lbl.pct} showAbs={lbl.kwh}
+                          abs={(d, v) => kwh(((inputs.consY * inputs.monthly[dm]) / 100) * v / 100)} showPct={lbl.pct} showAbs={lbl.kwh} showLine={lbl.line}
                           color={(d) => (d % 7 >= 5 && split ? '#C9922A' : '#2F6B4F')} ariaLabel="Ay içi günlük dağılım (%)" />
                       </div>
                     </div>
                   </Card>
 
                   {/* ---------- 4) GÜN İÇİ SAATLER ---------- */}
-                  <Card title="Gün içi saatlik dağılım" small={`· günün %'si · 23:00 otomatik kalan · kWh: ${MONTHS_LONG[dm]} ortalama ${split ? (hdE === 'wd' ? 'hafta içi' : 'hafta sonu') + ' günü' : 'günü'}`}>
+                  <Card title="Gün içi saatlik dağılım" small={`· ${MONTHS_LONG[hm]} ayının ortalama ${split ? (hdE === 'wd' ? 'hafta içi' : 'hafta sonu') + ' günü' : 'günü'} · günün %'si · 23:00 otomatik kalan`}>
+                    <div className="chips">
+                      {MONTHS.map((mo, k) => chip(hm === k, mo, () => setHm(k), 'hm' + k))}
+                    </div>
                     {split && (
-                      <div className="chips">
+                      <div className="chips mini" style={{ marginTop: -4 }}>
                         {chip(hd === 'wd', 'Hafta içi günü', () => setHd('wd'))}
                         {chip(hd === 'we', 'Hafta sonu günü', () => setHd('we'))}
                       </div>
                     )}
                     <div className="prof-row">
                       <div className="prof-left">
-                        <SelF label="Tüketim profili (hazır)" tip={R.CI_TIPS.i_profile} value={inputs.profileId} onChange={onProfile}
-                          options={(Object.keys(PROFILE_LABELS) as ProfileKey[]).map((k) => ({ value: k, label: PROFILE_LABELS[k] }))} />
-                        <div className="row3">
-                          <NumF label="Gündüz" unit="06–17 (%)" value={r1(zone[hdE].g)} onChange={(v) => editZone(hdE, 'g', v)} />
-                          <NumF label="Puant" unit="17–22 (%)" value={r1(zone[hdE].p)} onChange={(v) => editZone(hdE, 'p', v)} />
-                          <NumF label="Gece" unit="22–06 (oto)" value={r1(zone[hdE].n)} onChange={() => { }} disabled />
+                        <div className="preset-box">
+                          <div className="row2">
+                            <SelF label="Saatlik profil ön ayarı" tip={R.CI_TIPS.i_profile} value={hp.key} onChange={(v) => setHp((s) => ({ ...s, key: v }))}
+                              options={(Object.keys(PROFILE_LABELS) as ProfileKey[]).map((k) => ({ value: k, label: PROFILE_LABELS[k] }))} />
+                            <SelF label="Uygulanacak aylar" value={hp.target} onChange={(v) => setHp((s) => ({ ...s, target: v as 'this' | 'all' | 'pick' }))}
+                              options={[{ value: 'this', label: `Yalnız ${MONTHS_LONG[hm]}` }, { value: 'all', label: 'Tüm aylar' }, { value: 'pick', label: 'Seçtiğim aylar' }]} />
+                          </div>
+                          {hp.target === 'pick' && (
+                            <div className="chips mini">
+                              {MONTHS.map((mo, k) => chip(hp.months.includes(k), mo, () => setHp((s) => ({ ...s, months: s.months.includes(k) ? s.months.filter((x) => x !== k) : [...s.months, k].sort((a, b) => a - b) })), 'hp' + k))}
+                            </div>
+                          )}
+                          <button type="button" className="btn-mini" onClick={applyHourPreset} disabled={hp.target === 'pick' && !hp.months.length}>Ön ayarı uygula</button>
                         </div>
-                        <PctGrid labels={HLBL} values={inputs[hdE]} onChange={(a) => set(hdE, a)} cols={6} />
-                        <p className="tsub">Dilim kutuları, o dilimdeki saatleri şekli koruyarak birlikte ölçekler. Saat kutuları ya da sağdaki grafik tek tek saat değiştirir.</p>
+                        <div className="row3">
+                          <NumF label="Gündüz" unit="06–17 (%)" value={r1(zoneH.g)} onChange={(v) => editZoneH('g', v)} />
+                          <NumF label="Puant" unit="17–22 (%)" value={r1(zoneH.p)} onChange={(v) => editZoneH('p', v)} />
+                          <NumF label="Gece" unit="22–06 (oto)" value={r1(zoneH.n)} onChange={() => { }} disabled />
+                        </div>
+                        <PctGrid labels={HLBL} values={hourVals} onChange={(a) => setHourArr(a)} cols={6} />
+                        <p className="tsub">{customHour ? `${MONTHS_LONG[hm]} için aya özel profil.` : `${MONTHS_LONG[hm]} ortak profili kullanıyor; değiştirdiğinizde yalnız bu aya özel olur.`} Dilim kutuları o dilimdeki saatleri birlikte ölçekler.</p>
+                        <div className="copy-row">
+                          <button type="button" className="btn-mini" onClick={() => setHcopy((c) => (c ? null : MONTHS.map((_, k) => k).filter((k) => k !== hm)))}>
+                            {hcopy ? '▲ Kapat' : `⇉ ${MONTHS_LONG[hm]} profilini diğer aylara uygula`}
+                          </button>
+                          {(inputs.hourWd?.[hm] || inputs.hourWe?.[hm]) && <button type="button" className="btn-mini" onClick={resetHours}>↺ Ortak profile döndür</button>}
+                        </div>
+                        {hcopy && (
+                          <div className="copy-box">
+                            <div className="copy-h">{MONTHS_LONG[hm]} ayının saatlik profili hangi aylara kopyalansın? <small>İstemediğiniz ayların işaretini kaldırın.{split ? ' Hafta içi ve hafta sonu profili birlikte kopyalanır.' : ''}</small></div>
+                            <div className="copy-months">
+                              {MONTHS.map((mo, k) => (
+                                <label key={k} className={k === hm ? 'src' : undefined}>
+                                  <input type="checkbox" disabled={k === hm} checked={k === hm || hcopy.includes(k)}
+                                    onChange={(e) => setHcopy((c) => (c ? (e.target.checked ? [...c, k].sort((a, b) => a - b) : c.filter((x) => x !== k)) : c))} />
+                                  {mo}{k === hm ? ' (kaynak)' : ''}
+                                </label>
+                              ))}
+                            </div>
+                            <div className="copy-actions">
+                              <button type="button" className="btn-mini" onClick={() => setHcopy(MONTHS.map((_, k) => k).filter((k) => k !== hm))}>Tümünü seç</button>
+                              <button type="button" className="btn-mini" onClick={() => setHcopy([])}>Hiçbirini seçme</button>
+                              <button type="button" className="btn-mini primary" disabled={!hcopy.length} onClick={applyHourCopy}>Seçili {hcopy.length} aya uygula</button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="prof-right">
                         {lblToggles}
-                        <DragBars values={inputs[hdE]} labels={HLBL} labelEvery={3} fullLabel={(h) => `${HLBL[h]}–${HLBL[(h + 1) % 24]}`}
-                          onSet={(h, v) => set(hdE, setPctCell(inputs[hdE], h, v))}
-                          abs={(h) => kwh(hourKwh[h] ?? 0)} showPct={lbl.pct} showAbs={lbl.kwh}
+                        <DragBars values={hourVals} labels={HLBL} labelEvery={3} fullLabel={(h) => `${MONTHS_LONG[hm]} · ${HLBL[h]}–${HLBL[(h + 1) % 24]}`}
+                          onSet={(h, v) => setHourArr(setPctCell(hourVals, h, v))}
+                          abs={(h) => kwh(hourKwh[h] ?? 0)} showPct={lbl.pct} showAbs={lbl.kwh} showLine={lbl.line}
                           color={(h) => ZONE_COL[zoneOf(h)]} ariaLabel="Gün içi saatlik dağılım (%)" />
                         <div className="legend">
                           <span><i style={{ background: ZONE_COL.g }} />Gündüz 06–17</span>

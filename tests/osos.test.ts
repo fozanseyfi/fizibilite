@@ -36,6 +36,8 @@ describe('OSOS Excel okuyucu', () => {
     expect(r.patch.weSplit).toBe(true);
     expect(r.patch.weRatio).toBe(50);
     expect(r.patch.wd![10]).toBeGreaterThan(r.patch.wd![2]); // gündüz yoğun
+    expect(r.patch.hourWd!.every((a) => a && a.length === 24)).toBe(true); // her ayın kendi profili
+    expect(r.patch.hourWe![6]!.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 6);
   });
 
   it('saatlik yoksa aylık sayfayı okur', async () => {

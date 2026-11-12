@@ -83,3 +83,19 @@ describe('C&I engine — ay içi gün dağılımı (dayW)', () => {
     expect(c.years[0].s.monthly[0].mah).not.toBeCloseTo(a.years[0].s.monthly[0].mah, 0);
   });
 });
+
+describe('C&I engine — aya özel saatlik profil (hourWd)', () => {
+  it('yalnız seçilen ayın gün içi şeklini değiştirir, ay toplamı korunur', async () => {
+    const { ciDayCons } = await import('@/lib/models/ci/engine');
+    const base = defaultCiInputs();
+    const flat = Array(24).fill(100 / 24);
+    const hourWd = Array.from({ length: 12 }, (_, m) => (m === 6 ? flat : null));
+    const i2 = { ...base, hourWd };
+    const jul = ciDayCons(i2, 6, 'wd'), jun = ciDayCons(i2, 5, 'wd'), jun0 = ciDayCons(base, 5, 'wd');
+    jul.forEach((v) => expect(v).toBeCloseTo(jul[0], 9));          // Temmuz düz
+    jun.forEach((v, h) => expect(v).toBeCloseTo(jun0[h], 9));       // Haziran değişmedi
+    const a = computeCi(base), b = computeCi(i2);
+    expect(b.years[0].s.monthly[6].cons).toBeCloseTo(a.years[0].s.monthly[6].cons, 3);
+    expect(b.years[0].s.monthly[6].mah).not.toBeCloseTo(a.years[0].s.monthly[6].mah, 0);
+  });
+});
