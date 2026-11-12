@@ -430,3 +430,18 @@
 .mdl .btn-mini.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
 .mdl .btn-mini.primary:disabled { opacity: .5; cursor: default; }
 .dark .mdl .copy-box { background: #142236; border-color: #2c3e58; }
+
+/* C&I Adım 1 — üst kart: üç eşit giriş + iki eşit kutu */
+.mdl .top-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: end; }
+.mdl .top-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; align-items: stretch; }
+.mdl .top-box { border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; background: #f6f7f9; display: flex; flex-direction: column; gap: 8px; }
+.mdl .top-box.osos-box { border-style: dashed; border-color: #8fa9cc; background: #f5f8fc; }
+.mdl .top-box-h { font-weight: 700; font-size: 13.5px; color: var(--navy-deep); }
+.mdl .top-box .tsub { margin: 0; }
+.mdl .top-box .osos-btns { margin-top: auto; }
+.mdl .top-inline { max-width: 360px; }
+.mdl label.btn-mini.primary { color: #fff; }
+.dark .mdl .top-box { background: #172030; }
+.dark .mdl .top-box.osos-box { background: #142236; border-color: #3a5172; }
+.dark .mdl .top-box-h { color: #dbe5f3; }
+@media (max-width: 860px) { .mdl .top-grid3, .mdl .top-grid2 { grid-template-columns: 1fr; } }

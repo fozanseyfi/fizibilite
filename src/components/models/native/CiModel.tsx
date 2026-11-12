@@ -286,41 +286,38 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
             <Step no="ADIM 1" title="Tesis ve Tüketim Profili" why="Saatlik rejimde fizibilitenin kalbi tüketim profilidir: aynı üretimle net fayda %30+ değişir.">
               {/* ---------- 1) YIL ---------- */}
               <Card title="Abone ve yıllık tüketim">
-                <div className="prof-row">
-                  <div className="prof-left">
-                    <SelF label="Abone grubu" tip={R.CI_TIPS.i_abone} value={inputs.abone} onChange={(v) => set('abone', v)} options={[{ value: 'ci', label: 'Ticarethane / Sanayi (C&I — saatlik rejim)' }, { value: 'mesken', label: 'Mesken (aylık rejim, limitsiz)' }]} />
-                    <div className="row2">
-                      <NumF label="Yıllık tüketim" unit="kWh" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={10000} />
-                      <NumF label="Önceki yıl tüketimi" unit="kWh, limit bazı" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} />
+                <div className="top-grid3">
+                  <SelF label="Abone grubu" tip={R.CI_TIPS.i_abone} value={inputs.abone} onChange={(v) => set('abone', v)} options={[{ value: 'ci', label: 'Ticarethane / Sanayi (C&I — saatlik rejim)' }, { value: 'mesken', label: 'Mesken (aylık rejim, limitsiz)' }]} />
+                  <NumF label="Yıllık tüketim" unit="kWh" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={10000} />
+                  <NumF label="Önceki yıl tüketimi" unit="kWh" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} />
+                </div>
+                <div className="top-grid2">
+                  {!mesken ? (
+                    <div className="top-box">
+                      <div className="top-box-h">Hafta içi / hafta sonu</div>
+                      <ChkF label="Hafta içi ve hafta sonu tüketimim farklı" checked={split} onChange={(v) => set('weSplit', v)} />
+                      <p className="tsub">{split
+                        ? 'Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda ayrı gösterilir.'
+                        : 'İşaretli değilken her gün (hafta sonu dahil) aynı profille hesaplanır. Hafta sonu belirgin farklıysa (ör. fabrika kapalı) işaretleyin.'}</p>
+                      {split && <div className="top-inline"><NumF label="Hafta sonu günlük tüketim" unit="% hafta içine göre" value={inputs.weRatio} onChange={(v) => set('weRatio', v)} step={5} /></div>}
                     </div>
-                    {!mesken && (
-                      <div className="we-split">
-                        <ChkF label="Hafta içi ve hafta sonu tüketimim farklı — ayrı ayrı detaylı girmek istiyorum" checked={split} onChange={(v) => set('weSplit', v)} />
-                        <p className="tsub">{split
-                          ? 'Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda hafta içi / hafta sonu ayrı gösterilir.'
-                          : 'İşaretlemezseniz her gün (hafta sonu dahil) aynı tüketim profiliyle hesaplanır. Hafta sonu tüketiminiz belirgin şekilde farklıysa (ör. fabrika hafta sonu kapalı) işaretleyip ayrıca girin.'}</p>
-                        {split && <NumF label="Hafta sonu günlük tüketim" unit="hafta içinin %'si" value={inputs.weRatio} onChange={(v) => set('weRatio', v)} step={5} />}
-                      </div>
-                    )}
-                  </div>
-                  <div className="prof-right">
-                    <div className="osos-box">
-                      <div className="osos-h">OSOS / sayaç verisi (Excel)</div>
-                      <p className="tsub">Saatlik sayaç verisi (OSOS) ya da aylık faturalarınız varsa şablonu indirip doldurun ve yükleyin. Yıllık tüketim, ay ay yüzdeler, ay içi günler ve gün içi saatlik profil otomatik dolar; sonra aşağıdan elle düzeltebilirsiniz.</p>
-                      <div className="osos-btns">
-                        <button type="button" className="btn-mini" onClick={() => { downloadOsosTemplate().catch(() => setOsosMsg({ ok: false, text: 'Şablon oluşturulamadı.' })); }}>⤓ Şablonu indir (.xlsx)</button>
-                        <label className="btn-mini osos-up">
-                          ⤒ Excel yükle
-                          <input type="file" accept=".xlsx" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onOsos(f); }} />
-                        </label>
-                      </div>
-                      <ul className="osos-list">
-                        <li><b>Saatlik (OSOS)</b> sayfası: 8.760 saatin tüketimi — en ayrıntılı</li>
-                        <li><b>Aylık</b> sayfası: 12 ayın toplamı</li>
-                        <li><b>Yıllık</b> sayfası: yıllık ve önceki yıl tüketimi</li>
-                      </ul>
-                      {ososMsg && <div className={`soh-status ${ososMsg.ok ? 'ok' : 'bad'}`}>{ososMsg.text}</div>}
+                  ) : (
+                    <div className="top-box">
+                      <div className="top-box-h">Mesken · aylık mahsuplaşma</div>
+                      <p className="tsub">Mesken abonelerinde üretim ve tüketim ay toplamı üzerinden nettleşir; gün ve saat dağılımı sonucu etkilemez.</p>
                     </div>
+                  )}
+                  <div className="top-box osos-box">
+                    <div className="top-box-h">OSOS / sayaç verisi (Excel)</div>
+                    <p className="tsub">Şablonu indirip doldurun ve yükleyin: <b>Saatlik (OSOS)</b> sayfası (8.760 saat) en ayrıntılısıdır; yoksa <b>Aylık</b> ya da <b>Yıllık</b> sayfası yeterli. Değerler aşağıdaki bölümlere otomatik dolar.</p>
+                    <div className="osos-btns">
+                      <button type="button" className="btn-mini" onClick={() => { downloadOsosTemplate().catch(() => setOsosMsg({ ok: false, text: 'Şablon oluşturulamadı.' })); }}>⤓ Şablonu indir (.xlsx)</button>
+                      <label className="btn-mini primary osos-up">
+                        ⤒ Excel yükle
+                        <input type="file" accept=".xlsx" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onOsos(f); }} />
+                      </label>
+                    </div>
+                    {ososMsg && <div className={`soh-status ${ososMsg.ok ? 'ok' : 'bad'}`}>{ososMsg.text}</div>}
                   </div>
                 </div>
               </Card>

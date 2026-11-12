@@ -2879,4 +2879,15 @@
 "Tümünü seç":"Select all",
 "Hiçbirini seçme":"Select none",
 "Seçili {0} aya uygula":"Apply to {0} selected months",
-"Gün sayısı farklı aylarda dağılım gün sırasıyla aktarılır ve ay toplamı %100 olacak şekilde ölçeklenir.":"For months with a different number of days, the distribution is carried over by day order and scaled so the month totals 100%."}
+"Gün sayısı farklı aylarda dağılım gün sırasıyla aktarılır ve ay toplamı %100 olacak şekilde ölçeklenir.":"For months with a different number of days, the distribution is carried over by day order and scaled so the month totals 100%.",
+"Hafta içi / hafta sonu":"Weekday / weekend",
+"Hafta içi ve hafta sonu tüketimim farklı":"My weekday and weekend consumption differ",
+"Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda ayrı gösterilir.":"A separate daily ratio and hourly distribution are entered for weekends; charts and tables show them separately.",
+"İşaretli değilken her gün (hafta sonu dahil) aynı profille hesaplanır. Hafta sonu belirgin farklıysa (ör. fabrika kapalı) işaretleyin.":"When unticked, every day (including weekends) uses the same profile. Tick it if weekends are clearly different (e.g. the factory is closed).",
+"Mesken · aylık mahsuplaşma":"Residential · monthly netting",
+"Mesken abonelerinde üretim ve tüketim ay toplamı üzerinden nettleşir; gün ve saat dağılımı sonucu etkilemez.":"For residential subscribers generation and consumption are netted on monthly totals; day and hour distribution do not affect the result.",
+"Şablonu indirip doldurun ve yükleyin:":"Download the template, fill it in and upload it:",
+"sayfası (8.760 saat) en ayrıntılısıdır; yoksa":"sheet (8,760 hours) is the most detailed; otherwise the",
+"ya da":"or",
+"sayfası yeterli. Değerler aşağıdaki bölümlere otomatik dolar.":"sheet is enough. Values fill the sections below automatically.",
+"% hafta içine göre":"% of weekday"}
