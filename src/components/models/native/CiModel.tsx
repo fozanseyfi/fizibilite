@@ -93,6 +93,8 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   const [adv, setAdv] = useState(false);
   const [cg, setCg] = useState<R.ConsChartState>({ level: 'y', mi: 5, dt: 'wd' });
   const [nv, setNv] = useState<R.NetChartState>({ mi: 5, view: 'd', wd: true, we: true });
+  // Enerji akışı (Sankey) kendi filtresiyle çalışır — mahsuplaşma grafiğinden bağımsız
+  const [fv, setFv] = useState<R.NetChartState>({ mi: 'y', view: 'm', wd: true, we: true });
   const [hv, setHv] = useState<{ mi: number | 'y'; dt: 'wd' | 'we' }>({ mi: 5, dt: 'wd' });
   const [modal, setModal] = useState<{ title: string; body: string } | null>(null);
   const [printing, setPrinting] = useState(false);
@@ -116,7 +118,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
 
   const cons = useMemo(() => R.consChart(inputs, cg), [inputs, cg]);
   const net = useMemo(() => R.netChart(inputs, nv), [inputs, nv]);
-  const flows = useMemo(() => R.netFlows(inputs, nv), [inputs, nv]);
+  const flows = useMemo(() => R.netFlows(inputs, fv), [inputs, fv]);
 
   function downloadCsv() {
     const blob = new Blob(['﻿' + R.csvAllYear(inputs)], { type: 'text/csv;charset=utf-8' });
@@ -366,7 +368,23 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                   <span style={{ color: '#00A651', fontWeight: 700 }}>— Üretim</span><span style={{ color: '#0E2A5E', fontWeight: 700 }}>— Tüketim</span>
                 </div>
                 <p className="tsub">{net.hint}</p>
-                <h4 className="ns-title">Enerji akışı <small>· aynı dönem ve gün tipi</small></h4>
+              </Card>
+
+              <Card title="Enerji akışı" small="· enerji nereden geliyor, nereye gidiyor · dönem ve gün tipini seç">
+                <div className="chips">
+                  {chip(fv.mi === 'y', 'Yıllık', () => setFv((s) => ({ ...s, mi: 'y' })))}
+                  {MONTHS.map((mo, k) => chip(fv.mi === k, mo, () => setFv((s) => ({ ...s, mi: k })), 'f' + k))}
+                </div>
+                {fv.mi !== 'y' && (
+                  <div className="chips" style={{ marginTop: -4 }}>
+                    {chip(fv.view === 'm', 'Ay toplamı', () => setFv((s) => ({ ...s, view: 'm' })))}
+                    {chip(fv.view === 'd', 'Temsili gün', () => setFv((s) => ({ ...s, view: 'd' })))}
+                  </div>
+                )}
+                <div className="chips" style={{ marginTop: -4 }}>
+                  {chip(fv.wd, 'Hafta içi', () => setFv((s) => (s.wd && !s.we ? s : { ...s, wd: !s.wd })))}
+                  {chip(fv.we, 'Hafta sonu', () => setFv((s) => (s.we && !s.wd ? s : { ...s, we: !s.we })))}
+                </div>
                 <NetSankey f={flows} />
               </Card>
 

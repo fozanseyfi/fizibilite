@@ -2797,4 +2797,7 @@
 "6 · Sonuçlar":"6 · Results",
 "MOTOR":"ENGINE",
 "Yıllık fazla, önceki yıl tüketiminin 2 katıyla sınanır; limit üstü bedelsiz YEKDEM'e gider.":"The annual surplus is tested against 2× the previous year's consumption; anything above the limit goes to YEKDEM unpaid.",
-"Her saat: mahsup = min(üretim, tüketim). Grafik ve enerji akışı seçilen dönem ve gün tipini izler.":"Each hour: netting = min(generation, consumption). The chart and energy flow follow the selected period and day type."}
+"Her saat: mahsup = min(üretim, tüketim). Grafik ve enerji akışı seçilen dönem ve gün tipini izler.":"Each hour: netting = min(generation, consumption). The chart and energy flow follow the selected period and day type.",
+"· enerji nereden geliyor, nereye gidiyor · dönem ve gün tipini seç":"· where energy comes from and goes · choose period and day type",
+"Ay toplamı":"Month total",
+"Temsili gün":"Representative day"}
