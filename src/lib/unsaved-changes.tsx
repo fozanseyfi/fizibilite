@@ -65,9 +65,9 @@ export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
       if (!isDirty() || e.defaultPrevented || e.button !== 0) return;
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; // yeni sekme
       const a = (e.target as HTMLElement | null)?.closest("a");
-      if (!a || a.target === "_blank") return;
+      if (!a || a.target === "_blank" || a.hasAttribute("download")) return; // dosya indirme sayfadan çıkış değildir
       const href = a.getAttribute("href");
-      if (!href || href.startsWith("#") || /^(https?:|mailto:|tel:)/i.test(href)) return;
+      if (!href || href.startsWith("#") || /^(https?:|mailto:|tel:|blob:|data:)/i.test(href)) return;
       e.preventDefault();
       e.stopPropagation();
       setPending(() => () => router.push(href));

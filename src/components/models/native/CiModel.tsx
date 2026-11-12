@@ -1,8 +1,9 @@
 'use client';
 import { numLocale } from '@/lib/i18n';
 
-import { useCallback, useMemo, useState } from 'react';
-import { computeCi, ciDefaultDayW, type CiInputs } from '@/lib/models/ci/engine';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { computeCi, ciDefaultDayW, ciDayCons, type CiInputs } from '@/lib/models/ci/engine';
+import { downloadOsosTemplate, parseOsosFile } from '@/lib/models/ci/osos';
 import { defaultCiInputs } from '@/lib/models/ci/defaults';
 import {
   MONTHS, PROFILE_LABELS, WE_RATIO, shapesForProfile, monthlyForSeason,
@@ -32,6 +33,27 @@ function setPctCell(arr: number[], k: number, raw: number): number[] {
 }
 const ZONE_COL = { g: '#E2B33C', p: '#C0392B', n: '#1f4e8c' } as const;
 const DOW = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+/** Ay içi gün dağılımı ön ayarları (ayın 1'i pazartesi varsayımıyla). Ağırlıklar % 'ye çevrilir, son gün kalan. */
+const DAY_PRESETS: { key: string; label: string; w: (d: number, n: number, weR: number) => number }[] = [
+  { key: 'esit', label: 'Her gün eşit', w: () => 1 },
+  { key: 'model', label: 'Hafta sonu, hafta sonu oranıyla', w: (d, _n, weR) => (d % 7 >= 5 ? weR / 100 : 1) },
+  { key: 'hs50', label: 'Hafta sonu yarı yarıya', w: (d) => (d % 7 >= 5 ? 0.5 : 1) },
+  { key: 'hskapali', label: 'Hafta sonu kapalı (%5)', w: (d) => (d % 7 >= 5 ? 0.05 : 1) },
+  { key: 'pazar', label: 'Yalnız pazar kapalı (%5)', w: (d) => (d % 7 === 6 ? 0.05 : 1) },
+  { key: 'aybasi', label: 'Ay başı yoğun → ay sonu düşük', w: (d, n) => 1.3 - (0.6 * d) / Math.max(1, n - 1) },
+  { key: 'aysonu', label: 'Ay başı düşük → ay sonu yoğun', w: (d, n) => 0.7 + (0.6 * d) / Math.max(1, n - 1) },
+  { key: 'ayortasi', label: 'Ay ortası yoğun', w: (d, n) => 0.7 + 0.6 * (1 - Math.abs((2 * d) / Math.max(1, n - 1) - 1)) },
+];
+function dayPreset(key: string, mi: number, weR: number): number[] {
+  const p = DAY_PRESETS.find((x) => x.key === key) ?? DAY_PRESETS[0];
+  const n = DAYS_IN[mi], w = Array.from({ length: n }, (_, d) => Math.max(0, p.w(d, n, weR)));
+  const s = w.reduce((a, b) => a + b, 0) || 1;
+  const out: number[] = []; let acc = 0;
+  for (let d = 0; d < n - 1; d++) { const v = Math.round((w[d] / s) * 1000) / 10; out.push(v); acc += v; }
+  out.push(Math.round((100 - acc) * 10) / 10);
+  return out;
+}
+const DAYS_IN = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const MONTHS_LONG = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 const zoneOf = (h: number): 'g' | 'p' | 'n' => (h >= 6 && h <= 16 ? 'g' : h >= 17 && h <= 21 ? 'p' : 'n');
 function zoneSums(arr: number[]): { g: number; p: number; n: number } {
@@ -143,6 +165,68 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   // Gün içi saatler: hangi gün tipi düzenleniyor (ayrım yoksa her zaman hafta içi = her gün)
   const [hd, setHd] = useState<'wd' | 'we'>('wd');
   const hdE: 'wd' | 'we' = split ? hd : 'wd';
+  // Saat grafiği kWh: seçili ayın (dm) temsili günü
+  const hourKwh = useMemo(() => ciDayCons(inputs, dm, hdE), [inputs, dm, hdE]);
+
+  const chip = (active: boolean, label: string, onClick: () => void, key?: string | number) => (
+    <button key={key} className={active ? 'active' : ''} onClick={onClick}>{label}</button>
+  );
+  // Grafik değer etiketleri (tüm dağılım grafikleri için ortak)
+  const [lbl, setLbl] = useState({ pct: false, kwh: false });
+  const kwh = (v: number) => `${nf(v, v < 100 ? 1 : 0)} kWh`;
+  const lblToggles = (
+    <div className="chips mini lbl-toggles">
+      <span className="lbl-t">Çubuklarda göster:</span>
+      {chip(lbl.pct, '% değer', () => setLbl((s) => ({ ...s, pct: !s.pct })))}
+      {chip(lbl.kwh, 'kWh', () => setLbl((s) => ({ ...s, kwh: !s.kwh })))}
+    </div>
+  );
+
+  // Ay içi gün dağılımı ön ayarları — seçilen aylara uygulanır
+  const [dp, setDp] = useState<{ key: string; target: 'this' | 'all' | 'pick'; months: number[] }>({ key: 'esit', target: 'this', months: [] });
+  const applyDayPreset = () => {
+    const months = dp.target === 'this' ? [dm] : dp.target === 'all' ? [...Array(12).keys()] : dp.months;
+    setInputs((p) => {
+      const all = Array.from({ length: 12 }, (_, k) => p.dayW?.[k] ?? null);
+      months.forEach((mi) => { all[mi] = dayPreset(dp.key, mi, p.weSplit === false ? 100 : p.weRatio); });
+      return { ...p, dayW: all.some(Boolean) ? all : undefined };
+    });
+  };
+
+  // Bu ayın gün dağılımını seçilen aylara kopyala (gün sırasıyla; farklı gün sayısında %100'e ölçeklenir)
+  const [copy, setCopy] = useState<number[] | null>(null);
+  useEffect(() => { setCopy(null); }, [dm]);
+  const applyCopy = () => {
+    if (!copy?.length) return;
+    const src = dayVals;
+    setInputs((p) => {
+      const all = Array.from({ length: 12 }, (_, k) => p.dayW?.[k] ?? null);
+      copy.forEach((mi) => {
+        const n = DAYS_IN[mi];
+        const w = Array.from({ length: n }, (_, d) => (d < src.length ? src[d] : src[src.length - 1]));
+        const s = w.reduce((a, b) => a + b, 0) || 1;
+        const out: number[] = []; let acc = 0;
+        for (let d = 0; d < n - 1; d++) { const v = Math.round((w[d] / s) * 1000) / 10; out.push(v); acc += v; }
+        out.push(Math.round((100 - acc) * 10) / 10);
+        all[mi] = out;
+      });
+      return { ...p, dayW: all };
+    });
+    setCopy(null);
+  };
+
+  // OSOS Excel yükleme
+  const [ososMsg, setOsosMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const onOsos = async (f: File) => {
+    setOsosMsg({ ok: true, text: 'Okunuyor…' });
+    try {
+      const r = await parseOsosFile(f);
+      setInputs((p) => ({ ...p, ...r.patch, ...(r.level !== 'saatlik' && r.patch.monthly ? { dayW: undefined } : {}) }));
+      setOsosMsg({ ok: true, text: `✓ ${f.name}: ${r.summary}` });
+    } catch (e) {
+      setOsosMsg({ ok: false, text: e instanceof Error ? e.message : 'Dosya okunamadı.' });
+    }
+  };
   const net = useMemo(() => R.netChart(inputs, nvE), [inputs, nv, split]);
   const flows = useMemo(() => R.netFlows(inputs, fvE, split), [inputs, fv, split]);
 
@@ -162,9 +246,6 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   const { save, del, err } = useProjectSave({ projectId, kind: 'ci', inputs, name: inputs.pname || 'C&I Projesi', buildSummary });
   const saving = false;
 
-  const chip = (active: boolean, label: string, onClick: () => void, key?: string | number) => (
-    <button key={key} className={active ? 'active' : ''} onClick={onClick}>{label}</button>
-  );
 
   return (
     <>
@@ -204,7 +285,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
 
             <Step no="ADIM 1" title="Tesis ve Tüketim Profili" why="Saatlik rejimde fizibilitenin kalbi tüketim profilidir: aynı üretimle net fayda %30+ değişir.">
               {/* ---------- 1) YIL ---------- */}
-              <Card title="Yıllık tüketim" small="· abone, toplam tüketim ve hazır profiller">
+              <Card title="Abone ve yıllık tüketim">
                 <div className="prof-row">
                   <div className="prof-left">
                     <SelF label="Abone grubu" tip={R.CI_TIPS.i_abone} value={inputs.abone} onChange={(v) => set('abone', v)} options={[{ value: 'ci', label: 'Ticarethane / Sanayi (C&I — saatlik rejim)' }, { value: 'mesken', label: 'Mesken (aylık rejim, limitsiz)' }]} />
@@ -223,10 +304,23 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     )}
                   </div>
                   <div className="prof-right">
-                    <div className="prof-chart-h">Yıl boyunca aylık tüketim <small>· MWh · toplam {nf(inputs.consY / 1000, 1)} MWh</small></div>
-                    <DragBars readOnly values={inputs.monthly.map((v) => (inputs.consY * v) / 100 / 1000)} labels={MONTHS}
-                      fmt={(v) => `${nf(v, 1)} MWh`} color={() => '#4A86C8'} height={210} ariaLabel="Aylık tüketim (MWh)" />
-                    <p className="tsub">Aylık dağılımı aşağıdaki grafikten değiştirin; bu grafik onu MWh olarak gösterir.</p>
+                    <div className="osos-box">
+                      <div className="osos-h">OSOS / sayaç verisi (Excel)</div>
+                      <p className="tsub">Saatlik sayaç verisi (OSOS) ya da aylık faturalarınız varsa şablonu indirip doldurun ve yükleyin. Yıllık tüketim, ay ay yüzdeler, ay içi günler ve gün içi saatlik profil otomatik dolar; sonra aşağıdan elle düzeltebilirsiniz.</p>
+                      <div className="osos-btns">
+                        <button type="button" className="btn-mini" onClick={() => { downloadOsosTemplate().catch(() => setOsosMsg({ ok: false, text: 'Şablon oluşturulamadı.' })); }}>⤓ Şablonu indir (.xlsx)</button>
+                        <label className="btn-mini osos-up">
+                          ⤒ Excel yükle
+                          <input type="file" accept=".xlsx" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onOsos(f); }} />
+                        </label>
+                      </div>
+                      <ul className="osos-list">
+                        <li><b>Saatlik (OSOS)</b> sayfası: 8.760 saatin tüketimi — en ayrıntılı</li>
+                        <li><b>Aylık</b> sayfası: 12 ayın toplamı</li>
+                        <li><b>Yıllık</b> sayfası: yıllık ve önceki yıl tüketimi</li>
+                      </ul>
+                      {ososMsg && <div className={`soh-status ${ososMsg.ok ? 'ok' : 'bad'}`}>{ososMsg.text}</div>}
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -240,9 +334,10 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     <p className="tsub">Kutulara yazabilir ya da sağdaki grafikte bir ayın çubuğunu tutup yukarı/aşağı çekebilirsiniz. Aralık, toplamı 100&apos;e tamamlayan kalan değerdir.</p>
                   </div>
                   <div className="prof-right">
+                    {lblToggles}
                     <DragBars values={inputs.monthly} labels={MONTHS} fullLabel={(i) => MONTHS_LONG[i]}
                       onSet={(i, v) => set('monthly', setPctCell(inputs.monthly, i, v))}
-                      extra={(i, v) => `${nf((inputs.consY * v) / 100 / 1000, 1)} MWh`}
+                      abs={(i, v) => kwh((inputs.consY * v) / 100)} showPct={lbl.pct} showAbs={lbl.kwh}
                       color={() => '#1f4e8c'} ariaLabel="Aylık tüketim dağılımı (%)" />
                   </div>
                 </div>
@@ -261,6 +356,20 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     </div>
                     <div className="prof-row">
                       <div className="prof-left">
+                        <div className="preset-box">
+                          <div className="row2">
+                            <SelF label="Gün dağılımı ön ayarı" value={dp.key} onChange={(v) => setDp((s) => ({ ...s, key: v }))}
+                              options={DAY_PRESETS.map((p) => ({ value: p.key, label: p.label }))} />
+                            <SelF label="Uygulanacak aylar" value={dp.target} onChange={(v) => setDp((s) => ({ ...s, target: v as 'this' | 'all' | 'pick' }))}
+                              options={[{ value: 'this', label: `Yalnız ${MONTHS_LONG[dm]}` }, { value: 'all', label: 'Tüm aylar' }, { value: 'pick', label: 'Seçtiğim aylar' }]} />
+                          </div>
+                          {dp.target === 'pick' && (
+                            <div className="chips mini">
+                              {MONTHS.map((mo, k) => chip(dp.months.includes(k), mo, () => setDp((s) => ({ ...s, months: s.months.includes(k) ? s.months.filter((x) => x !== k) : [...s.months, k].sort((a, b) => a - b) })), 'pm' + k))}
+                            </div>
+                          )}
+                          <button type="button" className="btn-mini" onClick={applyDayPreset} disabled={dp.target === 'pick' && !dp.months.length}>Ön ayarı uygula</button>
+                        </div>
                         <div className="cal-grid">
                           {DOW.map((w, k) => <div key={'w' + k} className={`cal-dow${k >= 5 && split ? ' we' : ''}`}>{w}</div>)}
                           {dayVals.map((v, d) => {
@@ -276,20 +385,46 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                           })}
                         </div>
                         <p className="tsub">Ayın 1&apos;i pazartesi varsayılır{split ? '; hafta sonu günleri altın renkli' : ''}. {customDay ? 'Bu ay elle düzenlendi.' : 'Varsayılan: her gün eşit' + (split ? ' (hafta sonu, hafta sonu oranıyla)' : '') + '.'}</p>
-                        {customDay && <button type="button" className="btn-mini" onClick={resetDays}>↺ Bu ayı varsayılana döndür</button>}
+                        <div className="copy-row">
+                          <button type="button" className="btn-mini" onClick={() => setCopy((c) => (c ? null : MONTHS.map((_, k) => k).filter((k) => k !== dm)))}>
+                            {copy ? '▲ Kapat' : `⇉ ${MONTHS_LONG[dm]} dağılımını diğer aylara uygula`}
+                          </button>
+                          {customDay && <button type="button" className="btn-mini" onClick={resetDays}>↺ Bu ayı varsayılana döndür</button>}
+                        </div>
+                        {copy && (
+                          <div className="copy-box">
+                            <div className="copy-h">{MONTHS_LONG[dm]} ayının gün dağılımı hangi aylara kopyalansın? <small>İstemediğiniz ayların işaretini kaldırın.</small></div>
+                            <div className="copy-months">
+                              {MONTHS.map((mo, k) => (
+                                <label key={k} className={k === dm ? 'src' : undefined}>
+                                  <input type="checkbox" disabled={k === dm} checked={k === dm || copy.includes(k)}
+                                    onChange={(e) => setCopy((c) => (c ? (e.target.checked ? [...c, k].sort((a, b) => a - b) : c.filter((x) => x !== k)) : c))} />
+                                  {mo}{k === dm ? ' (kaynak)' : ''}
+                                </label>
+                              ))}
+                            </div>
+                            <div className="copy-actions">
+                              <button type="button" className="btn-mini" onClick={() => setCopy(MONTHS.map((_, k) => k).filter((k) => k !== dm))}>Tümünü seç</button>
+                              <button type="button" className="btn-mini" onClick={() => setCopy([])}>Hiçbirini seçme</button>
+                              <button type="button" className="btn-mini primary" disabled={!copy.length} onClick={applyCopy}>Seçili {copy.length} aya uygula</button>
+                            </div>
+                            <p className="tsub">Gün sayısı farklı aylarda dağılım gün sırasıyla aktarılır ve ay toplamı %100 olacak şekilde ölçeklenir.</p>
+                          </div>
+                        )}
                       </div>
                       <div className="prof-right">
+                        {lblToggles}
                         <DragBars values={dayVals} labels={dayVals.map((_, d) => String(d + 1))} labelEvery={dayVals.length > 20 ? 2 : 1}
                           fullLabel={(d) => `${d + 1} ${MONTHS_LONG[dm]} (${DOW[d % 7]})`}
                           onSet={(d, v) => setDay(d, v)} step={0.1}
-                          extra={(d, v) => `${nf(((inputs.consY * inputs.monthly[dm]) / 100) * v / 100, 0)} kWh`}
+                          abs={(d, v) => kwh(((inputs.consY * inputs.monthly[dm]) / 100) * v / 100)} showPct={lbl.pct} showAbs={lbl.kwh}
                           color={(d) => (d % 7 >= 5 && split ? '#C9922A' : '#2F6B4F')} ariaLabel="Ay içi günlük dağılım (%)" />
                       </div>
                     </div>
                   </Card>
 
                   {/* ---------- 4) GÜN İÇİ SAATLER ---------- */}
-                  <Card title="Gün içi saatlik dağılım" small="· günün %'si · 23:00 otomatik kalan">
+                  <Card title="Gün içi saatlik dağılım" small={`· günün %'si · 23:00 otomatik kalan · kWh: ${MONTHS_LONG[dm]} ortalama ${split ? (hdE === 'wd' ? 'hafta içi' : 'hafta sonu') + ' günü' : 'günü'}`}>
                     {split && (
                       <div className="chips">
                         {chip(hd === 'wd', 'Hafta içi günü', () => setHd('wd'))}
@@ -309,8 +444,10 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                         <p className="tsub">Dilim kutuları, o dilimdeki saatleri şekli koruyarak birlikte ölçekler. Saat kutuları ya da sağdaki grafik tek tek saat değiştirir.</p>
                       </div>
                       <div className="prof-right">
+                        {lblToggles}
                         <DragBars values={inputs[hdE]} labels={HLBL} labelEvery={3} fullLabel={(h) => `${HLBL[h]}–${HLBL[(h + 1) % 24]}`}
                           onSet={(h, v) => set(hdE, setPctCell(inputs[hdE], h, v))}
+                          abs={(h) => kwh(hourKwh[h] ?? 0)} showPct={lbl.pct} showAbs={lbl.kwh}
                           color={(h) => ZONE_COL[zoneOf(h)]} ariaLabel="Gün içi saatlik dağılım (%)" />
                         <div className="legend">
                           <span><i style={{ background: ZONE_COL.g }} />Gündüz 06–17</span>

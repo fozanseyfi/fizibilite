@@ -385,3 +385,48 @@
 .dark .mdl .dbars .db-bar.on { stroke: #ffffff; }
 .dark .mdl .dbars .db-btns button { background: #0f1724; color: #dbe5f3; border-color: #34425a; }
 .mdl .prof-left > .btn-mini { align-self: flex-start; margin-top: 0; }
+
+/* Seçili çubuk satırı ve −/+ düğmeleri: grafiğin ortasında */
+.mdl .dbars .db-ctrl { flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 6px; }
+.mdl .dbars .db-btns button { min-width: 38px; height: 30px; }
+.mdl .dbars .db-val { font-size: 10px; font-weight: 700; fill: #1d2733; }
+.mdl .dbars .db-val.sub { font-weight: 500; fill: #55606e; font-size: 9.5px; }
+.dark .mdl .dbars .db-val { fill: #e2e8f0; }
+.dark .mdl .dbars .db-val.sub { fill: #9aa7b8; }
+
+/* Küçük filtre/etiket düğmeleri */
+.mdl .chips.mini button { padding: 4px 10px; font-size: 12px; }
+.mdl .lbl-toggles { justify-content: flex-end; align-items: center; margin-bottom: 2px; }
+.mdl .lbl-toggles .lbl-t { font-size: 12px; color: var(--ink-soft); margin-right: 2px; }
+
+/* Ay içi gün ön ayarı */
+.mdl .preset-box { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: #f6f7f9; }
+.mdl .preset-box .btn-mini { align-self: flex-start; margin-top: 0; }
+.dark .mdl .preset-box { background: #172030; }
+
+/* OSOS Excel kutusu */
+.mdl .osos-box { border: 1px dashed #8fa9cc; border-radius: 4px; padding: 12px 14px; background: #f5f8fc; display: flex; flex-direction: column; gap: 8px; }
+.mdl .osos-h { font-weight: 700; color: var(--navy-deep); font-size: 14px; }
+.mdl .osos-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.mdl .osos-btns .btn-mini { margin-top: 0; }
+.mdl .osos-up { display: inline-flex; align-items: center; cursor: pointer; }
+.mdl .osos-list { margin: 0 0 0 18px; font-size: 12.5px; color: var(--ink-soft); }
+.mdl .osos-list li { margin: 2px 0; list-style: disc; }
+.dark .mdl .osos-box { background: #142236; border-color: #3a5172; }
+.dark .mdl .osos-h { color: #dbe5f3; }
+
+/* Gün dağılımını diğer aylara kopyala */
+.mdl .copy-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.mdl .copy-row .btn-mini { margin-top: 0; }
+.mdl .copy-box { border: 1px solid #c9d6e6; background: #f1f5fa; border-radius: 4px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.mdl .copy-h { font-size: 13px; font-weight: 700; color: var(--ink); }
+.mdl .copy-h small { font-weight: 400; color: var(--ink-soft); display: block; }
+.mdl .copy-months { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 10px; }
+.mdl .copy-months label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.mdl .copy-months label.src { color: var(--ink-soft); cursor: default; }
+.mdl .copy-months input { width: 16px; height: 16px; }
+.mdl .copy-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.mdl .copy-actions .btn-mini { margin-top: 0; }
+.mdl .btn-mini.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+.mdl .btn-mini.primary:disabled { opacity: .5; cursor: default; }
+.dark .mdl .copy-box { background: #142236; border-color: #2c3e58; }
