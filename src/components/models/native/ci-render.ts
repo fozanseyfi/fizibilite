@@ -218,7 +218,8 @@ export function hourViewTotals(i: CiInputs, m: CiModel, mi: number, dt: 'wd' | '
     + `<tr><td>${MONTHS[mi]} toplamı (Hİ+HS, motor)</td>${cols.map((k) => '<td>' + fmt(monMap[k]) + '</td>').join('')}</tr>`
     + `<tr class="tot"><td>Yıl toplamı (12 ay)</td>${cols.map((k) => '<td>' + fmt(yearVals[k]) + '</td>').join('')}</tr></tbody>`;
 }
-export function hourViewTitle(mi: number | 'y', dt: 'wd' | 'we'): string {
+export function hourViewTitle(mi: number | 'y', dt: 'wd' | 'we', split = true): string {
+  if (!split) return mi === 'y' ? 'Yıl geneli — ay ay toplamlar (kWh)' : `${MONTHS[mi]} · temsili gün — saat saat (kWh)`;
   return mi === 'y' ? 'Yıl geneli — ay ay toplamlar (kWh, Hİ + HS birlikte)'
     : `${MONTHS[mi]} · ${dt === 'wd' ? 'Hafta içi' : 'Hafta sonu'} temsili günü — saat saat (kWh)`;
 }
@@ -490,7 +491,7 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
 
 /** Enerji akışı toplamları (kWh) — mahsuplaşma görünümünde seçili dönem ve gün tipleri için. */
 export interface NetFlows { prod: number; cons: number; mah: number; ch: number; dch: number; faz: number; cek: number; label: string }
-export function netFlows(i: CiInputs, nv: NetChartState): NetFlows {
+export function netFlows(i: CiInputs, nv: NetChartState, split = true): NetFlows {
   const S = (a: number[]) => a.reduce((x, y) => x + y, 0);
   const f: NetFlows = { prod: 0, cons: 0, mah: 0, ch: 0, dch: 0, faz: 0, cek: 0, label: '' };
   const add = (T: ReturnType<typeof ciDayDetail>, k: number) => {
@@ -498,7 +499,7 @@ export function netFlows(i: CiInputs, nv: NetChartState): NetFlows {
     f.dch += S(T.dch) * k; f.faz += S(T.faz) * k; f.cek += S(T.cek) * k;
   };
   const types = (['wd', 'we'] as const).filter((t) => nv[t]);
-  const typeLab = types.length === 2 ? '' : types[0] === 'wd' ? ' · hafta içi' : ' · hafta sonu';
+  const typeLab = types.length === 2 || !split ? '' : types[0] === 'wd' ? ' · hafta içi' : ' · hafta sonu';
   if (nv.mi === 'y') {
     for (let mi = 0; mi < 12; mi++) types.forEach((dt) => add(ciDayDetail(i, mi, dt), DAYS[mi] * (dt === 'wd' ? 5 : 2) / 7));
     f.label = 'Yıl toplamı' + typeLab;
@@ -512,7 +513,7 @@ export function netFlows(i: CiInputs, nv: NetChartState): NetFlows {
   } else {
     const mi = nv.mi;
     types.forEach((dt) => add(ciDayDetail(i, mi, dt), 1));
-    f.label = MONTHS[mi] + ' · temsili ' + (types.length === 2 ? 'hafta içi + hafta sonu günü' : types[0] === 'wd' ? 'hafta içi günü' : 'hafta sonu günü');
+    f.label = MONTHS[mi] + ' · temsili ' + (!split ? 'gün' : types.length === 2 ? 'hafta içi + hafta sonu günü' : types[0] === 'wd' ? 'hafta içi günü' : 'hafta sonu günü');
   }
   return f;
 }

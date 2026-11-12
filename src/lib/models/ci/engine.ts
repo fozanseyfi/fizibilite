@@ -20,6 +20,8 @@ export interface CiInputs {
   wd: number[];       // hafta içi 24 saatlik dağılım (%)
   we: number[];       // hafta sonu 24 saatlik dağılım (%)
   weRatio: number;    // hafta sonu / hafta içi (%)
+  /** Hafta içi/sonu ayrı profil. false → her gün hafta içi profili (hafta sonu alanları yok sayılır). Tanımsız = ayrı (eski kayıtlar). */
+  weSplit?: boolean;
 
   // profil/mevsim seçimi (yalnız form/grafik bağlamı, matematiğe girmez)
   profileId: string;
@@ -295,7 +297,7 @@ export function normalizeCi(i: CiInputs): CParams {
   return {
     pname: i.pname || 'C&I GES Projesi', prep: i.prep,
     abone: i.abone, consY: cl(i.consY, 1, 1e12), consPrev: cl(i.consPrev, 1, 1e12),
-    mPct: i.monthly, weRatio: cl(i.weRatio, 0, 300) / 100, wd: i.wd, we: i.we,
+    mPct: i.monthly, weRatio: i.weSplit === false ? 1 : cl(i.weRatio, 0, 300) / 100, wd: i.wd, we: i.weSplit === false ? i.wd : i.we,
     kwp: cl(i.kwp, 0, 1e9), spec: cl(i.spec, 0, 5000), orient: i.orient, degr: cl(i.degr, 0, 10) / 100, life: cl(Math.round(i.life), 5, 40),
     skb: cl(i.skb, 0, 1e6),
     pBuy: cl(i.pBuy, 0, 1e6), pSell: cl(i.pSell, 0, 1e6), esc1: cl(i.esc1, -50, 500) / 100, esc2: cl(i.esc2, -50, 500) / 100, preal: cl(i.preal, -50, 50) / 100,

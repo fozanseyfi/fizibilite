@@ -334,3 +334,6 @@
 .dark .mdl .net-sankey svg text.ns-name, .dark .mdl .net-sankey svg text.ns-val, .dark .mdl .net-sankey svg text.ns-pct { fill: #ffffff; }
 @media (max-width: 640px) { .mdl .net-sankey .ns-period { display: none; } }
 .mdl .net-sankey .ns-inline { font-weight: 600; font-size: 12px; fill: #ffffff; opacity: .92; }
+.mdl .we-split { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: #f6f7f9; }
+.mdl .we-split .tsub { margin: 4px 0 0 28px; }
+.dark .mdl .we-split { background: #172030; }

@@ -2800,4 +2800,15 @@
 "Her saat: mahsup = min(üretim, tüketim). Grafik ve enerji akışı seçilen dönem ve gün tipini izler.":"Each hour: netting = min(generation, consumption). The chart and energy flow follow the selected period and day type.",
 "· enerji nereden geliyor, nereye gidiyor · dönem ve gün tipini seç":"· where energy comes from and goes · choose period and day type",
 "Ay toplamı":"Month total",
-"Temsili gün":"Representative day"}
+"Temsili gün":"Representative day",
+"Hafta içi ve hafta sonu tüketimim farklı — ayrı ayrı detaylı girmek istiyorum":"My weekday and weekend consumption differ — I want to enter them separately in detail",
+"Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda hafta içi / hafta sonu ayrı gösterilir.":"A separate daily consumption ratio and hourly distribution are entered for weekends; charts and tables show weekdays / weekends separately.",
+"İşaretlemezseniz her gün (hafta sonu dahil) aynı tüketim profiliyle hesaplanır. Hafta sonu tüketiminiz belirgin şekilde farklıysa (ör. fabrika hafta sonu kapalı) işaretleyip ayrıca girin.":"If left unticked, every day (including weekends) is calculated with the same consumption profile. If your weekend consumption is clearly different (e.g. the factory is closed on weekends), tick it and enter it separately.",
+"Gündüz":"Day",
+"Puant":"Peak",
+"Gece":"Night",
+"Saatlik dağılım":"Hourly distribution",
+"Günlük tüketim = Ay tüketimi ÷ Ayın gün sayısı (her gün aynı profil)":"Daily consumption = Monthly consumption ÷ Days in month (same profile every day)",
+"Yıl geneli — ay ay toplamlar (kWh)":"Whole year — monthly totals (kWh)",
+"{0} · temsili gün — saat saat (kWh)":"{0} · representative day — hour by hour (kWh)",
+"{0} · temsili gün":"{0} · representative day"}

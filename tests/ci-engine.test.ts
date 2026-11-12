@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { computeCi } from '@/lib/models/ci/engine';
+import { computeCi, ciDayCons } from '@/lib/models/ci/engine';
 import { defaultCiInputs } from '@/lib/models/ci/defaults';
 
 // Referans değerler: "C&I Saatlik Mahsuplaşma Kokpiti" HTML'inin 1.000 kWp baz senaryosu
 // (Sanayi tek vardiya, yaz pik, BESS kapalı, kredisiz).
 describe('C&I engine — HTML baz senaryosuyla birebir', () => {
-  const inputs = defaultCiInputs();
+  // HTML kokpitinin baz senaryosu hafta içi / hafta sonu ayrımlıdır
+  const inputs = { ...defaultCiInputs(), weSplit: true };
   const m = computeCi(inputs);
   const y1 = m.years[0];
 
@@ -46,5 +47,23 @@ describe('C&I engine — mesken (aylık rejim) ve saatlik vs aylık', () => {
     expect(mesken.regime).toBe('monthly');
     // Aylık rejimde mahsup (öz tüketim) saatlik rejimden daha yüksektir.
     expect(mesken.years[0].s.mah).toBeGreaterThan(hourly.years[0].s.mah);
+  });
+});
+
+describe('C&I engine — hafta içi / hafta sonu ayrımı', () => {
+  it('ayrım kapalıyken (varsayılan) hafta sonu günü hafta içi günüyle aynı', () => {
+    const inputs = defaultCiInputs();
+    expect(inputs.weSplit).toBe(false);
+    for (const mi of [0, 6]) {
+      const wd = ciDayCons(inputs, mi, 'wd'), we = ciDayCons(inputs, mi, 'we');
+      wd.forEach((v, h) => expect(we[h]).toBeCloseTo(v, 9));
+    }
+  });
+  it('ayrım kapalıyken yıllık tüketim korunur; ayrım açıkken hafta sonu farklılaşır', () => {
+    const off = computeCi(defaultCiInputs()), on = computeCi({ ...defaultCiInputs(), weSplit: true });
+    const cons = (m: ReturnType<typeof computeCi>) => m.years[0].s.monthly.reduce((a, x) => a + x.cons, 0);
+    expect(cons(off)).toBeCloseTo(cons(on), -2);
+    const i = { ...defaultCiInputs(), weSplit: true };
+    expect(ciDayCons(i, 5, 'we').reduce((a, b) => a + b, 0)).toBeLessThan(ciDayCons(i, 5, 'wd').reduce((a, b) => a + b, 0));
   });
 });

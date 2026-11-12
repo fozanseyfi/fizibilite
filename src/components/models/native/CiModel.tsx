@@ -88,7 +88,8 @@ function Step({ no, title, why, children }: { no: string; title: string; why?: s
 function Html({ html, className }: { html: string; className?: string }) { return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />; }
 
 export function CiModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: CiInputs }) {
-  const [inputs, setInputs] = useState<CiInputs>(() => ({ ...defaultCiInputs(), ...(initialInputs ?? {}) }));
+  // Eski kayıtlarda weSplit yok: o projeler hafta içi/sonu ayrımıyla kaydedildi, aynen korunur
+  const [inputs, setInputs] = useState<CiInputs>(() => ({ ...defaultCiInputs(), ...(initialInputs ?? {}), ...(initialInputs && initialInputs.weSplit === undefined ? { weSplit: true } : {}) }));
   const [tab, setTab] = useState<'fiz' | 'net' | 'hours' | 'bill' | 'cmp' | 'sum'>('fiz');
   const [adv, setAdv] = useState(false);
   const [cg, setCg] = useState<R.ConsChartState>({ level: 'y', mi: 5, dt: 'wd' });
@@ -102,6 +103,12 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   const set = <K extends keyof CiInputs>(k: K, v: CiInputs[K]) => setInputs((p) => ({ ...p, [k]: v }));
   const m = useMemo(() => computeCi(inputs), [inputs]);
   const mesken = inputs.abone === 'mesken';
+  /** Hafta içi / hafta sonu ayrı profil mi? Değilse hafta sonu filtreleri gizlenir, her gün aynı profil. */
+  const split = inputs.weSplit !== false;
+  // Ayrım yoksa: gün görünümünde tek temsili gün (hafta içi profili = her gün), ay/yıl toplamında tüm günler
+  const eff = (v: R.NetChartState): R.NetChartState => (split ? v : { ...v, wd: true, we: !(v.mi !== 'y' && v.view === 'd') });
+  const nvE = eff(nv), fvE = eff(fv);
+  const hvDt: 'wd' | 'we' = split ? hv.dt : 'wd';
 
   const onProfile = (key: string) => {
     const sh = shapesForProfile(key as ProfileKey);
@@ -117,8 +124,8 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   };
 
   const cons = useMemo(() => R.consChart(inputs, cg), [inputs, cg]);
-  const net = useMemo(() => R.netChart(inputs, nv), [inputs, nv]);
-  const flows = useMemo(() => R.netFlows(inputs, fv), [inputs, fv]);
+  const net = useMemo(() => R.netChart(inputs, nvE), [inputs, nv, split]);
+  const flows = useMemo(() => R.netFlows(inputs, fvE, split), [inputs, fv, split]);
 
   function downloadCsv() {
     const blob = new Blob(['﻿' + R.csvAllYear(inputs)], { type: 'text/csv;charset=utf-8' });
@@ -184,9 +191,17 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                   <NumF label="Önceki yıl tüketimi" unit="kWh, limit bazı" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} />
                   <SelF label="Tüketim profili (hazır)" tip={R.CI_TIPS.i_profile} value={inputs.profileId} onChange={onProfile}
                     options={(Object.keys(PROFILE_LABELS) as ProfileKey[]).map((k) => ({ value: k, label: PROFILE_LABELS[k] }))} />
-                  <NumF label="Hafta sonu günlük tüketim" unit="hafta içinin %'si" value={inputs.weRatio} onChange={(v) => set('weRatio', v)} step={5} />
+                  {split && <NumF label="Hafta sonu günlük tüketim" unit="hafta içinin %'si" value={inputs.weRatio} onChange={(v) => set('weRatio', v)} step={5} />}
                   <SelF label="Aylık dağılım ön ayarı" tip={R.CI_TIPS.i_season} value={inputs.season} onChange={onSeason} options={[{ value: 'flat', label: 'Düz (yıl boyu eşit)' }, { value: 'yaz', label: 'Yaz pik (klima/soğutma)' }, { value: 'kis', label: 'Kış pik (ısıtma)' }]} />
                 </div>
+                {!mesken && (
+                  <div className="we-split">
+                    <ChkF label="Hafta içi ve hafta sonu tüketimim farklı — ayrı ayrı detaylı girmek istiyorum" checked={split} onChange={(v) => set('weSplit', v)} />
+                    <p className="tsub">{split
+                      ? 'Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda hafta içi / hafta sonu ayrı gösterilir.'
+                      : 'İşaretlemezseniz her gün (hafta sonu dahil) aynı tüketim profiliyle hesaplanır. Hafta sonu tüketiminiz belirgin şekilde farklıysa (ör. fabrika hafta sonu kapalı) işaretleyip ayrıca girin.'}</p>
+                  </div>
+                )}
                 <div className="note">Tüm dağılımlar <b>yüzdedir</b> ve her grid tam <b>%100</b>&apos;e kapanır: son hücre otomatik &quot;kalan&quot; olarak hesaplanır. Hazır profil seçmek gridleri doldurur; sonra her hücreyi elle inceltebilirsin.</div>
               </Card>
 
@@ -202,20 +217,22 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 <>
                   <Card title="Gün içi dağılım — puant dilimleri" small="· günün %'si · Gece otomatik kalan">
                     <div className="grid3" style={{ alignItems: 'end' }}>
-                      <NumF label="Hafta içi · Gündüz" unit="06–17 (%)" value={r1(zone.wd.g)} onChange={(v) => editZone('wd', 'g', v)} />
-                      <NumF label="Hafta içi · Puant" unit="17–22 (%)" value={r1(zone.wd.p)} onChange={(v) => editZone('wd', 'p', v)} />
-                      <NumF label="Hafta içi · Gece" unit="22–06 (otomatik)" value={r1(zone.wd.n)} onChange={() => { }} disabled />
-                      <NumF label="Hafta sonu · Gündüz" unit="06–17 (%)" value={r1(zone.we.g)} onChange={(v) => editZone('we', 'g', v)} />
-                      <NumF label="Hafta sonu · Puant" unit="17–22 (%)" value={r1(zone.we.p)} onChange={(v) => editZone('we', 'p', v)} />
-                      <NumF label="Hafta sonu · Gece" unit="22–06 (otomatik)" value={r1(zone.we.n)} onChange={() => { }} disabled />
+                      <NumF label={split ? 'Hafta içi · Gündüz' : 'Gündüz'} unit="06–17 (%)" value={r1(zone.wd.g)} onChange={(v) => editZone('wd', 'g', v)} />
+                      <NumF label={split ? 'Hafta içi · Puant' : 'Puant'} unit="17–22 (%)" value={r1(zone.wd.p)} onChange={(v) => editZone('wd', 'p', v)} />
+                      <NumF label={split ? 'Hafta içi · Gece' : 'Gece'} unit="22–06 (otomatik)" value={r1(zone.wd.n)} onChange={() => { }} disabled />
+                      {split && <>
+                        <NumF label="Hafta sonu · Gündüz" unit="06–17 (%)" value={r1(zone.we.g)} onChange={(v) => editZone('we', 'g', v)} />
+                        <NumF label="Hafta sonu · Puant" unit="17–22 (%)" value={r1(zone.we.p)} onChange={(v) => editZone('we', 'p', v)} />
+                        <NumF label="Hafta sonu · Gece" unit="22–06 (otomatik)" value={r1(zone.we.n)} onChange={() => { }} disabled />
+                      </>}
                     </div>
                     <p className="tsub">Dilim yüzdesi değişince, seçili profilin dilim içi saat şekli korunarak yeniden ölçeklenir. Gündüz + Puant toplamı 100&apos;ü aşamaz; Gece kalanı otomatik alır.</p>
                     <button type="button" className="btn-mini" onClick={() => setAdv((a) => !a)}>{adv ? '▲ Saatlik detayı gizle (dilimlerle devam et)' : '🕐 Gün içi saatlik ayarla (detay — 24 hücre)'}</button>
                   </Card>
                   {adv && (
                     <>
-                      <Card title="Hafta içi saatlik dağılım" small="· günün %'si · 23:00 otomatik kalan"><PctGrid labels={HLBL} values={inputs.wd} onChange={(a) => set('wd', a)} /></Card>
-                      <Card title="Hafta sonu saatlik dağılım" small="· günün %'si · 23:00 otomatik kalan"><PctGrid labels={HLBL} values={inputs.we} onChange={(a) => set('we', a)} /></Card>
+                      <Card title={split ? 'Hafta içi saatlik dağılım' : 'Saatlik dağılım'} small="· günün %'si · 23:00 otomatik kalan"><PctGrid labels={HLBL} values={inputs.wd} onChange={(a) => set('wd', a)} /></Card>
+                      {split && <Card title="Hafta sonu saatlik dağılım" small="· günün %'si · 23:00 otomatik kalan"><PctGrid labels={HLBL} values={inputs.we} onChange={(a) => set('we', a)} /></Card>}
                     </>
                   )}
                 </>
@@ -224,7 +241,9 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               <div className="formula">
                 <div className="fl">Formül · saatlik tüketimin kuruluşu</div>
                 <span className="ml"><span className="lbl">Ay:</span>Ay tüketimi = Yıllık tüketim × Ay yüzdesi</span>
-                <span className="ml"><span className="lbl">Gün:</span>Hafta içi günlük = Ay tüketimi ÷ ( Hİ gün + HS gün × HS oranı ) · Hafta sonu günlük = Hİ günlük × HS oranı</span>
+                {split
+                  ? <span className="ml"><span className="lbl">Gün:</span>Hafta içi günlük = Ay tüketimi ÷ ( Hİ gün + HS gün × HS oranı ) · Hafta sonu günlük = Hİ günlük × HS oranı</span>
+                  : <span className="ml"><span className="lbl">Gün:</span>Günlük tüketim = Ay tüketimi ÷ Ayın gün sayısı (her gün aynı profil)</span>}
                 <span className="ml"><span className="lbl">Saat:</span>Saat tüketimi = Günlük toplam × Saat yüzdesi</span>
               </div>
 
@@ -355,10 +374,12 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     {chip(nv.view === 'd', 'Gün görünümü (saatler)', () => setNv((s) => ({ ...s, view: 'd' })))}
                   </div>
                 )}
-                <div className="chips" style={{ marginTop: -4 }}>
-                  {chip(nv.wd, 'Hafta içi', () => setNv((s) => (s.wd && !s.we ? s : { ...s, wd: !s.wd })))}
-                  {chip(nv.we, 'Hafta sonu', () => setNv((s) => (s.we && !s.wd ? s : { ...s, we: !s.we })))}
-                </div>
+                {split && (
+                  <div className="chips" style={{ marginTop: -4 }}>
+                    {chip(nv.wd, 'Hafta içi', () => setNv((s) => (s.wd && !s.we ? s : { ...s, wd: !s.wd })))}
+                    {chip(nv.we, 'Hafta sonu', () => setNv((s) => (s.we && !s.wd ? s : { ...s, we: !s.we })))}
+                  </div>
+                  )}
                 <svg viewBox="0 0 900 300" width="100%" dangerouslySetInnerHTML={{ __html: net.svg }} />
                 <div className="legend">
                   <span><i style={{ background: '#2F6B4F' }} />Mahsuplaşan</span>
@@ -381,10 +402,12 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     {chip(fv.view === 'd', 'Temsili gün', () => setFv((s) => ({ ...s, view: 'd' })))}
                   </div>
                 )}
-                <div className="chips" style={{ marginTop: -4 }}>
-                  {chip(fv.wd, 'Hafta içi', () => setFv((s) => (s.wd && !s.we ? s : { ...s, wd: !s.wd })))}
-                  {chip(fv.we, 'Hafta sonu', () => setFv((s) => (s.we && !s.wd ? s : { ...s, we: !s.we })))}
-                </div>
+                {split && (
+                  <div className="chips" style={{ marginTop: -4 }}>
+                    {chip(fv.wd, 'Hafta içi', () => setFv((s) => (s.wd && !s.we ? s : { ...s, wd: !s.wd })))}
+                    {chip(fv.we, 'Hafta sonu', () => setFv((s) => (s.we && !s.wd ? s : { ...s, we: !s.we })))}
+                  </div>
+                  )}
                 <NetSankey f={flows} />
               </Card>
 
@@ -410,7 +433,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                   <span className="ml"><span className="lbl">4)</span>Bedelsiz (YEKDEM) = Yıllık fazla − Bedelli satış <span className="lbl">→ 0 TL gelir</span></span>
                   <Html className="subst" html={R.sLimit(inputs, m)} />
                 </div>
-                <button type="button" className="btn-mini" onClick={() => setModal(R.hourlyModal(inputs, nv))}>🕐 Saat saat mahsuplaşma tablosu</button>
+                <button type="button" className="btn-mini" onClick={() => setModal(R.hourlyModal(inputs, nvE))}>🕐 Saat saat mahsuplaşma tablosu</button>
                 <button type="button" className="btn-mini" style={{ marginLeft: 8 }} onClick={downloadCsv}>⤓ CSV indir — tüm yıl (8.760 saat)</button>
                 <div className="note">Usul ve Esaslar MADDE 7(5): limit üstü ihtiyaç fazlası &quot;sistem kullanım bedeli ödemeli&quot; miktardır — gelir yaratmaz, üstelik SKB doğabilir. Mesken abonelerinde limit uygulanmaz.</div>
               </Card>
@@ -424,18 +447,18 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 {chip(hv.mi === 'y', 'Yıllık', () => setHv((s) => ({ ...s, mi: 'y' })))}
                 {MONTHS.map((mo, k) => chip(hv.mi === k, mo, () => setHv((s) => ({ ...s, mi: k })), k))}
               </div>
-              {hv.mi !== 'y' && (
+              {split && hv.mi !== 'y' && (
                 <div className="chips">
                   {chip(hv.dt === 'wd', 'Hafta içi', () => setHv((s) => ({ ...s, dt: 'wd' })))}
                   {chip(hv.dt === 'we', 'Hafta sonu', () => setHv((s) => ({ ...s, dt: 'we' })))}
                 </div>
               )}
-              <Card title={R.hourViewTitle(hv.mi, hv.dt)}>
-                <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.hourViewTable(inputs, m, hv.mi, hv.dt) }} /></div>
+              <Card title={R.hourViewTitle(hv.mi, hvDt, split)}>
+                <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.hourViewTable(inputs, m, hv.mi, hvDt) }} /></div>
               </Card>
               {hv.mi !== 'y' && (
                 <Card title="Toplamlar" small="· seçili gün × gün sayısı → ay → yıl">
-                  <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.hourViewTotals(inputs, m, hv.mi as number, hv.dt) }} /></div>
+                  <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.hourViewTotals(inputs, m, hv.mi as number, hvDt) }} /></div>
                   <p className="tsub">Ay toplamı = hafta içi günü × Hİ gün sayısı + hafta sonu günü × HS gün sayısı. Yıl toplamı, 12 ayın aynı yöntemle toplamıdır.</p>
                 </Card>
               )}

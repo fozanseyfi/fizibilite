@@ -16,6 +16,7 @@ export function defaultCiInputs(): CiInputs {
     wd: shapes.wd,
     we: shapes.we,
     weRatio: WE_RATIO['tekvardiya'],
+    weSplit: false,
     profileId: 'tekvardiya',
     season: 'yaz',
     kwp: 1000,
