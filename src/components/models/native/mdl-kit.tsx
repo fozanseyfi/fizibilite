@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { numLocale } from '@/lib/i18n';
 import { createPortal } from 'react-dom';
 import { HoverChart, type HoverCol } from '@/components/models/native/chart-hover';
 import { usd as usdFmt } from '@/lib/models/fmt';
@@ -57,16 +58,58 @@ export function Tipbox() {
 }
 
 // ============================ FORM CONTROLS ============================
-export function NumF({ label, unit, tip, value, onChange, step = 1, min, max, disabled }: {
+export function NumF({ label, unit, tip, value, onChange, step = 1, min, max, disabled, thousands }: {
   label: string; unit?: string; tip?: string; value: number; onChange: (v: number) => void;
   step?: number; min?: number; max?: number; disabled?: boolean;
+  /** Tam sayı, binlik ayırıcıyla gösterilir (1.200.000) — yazarken de ayırıcı korunur */
+  thousands?: boolean;
 }) {
   return (
     <div className="field">
       <label>{tip ? <Tip tip={tip}>{label} </Tip> : <>{label} </>}{unit && <span className="unit">({unit})</span>}</label>
-      <input type="number" step={step} min={min} max={max} disabled={disabled}
-        value={Number.isFinite(value) ? value : ''} onChange={(e) => onChange(parseFloat(e.target.value))} />
+      {thousands
+        ? <ThousandsInput value={value} onChange={onChange} step={step} min={min} max={max} disabled={disabled} />
+        : <input type="number" step={step} min={min} max={max} disabled={disabled}
+          value={Number.isFinite(value) ? value : ''} onChange={(e) => onChange(parseFloat(e.target.value))} />}
     </div>
+  );
+}
+
+/** Binlik ayırıcılı tam sayı girişi. İmleç, yazılan rakamın yanında kalır; ↑/↓ adım kadar değiştirir. */
+function ThousandsInput({ value, onChange, step = 1, min, max, disabled }: {
+  value: number; onChange: (v: number) => void; step?: number; min?: number; max?: number; disabled?: boolean;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const caret = useRef<number | null>(null); // imleçten SONRAKİ rakam sayısı (sağdan konum)
+  const fmt = (v: number) => (Number.isFinite(v) ? Math.round(v).toLocaleString(numLocale(), { maximumFractionDigits: 0 }) : '');
+  const text = fmt(value);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || caret.current === null || document.activeElement !== el) return;
+    // Sağdan aynı sayıda rakamın soluna imleci koy
+    let digits = 0, pos = el.value.length;
+    while (pos > 0 && digits < caret.current) { pos--; if (/\d/.test(el.value[pos])) digits++; }
+    el.setSelectionRange(pos, pos);
+    caret.current = null;
+  });
+  const clamp = (v: number) => Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v));
+  return (
+    <input
+      ref={ref} type="text" inputMode="numeric" className="num" disabled={disabled} value={text}
+      onChange={(e) => {
+        const el = e.target, raw = el.value;
+        const after = raw.slice(el.selectionStart ?? raw.length).replace(/\D/g, '').length;
+        const digits = raw.replace(/\D/g, '');
+        caret.current = after;
+        onChange(digits ? clamp(parseInt(digits, 10)) : NaN);
+      }}
+      onKeyDown={(e) => {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        const base = Number.isFinite(value) ? value : 0;
+        onChange(clamp(base + (e.key === 'ArrowUp' ? step : -step)));
+      }}
+    />
   );
 }
 

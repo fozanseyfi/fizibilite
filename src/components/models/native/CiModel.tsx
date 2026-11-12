@@ -327,8 +327,8 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               <Card title="Abone ve yıllık tüketim">
                 <div className="top-grid3">
                   <SelF label="Abone grubu" tip={R.CI_TIPS.i_abone} value={inputs.abone} onChange={(v) => set('abone', v)} options={[{ value: 'ci', label: 'Ticarethane / Sanayi (C&I — saatlik rejim)' }, { value: 'mesken', label: 'Mesken (aylık rejim, limitsiz)' }]} />
-                  <NumF label="Yıllık tüketim" unit="kWh" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={10000} />
-                  <NumF label="Önceki yıl tüketimi" unit="kWh" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} />
+                  <NumF label="Yıllık tüketim" unit="kWh" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={10000} thousands />
+                  <NumF label="Önceki yıl tüketimi" unit="kWh" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} thousands />
                 </div>
                 <div className="top-grid2">
                   {!mesken ? (

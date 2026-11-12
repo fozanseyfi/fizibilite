@@ -459,3 +459,7 @@
 .mdl .dbars .db-line circle { fill: #ffffff; stroke: #0b1a2f; stroke-width: 1.2; opacity: .85; }
 .dark .mdl .dbars .db-line polyline { stroke: #dbe5f3; }
 .dark .mdl .dbars .db-line circle { fill: #121b28; stroke: #dbe5f3; }
+.mdl .field input.num { width: 100%; font-family: var(--mono); font-size: 14px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 3px; background: #ffffff; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mdl.classic .field input.num { border-color: #c4cbd4; }
+.mdl .field input.num:focus-visible { outline: 2px solid var(--navy); outline-offset: 1px; border-color: var(--navy); }
+.dark .mdl .field input.num { background: #0f1724; border-color: #34425a; color: var(--ink); }
