@@ -3,7 +3,7 @@
 // (rich-text/tablo/SVG string) üretir; sonuçlar dangerouslySetInnerHTML ile basılır.
 
 import {
-  computeCi, ciMonthCons, ciDayDetail, ciDayCons, ciDayFactor, ciCompareYear1, ciDow,
+  computeCi, ciMonthCons, ciDayDetail, ciDayCons, ciDayFactor, ciCompareYear1, ciDow, ciCalDays,
   type CiInputs, type CiModel,
 } from '@/lib/models/ci/engine';
 import { SOLAR_M, DAYS, MONTHS } from '@/lib/models/ci/presets';
@@ -205,7 +205,7 @@ export function hourViewTotals(i: CiInputs, m: CiModel, mi: number, dt: 'wd' | '
   const bess = i.bessOn;
   const T = ciDayDetail(i, mi, dt);
   const S = (a: number[]) => a.reduce((x, y) => x + y, 0);
-  const wdD = DAYS[mi] * 5 / 7, weD = DAYS[mi] * 2 / 7, dayCnt = dt === 'wd' ? wdD : weD;
+  const cd = ciCalDays(mi, i), dayCnt = dt === 'wd' ? cd.wd : cd.we;
   const y1 = m.years[0].s, md = y1.monthly[mi], rte = i.bRte / 100;
   const monMap: Record<string, number> = { prod: md.prod, cons: md.cons, mah: md.mah, ch: md.shift / rte, dch: md.shift, faz: md.faz, cek: md.cek };
   const yearVals: Record<string, number> = { prod: y1.prod, cons: i.consY, mah: y1.mah, ch: y1.shift / rte, dch: y1.shift, faz: y1.faz, cek: y1.cek };
@@ -258,6 +258,20 @@ export function consChart(i: CiInputs, cg: ConsChartState): { svg: string; hint:
   return { svg: s, hint, bars };
 }
 
+/** Ayın gerçek günleri üzerinden toplamlar (kWh) — motorla birebir: gün gün üretim eğimi, gerçek/temsili takvim,
+ *  elle gün dağılımı ve aya özel saat profili dahil. use: hangi gün tipleri toplansın. */
+export function monthSum(i: CiInputs, mi: number, use: { wd: boolean; we: boolean } = { wd: true, we: true }) {
+  const S = (a: number[]) => a.reduce((x, y) => x + y, 0);
+  const t = { prod: 0, cons: 0, mah: 0, ch: 0, dch: 0, faz: 0, cek: 0 };
+  for (let d = 0; d < DAYS[mi]; d++) {
+    const dt = ciDow(i, mi, d) >= 5 ? 'we' : 'wd';
+    if (!use[dt]) continue;
+    const T = ciDayDetail(i, mi, dt, ciDayFactor(mi, d), d);
+    t.prod += S(T.prod); t.cons += S(T.cons); t.mah += S(T.mah); t.ch += S(T.ch); t.dch += S(T.dch); t.faz += S(T.faz); t.cek += S(T.cek);
+  }
+  return t;
+}
+
 export interface NetChartState { mi: number | 'y'; view: 'm' | 'd'; wd: boolean; we: boolean; }
 export function netChart(i: CiInputs, nv: NetChartState): { svg: string; hint: string } {
   const W = 900, H = 300, pl = 64, pr = 12, pt = 16, pb = 34;
@@ -267,14 +281,8 @@ export function netChart(i: CiInputs, nv: NetChartState): { svg: string; hint: s
   let cols: Col[] = [], unit = 'kWh', hint = '';
   if (yearMode) {
     for (let mi = 0; mi < 12; mi++) {
-      const wdD = DAYS[mi] * 5 / 7, weD = DAYS[mi] * 2 / 7;
-      let mah = 0, sh = 0, fz = 0, ck = 0, pr_ = 0, cn = 0;
-      ([['wd', wdD], ['we', weD]] as const).forEach(([dt, days]) => {
-        if (!nv[dt]) return;
-        const T = ciDayDetail(i, mi, dt);
-        mah += S(T.mah) * days; sh += S(T.dch) * days; fz += S(T.faz) * days; ck += S(T.cek) * days; pr_ += S(T.prod) * days; cn += S(T.cons) * days;
-      });
-      cols.push({ lab: MONTHS[mi], mah: mah / 1e3, sh: sh / 1e3, fz: fz / 1e3, ck: ck / 1e3, pr: pr_ / 1e3, cn: cn / 1e3 });
+      const t = monthSum(i, mi, { wd: nv.wd, we: nv.we });
+      cols.push({ lab: MONTHS[mi], mah: t.mah / 1e3, sh: t.dch / 1e3, fz: t.faz / 1e3, ck: t.cek / 1e3, pr: t.prod / 1e3, cn: t.cons / 1e3 });
     }
     unit = 'MWh';
     hint = 'Yıllık görünüm: her ay için seçili gün tiplerinin toplamı. Çubuk = üretimin bileşenleri (mahsup + BESS kaydırma + fazla); gri çubuk = şebekeden çekiş. Çizgiler: lacivert üretim, koyu tüketim.';
@@ -374,7 +382,7 @@ export function hourlyModal(i: CiInputs, nv: NetChartState): { title: string; bo
   const types = ([['wd', 'hafta içi'], ['we', 'hafta sonu']] as const).filter(([k]) => nv[k]);
   const mkTable = (dt: 'wd' | 'we', lab: string) => {
     const T = ciDayDetail(i, mi, dt);
-    const dayCnt = dt === 'wd' ? DAYS[mi] * 5 / 7 : DAYS[mi] * 2 / 7;
+    const cd = ciCalDays(mi, i), dayCnt = dt === 'wd' ? cd.wd : cd.we;
     let rows = '', tp = 0, tc = 0, tm = 0, tch = 0, tdc = 0, tf = 0, tk = 0;
     for (let h = 0; h < 24; h++) {
       tp += T.prod[h]; tc += T.cons[h]; tm += T.mah[h]; tch += T.ch[h]; tdc += T.dch[h]; tf += T.faz[h]; tk += T.cek[h];
@@ -501,7 +509,10 @@ export function netFlows(i: CiInputs, nv: NetChartState, split = true): NetFlows
   const types = (['wd', 'we'] as const).filter((t) => nv[t]);
   const typeLab = types.length === 2 || !split ? '' : types[0] === 'wd' ? ' · hafta içi' : ' · hafta sonu';
   if (nv.mi === 'y') {
-    for (let mi = 0; mi < 12; mi++) types.forEach((dt) => add(ciDayDetail(i, mi, dt), DAYS[mi] * (dt === 'wd' ? 5 : 2) / 7));
+    for (let mi = 0; mi < 12; mi++) {
+      const t = monthSum(i, mi, { wd: nv.wd, we: nv.we });
+      f.prod += t.prod; f.cons += t.cons; f.mah += t.mah; f.ch += t.ch; f.dch += t.dch; f.faz += t.faz; f.cek += t.cek;
+    }
     f.label = 'Yıl toplamı' + typeLab;
   } else if (nv.view === 'm') {
     const mi = nv.mi;
