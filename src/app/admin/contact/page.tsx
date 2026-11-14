@@ -15,7 +15,7 @@ export default function ContactPage() {
   const { developer } = siteConfig;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <Card>
         <CardContent className="space-y-3 px-7 py-6">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-blue/20 bg-blue/10 px-3 py-1 text-xs font-medium text-blue2 dark:text-blue">

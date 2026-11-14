@@ -19,7 +19,7 @@ const PUBLIC_ROUTES = ["/p"];
 const isPublicRoute = (p: string) => PUBLIC_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
 
 /** Diğer platformlarla ortak şablonu koruyan sayfalar: klasik görünüm uygulanmaz */
-const PLATFORM_ROUTES = ['/admin/users', '/admin/account', '/admin/platforms', '/admin/contact'];
+const PLATFORM_ROUTES = ['/admin/users', '/admin/account', '/admin/platforms'];
 const isPlatformRoute = (p: string) => PLATFORM_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
 
 /** Model sayfaları: başlık kapağı üst çubuğun hemen altından başlar (üst boşluk yok) */
