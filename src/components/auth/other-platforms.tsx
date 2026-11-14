@@ -34,7 +34,7 @@ export const PLATFORMS: Platform[] = [
     logo: "proje",
     color: "#334155",
     softColor: "#f1f5f9",
-    href: "https://proje.fozanseyfi.com",
+    href: "https://pm.fozanseyfi.com",
   },
   {
     name: "Satınalma Karar Destek Platformu",
