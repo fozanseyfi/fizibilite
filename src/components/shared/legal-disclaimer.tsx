@@ -1,28 +1,26 @@
-import { Scale } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { ChevronDown, Scale } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 
-/** Yasal uyarı + sorumluluk reddi — teklif platformundaki kartın fizibilite metni. */
+/** Yasal uyarı + sorumluluk reddi — açılır kapanır blok (varsayılan kapalı). */
 export function LegalDisclaimerCard() {
   const email = siteConfig.developer.email;
   return (
-    <Card className="border-yellow/40 bg-yellow/[0.04]">
-      <CardContent className="space-y-4 p-6">
-        <div className="flex items-start gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-yellow/15 text-solar-dark dark:text-solar-light">
-            <Scale className="size-5" />
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-solar-dark/80 dark:text-solar-light/80">
-              Yasal Uyarı &amp; Sorumluluk Reddi
-            </p>
-            <h2 className="mt-1 text-base font-semibold tracking-tight sm:text-lg">
-              Lütfen platformu kullanmadan önce okuyun
-            </h2>
-          </div>
+    <details className="group rounded-2xl border bg-card">
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+          <Scale className="size-5" />
         </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-amber-600 dark:text-amber-400">
+            Yasal uyarı ve sorumluluk reddi
+          </p>
+          <p className="text-sm font-semibold">Platformu kullanmadan önce okuyun · 6 madde</p>
+        </div>
+        <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+      </summary>
 
-        <div className="grid gap-4 text-xs leading-relaxed text-foreground/85 sm:grid-cols-2 sm:text-[13px]">
+      <div className="space-y-4 border-t px-5 pb-5 pt-4">
+        <div className="grid gap-x-6 gap-y-4 text-[13px] leading-relaxed text-foreground/85 sm:grid-cols-2">
           <Clause n="1" title="Bilgi amaçlı kullanım">
             Bu platform; GES yatırımlarında üretim, mahsuplaşma ve finansal getiri tahmini yapmak için
             geliştirilmiş bir <strong>karar destek ve hesaplama aracıdır</strong>. Sunulan sonuçlar{" "}
@@ -55,7 +53,7 @@ export function LegalDisclaimerCard() {
           </Clause>
         </div>
 
-        <div className="rounded-lg border border-yellow/30 bg-yellow/10 px-4 py-3 text-[12px] leading-relaxed text-foreground/85">
+        <div className="rounded-xl bg-secondary/60 px-4 py-3 text-[12px] leading-relaxed text-foreground/85">
           <strong>Onayınız:</strong> Platformu kullanmaya devam etmekle yukarıdaki şartları kabul etmiş
           sayılırsınız. Sorularınız için{" "}
           <a href={`mailto:${email}`} className="font-semibold underline-offset-2 hover:underline">
@@ -63,18 +61,21 @@ export function LegalDisclaimerCard() {
           </a>{" "}
           adresinden iletişime geçebilirsiniz.
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </details>
   );
 }
 
 function Clause({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-2">
-      <p className="text-[10.5px] font-semibold uppercase tracking-wider text-solar-dark/90 dark:text-solar-light/90">
-        {n}) {title}
-      </p>
-      <p>{children}</p>
+    <div className="flex gap-3">
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-[11px] font-bold text-amber-700 dark:text-amber-400">
+        {n}
+      </span>
+      <div className="space-y-1">
+        <p className="text-[13px] font-semibold text-foreground">{title}</p>
+        <p>{children}</p>
+      </div>
     </div>
   );
 }

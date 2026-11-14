@@ -42,7 +42,7 @@ export function ContactForm({ recipientEmail }: { recipientEmail: string }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
         <Label className={labelCls}>Konu Türü</Label>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="flex flex-wrap gap-2">
           {TOPICS.map((t) => {
             const selected = topic === t.value;
             return (
@@ -52,14 +52,14 @@ export function ContactForm({ recipientEmail }: { recipientEmail: string }) {
                 onClick={() => setTopic(t.value)}
                 aria-pressed={selected}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1.5 rounded-md border px-2 py-3 text-xs font-medium transition-colors",
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                   selected
-                    ? "border-sidebar bg-sidebar text-white shadow-sm"
+                    ? "border-blue bg-blue/10 font-semibold text-blue2 dark:text-blue"
                     : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
               >
-                <t.icon className="size-4" />
-                <span className="text-center leading-tight">{t.label}</span>
+                <t.icon className="size-3.5" />
+                <span className="leading-tight">{t.label}</span>
               </button>
             );
           })}

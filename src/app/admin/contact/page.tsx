@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { MessageSquare, Phone, Mail, Globe, ShieldCheck, TriangleAlert, Code2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArrowUpRight, Globe, Mail, Phone, ShieldCheck, TriangleAlert } from "lucide-react";
 import { ContactForm } from "@/components/shared/contact-form";
 import { LegalDisclaimerCard } from "@/components/shared/legal-disclaimer";
-import { OtherPlatforms } from "@/components/auth/other-platforms";
+import { CopyChip } from "@/components/shared/copy-chip";
+import { PlatformGrid } from "@/components/auth/other-platforms";
 import { LinkedInIcon } from "@/components/layout/AppShell";
 import { siteConfig } from "@/lib/site-config";
 
@@ -11,134 +11,113 @@ export const metadata: Metadata = {
   title: "İletişime Geç — Fizibilite Platformu",
 };
 
+const chipCls =
+  "inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-[12.5px] text-white transition-colors hover:border-white/35 hover:bg-white/10";
+
 export default function ContactPage() {
-  const { developer } = siteConfig;
+  const d = siteConfig.developer;
+  const parts = d.name.split(" ");
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  const middle = parts.slice(1, -1).join(" ");
+
+  const facts: [string, string][] = [
+    ["Şu an", `${d.position} · ${d.company}`],
+    ["Eğitim", `${d.education} · ${d.role}`],
+    ["Uzmanlık", d.expertise],
+  ];
 
   return (
-    <div className="w-full space-y-6">
-      <Card>
-        <CardContent className="space-y-3 px-7 py-6">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-blue/20 bg-blue/10 px-3 py-1 text-xs font-medium text-blue2 dark:text-blue">
-            <MessageSquare className="size-3.5" />
-            İletişim &amp; Destek
-          </span>
-          <h1 className="text-3xl font-semibold leading-tight tracking-tight">
-            Sizden gelen her geri bildirim platformu daha iyi yapar.
-          </h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Hata bildirimi, özellik önerisi veya genel sorularınız için aşağıdaki formdan veya doğrudan
-            iletişim kanallarından bana ulaşabilirsiniz.
-          </p>
-        </CardContent>
-      </Card>
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      {/* Kişi + form */}
+      <section className="grid overflow-hidden rounded-2xl border lg:grid-cols-2">
+        <div className="relative flex flex-col gap-6 overflow-hidden bg-[#0c1e35] p-7 text-[#eef3fa] sm:p-9">
+          <div className="pointer-events-none absolute -bottom-32 -right-10 size-80 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,.35),transparent_65%)]" />
+          <div className="pointer-events-none absolute -left-24 -top-24 size-64 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.18),transparent_65%)]" />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        {/* Geliştirici — koyu kart */}
-        <Card className="overflow-hidden border-sidebar-border bg-sidebar text-sidebar-foreground">
-          <CardContent className="space-y-5 p-6">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-sidebar-border/60">
-              <Code2 className="size-4 text-sidebar-accent" />
-            </div>
-            <div>
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-muted">
-                Geliştirici
-              </p>
-              <p className="text-lg font-semibold tracking-tight text-white">{developer.name}</p>
-              <p className="mt-0.5 text-sm text-sidebar-muted">{developer.role}</p>
-            </div>
-            <p className="text-xs leading-relaxed text-sidebar-muted">{developer.bio}</p>
+          <div className="relative space-y-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-sky-300">Geliştirici</p>
+            <h1 className="text-[40px] font-black leading-[1] tracking-tight text-white sm:text-[48px]" data-no-i18n>
+              {first}
+              <br />
+              {middle} <span className="text-amber-400">{last}</span>
+            </h1>
+            <p className="max-w-md text-sm leading-relaxed text-[#b3c2d6]">{d.bio}</p>
+          </div>
 
-            <div className="space-y-3 border-t border-sidebar-border pt-4">
-              <DevContactRow icon={Phone} label="Telefon" value={developer.phone} href={`tel:${developer.phone.replace(/\s/g, "")}`} />
-              <DevContactRow icon={Mail} label="E-posta" value={developer.email} href={`mailto:${developer.email}`} />
-              <DevContactRow icon={LinkedInIcon} label="LinkedIn" value={developer.linkedin.label} href={developer.linkedin.href} />
-              <DevContactRow icon={Globe} label="Web Sitesi" value={developer.website.label} href={developer.website.href} />
-            </div>
-          </CardContent>
-        </Card>
+          <dl className="relative">
+            {facts.map(([k, v]) => (
+              <div key={k} className="grid grid-cols-[92px_minmax(0,1fr)] gap-3 border-t border-white/15 py-2.5 text-[13.5px]">
+                <dt className="pt-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#b3c2d6]">{k}</dt>
+                <dd className="font-medium text-white">{v}</dd>
+              </div>
+            ))}
+          </dl>
 
-        <Card>
-          <CardContent className="space-y-5 p-6">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">Mesaj Bırakın</h2>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Formu doldurun, mesajınız e-posta uygulamanız üzerinden iletilir.
-              </p>
-            </div>
-            <ContactForm recipientEmail={developer.email} />
-          </CardContent>
-        </Card>
-      </div>
+          <div className="relative flex flex-wrap gap-2">
+            <CopyChip icon={Mail} value={d.email} label="E-postayı" />
+            <CopyChip icon={Phone} value={d.phone} label="Telefonu" />
+            <a href={d.linkedin.href} target="_blank" rel="noreferrer" className={chipCls}>
+              <LinkedInIcon className="size-3.5 text-sky-300" /> LinkedIn <ArrowUpRight className="size-3.5 opacity-60" />
+            </a>
+            <a href={d.website.href} target="_blank" rel="noreferrer" className={chipCls}>
+              <Globe className="size-3.5 text-sky-300" /> {d.website.label} <ArrowUpRight className="size-3.5 opacity-60" />
+            </a>
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Card className="border-eco/30 bg-eco/[0.06]">
-          <CardContent className="flex items-start gap-3 p-5">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-eco/15 text-eco-dark dark:text-eco-light">
-              <ShieldCheck className="size-4" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-eco-dark dark:text-eco-light">
-                Veri Gizliliği
-              </p>
-              <p className="text-sm font-semibold">Verileriniz size aittir</p>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Geliştirici dahil hiçbir üçüncü taraf modellerinizi görmez veya indiremez.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-yellow/30 bg-yellow/[0.06]">
-          <CardContent className="flex items-start gap-3 p-5">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-yellow/15 text-solar-dark dark:text-solar-light">
-              <TriangleAlert className="size-4" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-solar-dark dark:text-solar-light">
-                Sorumluluk Reddi
-              </p>
-              <p className="text-sm font-semibold">Tahmin aracı — yatırım tavsiyesi değildir</p>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Tüm hesaplamalar <strong>bilgilendirme amaçlıdır</strong>. Sonuçların doğruluğu ve
-                kullanımı kullanıcının sorumluluğundadır.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="flex flex-col gap-5 bg-card p-7 sm:p-9">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Bana yazın</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Hata, öneri ya da soru; mesajınız e-posta uygulamanız üzerinden iletilir.
+            </p>
+          </div>
+          <ContactForm recipientEmail={d.email} />
+        </div>
+      </section>
+
+      {/* Veri gizliliği + sorumluluk reddi */}
+      <section className="grid gap-4 sm:grid-cols-2">
+        <div className="flex items-start gap-3.5 rounded-2xl border bg-card p-5">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+            <ShieldCheck className="size-5" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-400">Veri gizliliği</p>
+            <p className="text-sm font-semibold">Verileriniz size aittir</p>
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              Geliştirici dahil hiçbir üçüncü taraf modellerinizi görmez veya indiremez.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3.5 rounded-2xl border bg-card p-5">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+            <TriangleAlert className="size-5" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-amber-600 dark:text-amber-400">Sorumluluk reddi</p>
+            <p className="text-sm font-semibold">Tahmin aracıdır, yatırım tavsiyesi değildir</p>
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              Tüm hesaplamalar bilgilendirme amaçlıdır; sonuçların doğruluğu ve kullanımı kullanıcının sorumluluğundadır.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <LegalDisclaimerCard />
 
-      <OtherPlatforms variant="compact" />
+      {/* Diğer platformlar */}
+      <section className="rounded-2xl border bg-card p-5 sm:p-6">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-sky-600 dark:text-sky-400">Aynı geliştiriciden</p>
+            <h2 className="text-lg font-bold tracking-tight">Geliştirdiğim diğer platformlar</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">Karta tıklayarak ilgili platforma geçebilirsiniz.</p>
+        </div>
+        <PlatformGrid />
+      </section>
     </div>
-  );
-}
-
-function DevContactRow({
-  icon: Icon,
-  label,
-  value,
-  href,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  href: string;
-}) {
-  const external = href.startsWith("http");
-  return (
-    <a
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noreferrer" : undefined}
-      className="-m-1.5 flex items-start gap-3 rounded-md p-1.5 transition-colors hover:bg-sidebar-border/50"
-    >
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-border/60 text-sidebar-muted">
-        <Icon className="size-4" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-muted">{label}</p>
-        <p className="truncate text-sm text-white">{value}</p>
-      </div>
-    </a>
   );
 }

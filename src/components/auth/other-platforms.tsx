@@ -3,7 +3,7 @@
 import { Sun, Workflow, Trophy, TrendingUp, Wrench, Sparkles, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Platform {
+export interface Platform {
   name: string;
   subtitle: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -15,7 +15,7 @@ interface Platform {
 }
 
 /** Diğer platformlardaki listeyle aynı sıra ve renkler; "current" bu platform. */
-const PLATFORMS: Platform[] = [
+export const PLATFORMS: Platform[] = [
   {
     name: "Solar Teklif Platformu",
     subtitle: "Solar EPC fiyatlandırma & kapsam yönetimi",
@@ -165,5 +165,48 @@ export function OtherPlatforms({ variant = "ribbon" }: { variant?: "ribbon" | "c
         </div>
       </div>
     </section>
+  );
+}
+
+/** İletişim sayfası için sade kart ızgarası (platform temasına uygun). */
+export function PlatformGrid() {
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {PLATFORMS.map((p) => {
+        const coming = !p.href && !p.current;
+        const body = (
+          <>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex size-10 items-center justify-center rounded-xl text-white" style={{ backgroundColor: p.color }}>
+                <p.icon className="size-5" />
+              </div>
+              {p.current ? (
+                <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">Buradasınız</span>
+              ) : coming ? (
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Yakında</span>
+              ) : (
+                <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13.5px] font-semibold leading-tight" data-no-i18n>{p.name}</p>
+              <p className="mt-1 text-[12px] leading-snug text-muted-foreground">{p.subtitle}</p>
+            </div>
+          </>
+        );
+        const base = "group flex flex-col gap-3 rounded-xl border p-4 transition-colors";
+        if (p.href)
+          return (
+            <a key={p.name} href={p.href} target="_blank" rel="noopener noreferrer" className={cn(base, "hover:border-foreground/30 hover:bg-secondary/40")}>
+              {body}
+            </a>
+          );
+        return (
+          <div key={p.name} className={cn(base, p.current ? "border-sky-500/50 bg-sky-500/[0.05]" : "border-dashed opacity-80")}>
+            {body}
+          </div>
+        );
+      })}
+    </div>
   );
 }
