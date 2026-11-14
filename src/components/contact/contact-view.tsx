@@ -3,16 +3,13 @@
 import { useState } from "react";
 import {
   ArrowUpRight,
-  Boxes,
   Bug,
   ChevronDown,
   Code2,
-  FolderKanban,
   Globe,
   HelpCircle,
   Info,
   Lightbulb,
-  LineChart,
   Mail,
   MessageSquare,
   Phone,
@@ -21,15 +18,13 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
-  TrendingUp,
-  Trophy,
-  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { LinkedInIcon } from "@/components/layout/AppShell";
+import { PlatformLogo, type PlatformId } from "@/components/brand/platform-logos";
 
 /** Proje Yönetim Platformu'ndaki iletişim sayfasının aynısı; geliştirici kartına pozisyon / eğitim / uzmanlık eklendi. */
 const DEV = siteConfig.developer;
@@ -249,7 +244,7 @@ interface PlatformItem {
   subtitle: string;
   href?: string;
   status: "here" | "live" | "soon";
-  icon: React.ComponentType<{ className?: string }>;
+  logo: PlatformId;
   tone: keyof typeof PLATFORM_TONES;
 }
 
@@ -263,12 +258,12 @@ const PLATFORM_TONES = {
 } as const;
 
 const PLATFORMS: PlatformItem[] = [
-  { title: "Solar Fizibilite Platformu", subtitle: "GES yatırım & geri ödeme analizi", status: "here", icon: LineChart, tone: "green" },
-  { title: "Teklif Platformu", subtitle: "Solar EPC teklif yönetimi & kapsam-maliyet", href: "https://teklif.fozanseyfi.com", status: "live", icon: TrendingUp, tone: "blue" },
-  { title: "Proje Yönetim Platformu", subtitle: "Çoklu proje, ekip & ilerleme takibi", href: "https://proje.fozanseyfi.com", status: "live", icon: FolderKanban, tone: "purple" },
-  { title: "Satınalma Karar Destek", subtitle: "Çoklu kriterli skor ile en doğru tedarik", href: "https://karardestek.fozanseyfi.com", status: "live", icon: Trophy, tone: "yellow" },
-  { title: "Konstrüksiyon BoM Platformu", subtitle: "Konstrüksiyon malzeme listesi (BoM) hazırlama", status: "live", icon: Boxes, tone: "slate" },
-  { title: "GES Mühendislik Platformu", subtitle: "Tasarım, hesap & teknik dokümantasyon", status: "soon", icon: Wrench, tone: "red" },
+  { title: "Solar Fizibilite Platformu", subtitle: "GES yatırım & geri ödeme analizi", status: "here", logo: "fizibilite", tone: "green" },
+  { title: "Teklif Platformu", subtitle: "Solar EPC teklif yönetimi & kapsam-maliyet", href: "https://teklif.fozanseyfi.com", status: "live", logo: "teklif", tone: "blue" },
+  { title: "Proje Yönetim Platformu", subtitle: "Çoklu proje, ekip & ilerleme takibi", href: "https://proje.fozanseyfi.com", status: "live", logo: "proje", tone: "purple" },
+  { title: "Satınalma Karar Destek", subtitle: "Çoklu kriterli skor ile en doğru tedarik", href: "https://karardestek.fozanseyfi.com", status: "live", logo: "karardestek", tone: "yellow" },
+  { title: "Konstrüksiyon BoM Platformu", subtitle: "Solar BOM · Konstrüksiyon tonaj hesabı", status: "live", logo: "bom", tone: "slate" },
+  { title: "GES Mühendislik Platformu", subtitle: "Tasarım, hesap & teknik dokümantasyon", status: "soon", logo: "ges-muh", tone: "red" },
 ];
 
 function OtherPlatformsSection() {
@@ -295,7 +290,6 @@ function OtherPlatformsSection() {
 }
 
 function PlatformCard({ item }: { item: PlatformItem }) {
-  const Icon = item.icon;
   const tone = PLATFORM_TONES[item.tone];
   const isHere = item.status === "here";
   const isSoon = item.status === "soon";
@@ -313,9 +307,7 @@ function PlatformCard({ item }: { item: PlatformItem }) {
       )}
     >
       <div className="mb-3 flex items-center justify-between">
-        <span className={cn("inline-flex size-10 items-center justify-center rounded-lg", tone.iconBg)}>
-          <Icon className="size-5" />
-        </span>
+        <PlatformLogo id={item.logo} size={40} className="shrink-0 rounded-lg shadow-sm" />
         <StatusBadge status={item.status} />
       </div>
       <div className="text-sm font-bold leading-tight tracking-tight text-text" data-no-i18n>{item.title}</div>

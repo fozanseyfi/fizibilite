@@ -1,12 +1,14 @@
 "use client";
 
-import { Sun, Workflow, Trophy, TrendingUp, Wrench, Sparkles, ArrowUpRight, Boxes } from "lucide-react";
+import { Sparkles, ArrowUpRight } from "lucide-react";
+import { PlatformLogo, type PlatformId } from "@/components/brand/platform-logos";
 import { cn } from "@/lib/utils";
 
 export interface Platform {
   name: string;
   subtitle: string;
-  icon: React.ComponentType<{ className?: string }>;
+  /** Gerçek logo (kendi projesinden) */
+  logo: PlatformId;
   /** Marka rengi (hex) — diğer platformlarla aynı */
   color: string;
   softColor: string;
@@ -21,7 +23,7 @@ export const PLATFORMS: Platform[] = [
   {
     name: "Solar Teklif Platformu",
     subtitle: "Solar EPC fiyatlandırma & kapsam yönetimi",
-    icon: Sun,
+    logo: "teklif",
     color: "#059669",
     softColor: "#ecfdf5",
     href: "https://teklif.fozanseyfi.com",
@@ -29,41 +31,41 @@ export const PLATFORMS: Platform[] = [
   {
     name: "Proje Yönetim Platformu",
     subtitle: "Çoklu proje, ekip ve ilerleme takibi",
-    icon: Workflow,
-    color: "#4f46e5",
-    softColor: "#eef2ff",
+    logo: "proje",
+    color: "#334155",
+    softColor: "#f1f5f9",
     href: "https://proje.fozanseyfi.com",
   },
   {
     name: "Satınalma Karar Destek Platformu",
     subtitle: "Çoklu kriterli skor ile en doğru tedarikçi",
-    icon: Trophy,
-    color: "#f59e0b",
+    logo: "karardestek",
+    color: "#ca8a04",
     softColor: "#fffbeb",
     href: "https://karardestek.fozanseyfi.com/",
   },
   {
     name: "Solar Fizibilite Platformu",
     subtitle: "GES yatırım & geri ödeme analizi",
-    icon: TrendingUp,
-    color: "#0891b2",
-    softColor: "#ecfeff",
+    logo: "fizibilite",
+    color: "#1A4A94",
+    softColor: "#eef3fb",
     current: true,
   },
   {
     name: "GES Mühendislik Platformu",
     subtitle: "Tasarım, hesap ve teknik dokümantasyon",
-    icon: Wrench,
+    logo: "ges-muh",
     color: "#e11d48",
     softColor: "#fff1f2",
     soon: true,
   },
   {
     name: "Konstrüksiyon BoM Platformu",
-    subtitle: "Konstrüksiyon malzeme listesi (BoM) hazırlama",
-    icon: Boxes,
-    color: "#7c3aed",
-    softColor: "#f5f3ff",
+    subtitle: "Solar BOM · Konstrüksiyon tonaj hesabı",
+    logo: "bom",
+    color: "#1A4A94",
+    softColor: "#eef3fb",
   },
 ];
 
@@ -95,12 +97,7 @@ export function OtherPlatforms({ variant = "ribbon" }: { variant?: "ribbon" | "c
             const Inner = (
               <>
                 <div className="flex items-start justify-between gap-2">
-                  <div
-                    className="flex size-11 shrink-0 items-center justify-center rounded-xl text-white shadow-sm transition-transform group-hover:scale-105 sm:size-12"
-                    style={{ backgroundColor: p.color }}
-                  >
-                    <p.icon className="size-5 sm:size-6" />
-                  </div>
+                  <PlatformLogo id={p.logo} size={44} className="shrink-0 rounded-xl shadow-sm transition-transform group-hover:scale-105" />
                   {p.current && (
                     <span
                       className="shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"

@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  Trophy,
-  FileSpreadsheet,
-  LineChart,
-  Wrench,
-  ExternalLink,
-  Boxes,
-  ArrowRight,
-  FolderKanban,
-} from "lucide-react";
+import { ExternalLink, Boxes, ArrowRight } from "lucide-react";
+import { PlatformLogo, type PlatformId } from "@/components/brand/platform-logos";
 import { cn } from "@/lib/utils";
 
 type Tone = "amber" | "emerald" | "blue" | "rose" | "purple";
@@ -19,9 +11,11 @@ interface Platform {
   title: string;
   tagline: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  logo: PlatformId;
   tone: Tone;
   href: string | null;
+  /** Yayında ama adresi henüz eklenmedi */
+  live?: boolean;
 }
 
 /**
@@ -36,7 +30,7 @@ const PLATFORMS: Platform[] = [
     description:
       "GES/RES projeleri için 10 metrikli ağırlıklı skor algoritması. Şablon klonu, revize takibi, " +
       "PDF/Excel çıktı. Taşeron, malzeme ve hizmet tekliflerini tek panelden değerlendir.",
-    icon: Trophy,
+    logo: "karardestek",
     tone: "amber",
     href: "https://karardestek.fozanseyfi.com/login",
   },
@@ -47,7 +41,7 @@ const PLATFORMS: Platform[] = [
     description:
       "Tüm teklifleri tek panelden topla, durum ve revizyonlarını izle. Müşteri, kalem ve fiyat geçmişi " +
       "tek yerde — kim ne teklif vermiş, hangi aşamada, anında gör.",
-    icon: FileSpreadsheet,
+    logo: "teklif",
     tone: "emerald",
     href: "https://teklif.fozanseyfi.com",
   },
@@ -58,7 +52,7 @@ const PLATFORMS: Platform[] = [
     description:
       "GES/RES/HES projeleri için WBS, S-eğrisi, günlük gerçekleşme, puantaj, claim ve günlük rapor " +
       "modülleri. SPI/CPI/EAC otomatik — müşteriye public link ile paylaş.",
-    icon: FolderKanban,
+    logo: "proje",
     tone: "purple",
     href: "https://proje.fozanseyfi.com",
   },
@@ -69,9 +63,21 @@ const PLATFORMS: Platform[] = [
     description:
       "Tasarım hesabı, kayıp analizi, kablo & inverter seçimi. Tek hat şeması ve teknik dokümantasyon " +
       "üretimi — sahaya inmeden önce her şey hazır.",
-    icon: Wrench,
+    logo: "ges-muh",
     tone: "rose",
     href: null,
+  },
+  {
+    key: "bom",
+    title: "Konstrüksiyon BoM Platformu",
+    tagline: "Solar BOM · Konstrüksiyon tonaj hesabı",
+    description:
+      "GES projelerindeki çelik konstrüksiyon masalarının (kolon, kiriş, aşık, çapraz ve bağlantı elemanları, " +
+      "galvaniz) ağırlığını otomatik hesaplar. Proje tonajı, sevk malzeme listesi, Excel/PDF rapor ve 3D önizleme.",
+    logo: "bom",
+    tone: "blue",
+    href: null,
+    live: true,
   },
 ];
 
@@ -83,35 +89,35 @@ const TONE_STYLES: Record<
     iconBg: "bg-yellow/15",
     iconText: "text-yellow",
     hoverBorder: "hover:border-yellow/50",
-    gradient: "from-yellow/8 via-white to-white",
+    gradient: "from-yellow/8 via-card to-card",
     btnBg: "bg-yellow hover:brightness-110 text-white",
   },
   emerald: {
     iconBg: "bg-accent/15",
     iconText: "text-accent",
     hoverBorder: "hover:border-accent/50",
-    gradient: "from-accent/8 via-white to-white",
+    gradient: "from-accent/8 via-card to-card",
     btnBg: "bg-accent hover:brightness-110 text-white",
   },
   blue: {
     iconBg: "bg-blue/15",
     iconText: "text-blue",
     hoverBorder: "hover:border-blue/50",
-    gradient: "from-blue/8 via-white to-white",
+    gradient: "from-blue/8 via-card to-card",
     btnBg: "bg-blue hover:brightness-110 text-white",
   },
   rose: {
     iconBg: "bg-red/15",
     iconText: "text-red",
     hoverBorder: "hover:border-red/50",
-    gradient: "from-red/8 via-white to-white",
+    gradient: "from-red/8 via-card to-card",
     btnBg: "bg-red hover:brightness-110 text-white",
   },
   purple: {
     iconBg: "bg-purple/15",
     iconText: "text-purple",
     hoverBorder: "hover:border-purple/50",
-    gradient: "from-purple/8 via-white to-white",
+    gradient: "from-purple/8 via-card to-card",
     btnBg: "bg-purple hover:brightness-110 text-white",
   },
 };
@@ -120,7 +126,7 @@ export default function PlatformsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       {/* HERO */}
-      <div className="relative overflow-hidden rounded-2xl border border-yellow/30 bg-gradient-to-br from-yellow/10 via-white to-white p-7 md:p-10">
+      <div className="relative overflow-hidden rounded-2xl border border-yellow/30 bg-gradient-to-br from-yellow/10 via-card to-card p-7 md:p-10">
         <div className="pointer-events-none absolute -top-24 -right-20 size-56 rounded-full bg-yellow/15 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-16 size-72 rounded-full bg-yellow/8 blur-3xl" />
         <div className="relative max-w-2xl">
@@ -151,8 +157,7 @@ export default function PlatformsPage() {
 
 function PlatformCard({ platform }: { platform: Platform }) {
   const tone = TONE_STYLES[platform.tone];
-  const Icon = platform.icon;
-  const isLive = platform.href !== null;
+  const isLive = platform.href !== null || !!platform.live;
 
   return (
     <article
@@ -164,9 +169,7 @@ function PlatformCard({ platform }: { platform: Platform }) {
     >
       {/* Header: icon + status badge */}
       <div className="flex items-start justify-between">
-        <div className={cn("flex size-12 items-center justify-center rounded-xl", tone.iconBg, tone.iconText)}>
-          <Icon className="size-6" />
-        </div>
+        <PlatformLogo id={platform.logo} size={48} className="shrink-0 rounded-xl shadow-sm" />
         {isLive ? (
           <span className="inline-flex items-center gap-1 rounded-full border border-green/30 bg-green/10 px-2.5 py-1 text-[10px] font-bold tracking-wider text-green">
             <span className="size-1.5 rounded-full bg-green" />
@@ -192,7 +195,7 @@ function PlatformCard({ platform }: { platform: Platform }) {
 
       {/* Footer */}
       <div className="mt-5">
-        {isLive ? (
+        {platform.href ? (
           <a
             href={platform.href!}
             target="_blank"
@@ -205,7 +208,7 @@ function PlatformCard({ platform }: { platform: Platform }) {
             İncele
             <ExternalLink className="size-3.5" />
           </a>
-        ) : (
+        ) : isLive ? null : (
           <button
             type="button"
             disabled
