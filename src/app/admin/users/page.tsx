@@ -39,7 +39,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <Card className="shadow-sm">
         <CardContent className="space-y-4 p-6">
           <div className="flex items-start gap-3">
