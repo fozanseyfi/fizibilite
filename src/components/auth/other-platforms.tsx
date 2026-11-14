@@ -1,6 +1,6 @@
 "use client";
 
-import { Sun, Workflow, Trophy, TrendingUp, Wrench, Sparkles, ArrowUpRight } from "lucide-react";
+import { Sun, Workflow, Trophy, TrendingUp, Wrench, Sparkles, ArrowUpRight, Boxes } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Platform {
@@ -12,6 +12,8 @@ export interface Platform {
   softColor: string;
   href?: string;
   current?: boolean;
+  /** Henüz yayında değil */
+  soon?: boolean;
 }
 
 /** Diğer platformlardaki listeyle aynı sıra ve renkler; "current" bu platform. */
@@ -54,6 +56,14 @@ export const PLATFORMS: Platform[] = [
     icon: Wrench,
     color: "#e11d48",
     softColor: "#fff1f2",
+    soon: true,
+  },
+  {
+    name: "Konstrüksiyon BoM Platformu",
+    subtitle: "Konstrüksiyon malzeme listesi (BoM) hazırlama",
+    icon: Boxes,
+    color: "#7c3aed",
+    softColor: "#f5f3ff",
   },
 ];
 
@@ -79,9 +89,9 @@ export function OtherPlatforms({ variant = "ribbon" }: { variant?: "ribbon" | "c
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {PLATFORMS.map((p) => {
-            const isComing = !p.href && !p.current;
+            const isComing = !!p.soon;
             const Inner = (
               <>
                 <div className="flex items-start justify-between gap-2">
@@ -155,8 +165,8 @@ export function OtherPlatforms({ variant = "ribbon" }: { variant?: "ribbon" | "c
             return (
               <div
                 key={p.name}
-                className={cn(base, "cursor-not-allowed border-dashed border-border/60 opacity-80")}
-                title="Yakında"
+                className={cn(base, isComing ? "cursor-not-allowed border-dashed border-border/60 opacity-80" : "border-border/60")}
+                title={isComing ? "Yakında" : p.name}
               >
                 {Inner}
               </div>
@@ -171,9 +181,9 @@ export function OtherPlatforms({ variant = "ribbon" }: { variant?: "ribbon" | "c
 /** İletişim sayfası için sade kart ızgarası (platform temasına uygun). */
 export function PlatformGrid() {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {PLATFORMS.map((p) => {
-        const coming = !p.href && !p.current;
+        const coming = !!p.soon;
         const body = (
           <>
             <div className="flex items-center justify-between gap-2">
@@ -184,7 +194,7 @@ export function PlatformGrid() {
                 <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">Buradasınız</span>
               ) : coming ? (
                 <span className="rounded-full bg-secondary px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Yakında</span>
-              ) : (
+              ) : p.href && (
                 <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
               )}
             </div>
@@ -202,7 +212,7 @@ export function PlatformGrid() {
             </a>
           );
         return (
-          <div key={p.name} className={cn(base, p.current ? "border-sky-500/50 bg-sky-500/[0.05]" : "border-dashed opacity-80")}>
+          <div key={p.name} className={cn(base, p.current ? "border-sky-500/50 bg-sky-500/[0.05]" : coming ? "border-dashed opacity-80" : "")}>
             {body}
           </div>
         );

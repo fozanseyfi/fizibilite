@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, Globe, ShieldCheck, TriangleAlert } from "lucide-react";
+import { MessageSquareHeart, ShieldCheck, TriangleAlert } from "lucide-react";
 import { ContactForm } from "@/components/shared/contact-form";
 import { LegalDisclaimerCard } from "@/components/shared/legal-disclaimer";
-import { CopyChip } from "@/components/shared/copy-chip";
+import { ContactRows } from "@/components/shared/copy-chip";
 import { PlatformGrid } from "@/components/auth/other-platforms";
-import { LinkedInIcon } from "@/components/layout/AppShell";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "İletişime Geç — Fizibilite Platformu",
 };
-
-const chipCls =
-  "inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-[12.5px] text-white transition-colors hover:border-white/35 hover:bg-white/10";
 
 export default function ContactPage() {
   const d = siteConfig.developer;
@@ -29,6 +25,24 @@ export default function ContactPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
+      {/* Başlık */}
+      <header className="relative overflow-hidden rounded-2xl border bg-card px-7 py-7 sm:px-9">
+        <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.22),transparent_65%)]" />
+        <div className="pointer-events-none absolute -bottom-24 right-40 size-56 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,.18),transparent_65%)]" />
+        <div className="relative max-w-3xl space-y-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700 dark:text-amber-400">
+            <MessageSquareHeart className="size-3.5" /> Katkılarınız
+          </span>
+          <h1 className="text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">
+            Sizden gelen her geri bildirim platformu daha iyi yapar.
+          </h1>
+          <p className="text-[15px] leading-relaxed text-muted-foreground">
+            Hata bildirimi, özellik önerisi veya genel sorularınız için aşağıdaki formdan veya doğrudan iletişim
+            kanallarından bana ulaşabilirsiniz.
+          </p>
+        </div>
+      </header>
+
       {/* Kişi + form */}
       <section className="grid overflow-hidden rounded-2xl border lg:grid-cols-2">
         <div className="relative flex flex-col gap-6 overflow-hidden bg-[#0c1e35] p-7 text-[#eef3fa] sm:p-9">
@@ -37,11 +51,11 @@ export default function ContactPage() {
 
           <div className="relative space-y-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-sky-300">Geliştirici</p>
-            <h1 className="text-[40px] font-black leading-[1] tracking-tight text-white sm:text-[48px]" data-no-i18n>
+            <h2 className="text-[40px] font-black leading-[1] tracking-tight text-white sm:text-[48px]" data-no-i18n>
               {first}
               <br />
               {middle} <span className="text-amber-400">{last}</span>
-            </h1>
+            </h2>
             <p className="max-w-md text-sm leading-relaxed text-[#b3c2d6]">{d.bio}</p>
           </div>
 
@@ -54,15 +68,16 @@ export default function ContactPage() {
             ))}
           </dl>
 
-          <div className="relative flex flex-wrap gap-2">
-            <CopyChip icon="mail" value={d.email} label="E-postayı" />
-            <CopyChip icon="phone" value={d.phone} label="Telefonu" />
-            <a href={d.linkedin.href} target="_blank" rel="noreferrer" className={chipCls}>
-              <LinkedInIcon className="size-3.5 text-sky-300" /> LinkedIn <ArrowUpRight className="size-3.5 opacity-60" />
-            </a>
-            <a href={d.website.href} target="_blank" rel="noreferrer" className={chipCls}>
-              <Globe className="size-3.5 text-sky-300" /> {d.website.label} <ArrowUpRight className="size-3.5 opacity-60" />
-            </a>
+          <div className="relative">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-sky-300">İletişim</p>
+            <ContactRows
+              rows={[
+                { kind: "mail", label: "E-posta", value: d.email },
+                { kind: "phone", label: "Telefon", value: d.phone },
+                { kind: "linkedin", label: "LinkedIn", value: d.linkedin.label, href: d.linkedin.href },
+                { kind: "web", label: "Web", value: d.website.label, href: d.website.href },
+              ]}
+            />
           </div>
         </div>
 
