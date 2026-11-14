@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Mail, Phone } from "lucide-react";
+
+const ICONS = { mail: Mail, phone: Phone };
 
 /** Değeri gösterir; tıklayınca panoya kopyalar (koyu zemin için). */
-export function CopyChip({ icon: Icon, value, label }: { icon: React.ComponentType<{ className?: string }>; value: string; label: string }) {
+export function CopyChip({ icon, value, label }: { icon: keyof typeof ICONS; value: string; label: string }) {
+  const Icon = ICONS[icon];
   const [done, setDone] = useState(false);
   return (
     <button

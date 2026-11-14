@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, Globe, Mail, Phone, ShieldCheck, TriangleAlert } from "lucide-react";
+import { ArrowUpRight, Globe, ShieldCheck, TriangleAlert } from "lucide-react";
 import { ContactForm } from "@/components/shared/contact-form";
 import { LegalDisclaimerCard } from "@/components/shared/legal-disclaimer";
 import { CopyChip } from "@/components/shared/copy-chip";
@@ -55,8 +55,8 @@ export default function ContactPage() {
           </dl>
 
           <div className="relative flex flex-wrap gap-2">
-            <CopyChip icon={Mail} value={d.email} label="E-postayı" />
-            <CopyChip icon={Phone} value={d.phone} label="Telefonu" />
+            <CopyChip icon="mail" value={d.email} label="E-postayı" />
+            <CopyChip icon="phone" value={d.phone} label="Telefonu" />
             <a href={d.linkedin.href} target="_blank" rel="noreferrer" className={chipCls}>
               <LinkedInIcon className="size-3.5 text-sky-300" /> LinkedIn <ArrowUpRight className="size-3.5 opacity-60" />
             </a>
