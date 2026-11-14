@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles, ArrowUpRight } from "lucide-react";
-import { PlatformLogo, type PlatformId } from "@/components/brand/platform-logos";
+import { PlatformLogo, type PlatformId } from "@/components/common/platform-logos";
 import { cn } from "@/lib/utils";
 
 export interface Platform {
