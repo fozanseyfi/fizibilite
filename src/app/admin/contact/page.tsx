@@ -26,17 +26,17 @@ export default function ContactPage() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
       {/* Başlık */}
-      <header className="relative overflow-hidden rounded-2xl border bg-card px-7 py-7 sm:px-9">
+      <header className="relative overflow-hidden rounded-2xl border bg-card px-7 py-6 sm:px-9">
         <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.22),transparent_65%)]" />
         <div className="pointer-events-none absolute -bottom-24 right-40 size-56 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,.18),transparent_65%)]" />
-        <div className="relative max-w-3xl space-y-3">
+        <div className="relative space-y-2.5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700 dark:text-amber-400">
             <MessageSquareHeart className="size-3.5" /> Katkılarınız
           </span>
-          <h1 className="text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">
+          <h1 className="text-2xl font-bold leading-tight tracking-tight lg:text-[26px]">
             Sizden gelen her geri bildirim platformu daha iyi yapar.
           </h1>
-          <p className="text-[15px] leading-relaxed text-muted-foreground">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Hata bildirimi, özellik önerisi veya genel sorularınız için aşağıdaki formdan veya doğrudan iletişim
             kanallarından bana ulaşabilirsiniz.
           </p>
