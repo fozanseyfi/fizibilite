@@ -3,20 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  AlertTriangle, ArrowRight, Calendar, Download, KeyRound, Lock, Mail, Save, Shield, Trash2,
-  User, UserCircle2, UserPlus, Users,
-} from "lucide-react";
+import { ArrowRight, Download, KeyRound, Mail, Save, Shield, Trash2, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { PasswordInput } from "@/components/auth/password-input";
-import {
-  FeatureChip, FieldGroup, FormMessage, IconBox, SectionCard, formatDateTr,
-} from "@/components/shared/section-card";
+import { FieldGroup, FormMessage, formatDateTr } from "@/components/shared/section-card";
 import { ROLE_LABELS, initials, useAuthStore, useSession } from "@/lib/auth-store";
 
 type Msg = { tone: "error" | "success"; text: string } | null;
+
+const ROLE_PILL: Record<string, string> = {
+  admin: "bg-blue/10 text-blue2 dark:text-blue",
+  user: "bg-eco/10 text-eco-dark dark:text-eco-light",
+  viewer: "bg-secondary text-muted-foreground",
+};
 
 export default function AccountPage() {
   const session = useSession();
@@ -78,47 +78,48 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      {/* Kimlik kartı */}
-      <Card className="overflow-hidden shadow-sm">
-        <CardContent className="p-0">
-          <div className="grid gap-6 p-6 sm:grid-cols-[auto_1fr] sm:p-7">
-            <div className="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-sidebar text-2xl font-bold tracking-tight text-white">
-              {initials(session.fullName)}
-            </div>
-            <div className="min-w-0 space-y-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                <UserCircle2 className="size-3" />
-                Hesabım
+    <div className="mx-auto w-full max-w-5xl space-y-5">
+      {/* Kimlik şeridi */}
+      <section className="flex flex-wrap items-center gap-x-6 gap-y-4 rounded-xl border bg-gradient-to-b from-card to-secondary/30 px-6 py-5">
+        <div className="flex min-w-0 basis-full items-center gap-4 sm:basis-0 sm:flex-1">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-sidebar text-lg font-bold text-white" data-no-i18n>
+            {initials(session.fullName)}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Hesabım</p>
+            <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold tracking-tight">
+              <span className="truncate" data-no-i18n>{session.fullName}</span>
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${ROLE_PILL[session.role]}`}>
+                <Shield className="size-3" /> {roleLabel}
               </span>
-              <h1 className="truncate text-2xl font-bold tracking-tight" data-no-i18n>{session.fullName}</h1>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
-                <span className="inline-flex items-center gap-1.5 rounded-md border bg-card px-2 py-0.5 font-semibold">
-                  <Shield className="size-3 text-primary" />
-                  {roleLabel}
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                  <Mail className="size-3.5" />
-                  {session.email}
-                </span>
-              </div>
-            </div>
+            </h1>
+            <p className="truncate text-[13px] text-muted-foreground">{session.email}</p>
           </div>
-          <div className="grid gap-px border-t bg-border sm:grid-cols-3">
-            <MetaCell icon={Shield} label="Rol" value={roleLabel} />
-            <MetaCell icon={Calendar} label="Üyelik Tarihi" value={formatDateTr(session.createdAt)} />
-            <MetaCell
-              icon={User}
-              label="Son Giriş"
-              value={session.lastLoginAt ? formatDateTr(session.lastLoginAt) : "—"}
-            />
+        </div>
+        <dl className="flex gap-6 text-xs">
+          <div>
+            <dt className="text-muted-foreground">Üyelik</dt>
+            <dd className="font-semibold">{formatDateTr(session.createdAt)}</dd>
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <dt className="text-muted-foreground">Son giriş</dt>
+            <dd className="font-semibold">{session.lastLoginAt ? formatDateTr(session.lastLoginAt) : "—"}</dd>
+          </div>
+        </dl>
+        {isAdmin && (
+          <Link
+            href="/admin/users"
+            className="inline-flex items-center gap-2 rounded-md border bg-card px-3.5 py-2 text-[13px] font-semibold transition-colors hover:bg-secondary"
+          >
+            <Users className="size-4" /> Ekibi yönet <ArrowRight className="size-3.5" />
+          </Link>
+        )}
+      </section>
 
-      <SectionCard icon={User} title="Profil bilgileri" subtitle="Görünen adınız — ekip arkadaşlarınız sizi bu isimle görür.">
-        <form onSubmit={onProfile} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid items-start gap-5 lg:grid-cols-2">
+        {/* Profil */}
+        <Panel icon={User} title="Profil" desc="Ekip arkadaşlarınız sizi bu isimle görür.">
+          <form onSubmit={onProfile} className="space-y-3.5">
             <FieldGroup label="Ad Soyad">
               <Input name="fullName" defaultValue={session.fullName} required />
             </FieldGroup>
@@ -128,172 +129,136 @@ export default function AccountPage() {
                 <Input value={session.email} readOnly className="bg-secondary/50 pl-9 text-muted-foreground" />
               </div>
               <p className="text-[11px] text-muted-foreground">
-                E-posta değişimi için{" "}
+                Değiştirmek için{" "}
                 <Link href="/admin/contact" className="font-semibold text-foreground underline-offset-2 hover:underline">
-                  iletişime geçin
+                  bize yazın
                 </Link>
                 .
               </p>
             </FieldGroup>
-          </div>
-          {profileMsg && <FormMessage tone={profileMsg.tone}>{profileMsg.text}</FormMessage>}
-          <Button type="submit" size="sm" className="gap-1.5">
-            <Save className="size-3.5" /> Kaydet
-          </Button>
-        </form>
-      </SectionCard>
-
-      <SectionCard
-        icon={KeyRound}
-        title="Şifre güvenliği"
-        subtitle="Mevcut şifrenizi onaylayarak yeni bir şifre belirleyin."
-      >
-        <form onSubmit={onPassword} className="space-y-4">
-          <FieldGroup label="Mevcut Şifre">
-            <PasswordInput name="currentPassword" autoComplete="current-password" placeholder="••••••••" required />
-          </FieldGroup>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FieldGroup label="Yeni Şifre">
-              <PasswordInput name="newPassword" autoComplete="new-password" placeholder="En az 8 karakter" required minLength={8} />
-            </FieldGroup>
-            <FieldGroup label="Yeni Şifre (Tekrar)">
-              <PasswordInput name="confirmPassword" autoComplete="new-password" placeholder="En az 8 karakter" required minLength={8} />
-            </FieldGroup>
-          </div>
-          {pwdMsg && <FormMessage tone={pwdMsg.tone}>{pwdMsg.text}</FormMessage>}
-          <Button type="submit" size="sm" disabled={pwdPending} className="gap-1.5">
-            <KeyRound className="size-3.5" />
-            {pwdPending ? "Güncelleniyor…" : "Şifreyi Güncelle"}
-          </Button>
-        </form>
-      </SectionCard>
-
-      <SectionCard
-        icon={Shield}
-        title="Hesap & Gizlilik (KVKK)"
-        subtitle="Verilerinizi JSON olarak indirebilir, hesabınızı kalıcı olarak silebilirsiniz. Hesap silme geri alınamaz."
-      >
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-secondary/30 p-4">
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold">Verilerimi İndir</p>
-              <p className="mt-0.5 text-[11.5px] text-muted-foreground">Profil ve üyelik bilgilerinizden oluşan JSON dosyası.</p>
+            {profileMsg && <FormMessage tone={profileMsg.tone}>{profileMsg.text}</FormMessage>}
+            <div className="flex justify-end">
+              <Button type="submit" size="sm" className="gap-1.5">
+                <Save className="size-3.5" /> Kaydet
+              </Button>
             </div>
-            <Button type="button" variant="outline" onClick={onExport} className="gap-1.5">
-              <Download className="size-4" /> JSON İndir
-            </Button>
-          </div>
+          </form>
+        </Panel>
 
-          <div className="rounded-lg border border-destructive/30 bg-destructive/[0.04] p-4">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-semibold">Hesabımı Sil</p>
-                <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted-foreground">
-                  <strong className="text-foreground">{session.email}</strong> hesabı kalıcı olarak silinir. Bu işlem{" "}
-                  <strong className="text-foreground">geri alınamaz</strong>.
-                </p>
-                {!showDelete ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowDelete(true)}
-                    className="mt-3 gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="size-4" /> Hesabımı Silmek İstiyorum
-                  </Button>
-                ) : (
-                  <div className="mt-3 space-y-2">
-                    <label className="block text-[11px] font-semibold">
-                      Onaylamak için kutuya <strong className="font-mono">SİL</strong> yazın:
-                    </label>
-                    <Input
-                      value={confirmText}
-                      onChange={(e) => setConfirmText(e.target.value)}
-                      placeholder="SİL"
-                      className="max-w-xs font-mono font-semibold"
-                    />
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setShowDelete(false);
-                          setConfirmText("");
-                        }}
-                      >
-                        Vazgeç
-                      </Button>
-                      <Button type="button" variant="destructive" onClick={onDelete} disabled={confirmText !== "SİL"} className="gap-1.5">
-                        <Trash2 className="size-4" /> Hesabımı Kalıcı Olarak Sil
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+        {/* Şifre */}
+        <Panel icon={KeyRound} title="Şifre" desc="Mevcut şifrenizle onaylayıp yenisini belirleyin.">
+          <form onSubmit={onPassword} className="space-y-3.5">
+            <FieldGroup label="Mevcut şifre">
+              <PasswordInput name="currentPassword" autoComplete="current-password" placeholder="••••••••" required />
+            </FieldGroup>
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <FieldGroup label="Yeni şifre">
+                <PasswordInput name="newPassword" autoComplete="new-password" placeholder="En az 8 karakter" required minLength={8} />
+              </FieldGroup>
+              <FieldGroup label="Yeni şifre (tekrar)">
+                <PasswordInput name="confirmPassword" autoComplete="new-password" placeholder="Tekrar yazın" required minLength={8} />
+              </FieldGroup>
             </div>
-          </div>
+            {pwdMsg && <FormMessage tone={pwdMsg.tone}>{pwdMsg.text}</FormMessage>}
+            <div className="flex justify-end">
+              <Button type="submit" size="sm" disabled={pwdPending} className="gap-1.5">
+                <KeyRound className="size-3.5" />
+                {pwdPending ? "Güncelleniyor…" : "Şifreyi güncelle"}
+              </Button>
+            </div>
+          </form>
+        </Panel>
+      </div>
+
+      {/* Veri ve hesap */}
+      <section className="overflow-hidden rounded-xl border bg-card">
+        <div className="flex items-center gap-2 border-b px-5 py-3.5">
+          <Shield className="size-4 text-muted-foreground" />
+          <h2 className="text-sm font-semibold">Verileriniz ve hesabınız</h2>
+          <span className="text-xs text-muted-foreground">· KVKK</span>
         </div>
-      </SectionCard>
 
-      {isAdmin && (
-        <Card className="overflow-hidden shadow-sm">
-          <CardContent className="p-0">
-            <div className="grid lg:grid-cols-[1fr_auto]">
-              <div className="space-y-4 p-6">
-                <div className="flex items-start gap-3">
-                  <IconBox icon={Users} size="lg" />
-                  <div>
-                    <p className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">Yönetici Paneli</p>
-                    <h3 className="text-lg font-semibold tracking-tight">Ekip ve Yetkilendirme</h3>
-                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                      Kullanıcı davet et, rolleri yönet.
-                    </p>
-                  </div>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <FeatureChip icon={UserPlus} title="Kullanıcı Davet Et" desc="E-posta ile davet" />
-                  <FeatureChip icon={Shield} title="Rol Yönetimi" desc="Yönetici / Kullanıcı / Görüntüleyici" />
-                  <FeatureChip icon={Lock} title="Erişim Kontrolü" desc="Rol bazlı yetki" />
-                </div>
-              </div>
-              <div className="flex items-stretch border-t bg-secondary/30 p-6 lg:border-l lg:border-t-0">
-                <Link
-                  href="/admin/users"
-                  className="group inline-flex w-full items-center justify-between gap-3 rounded-xl bg-sidebar px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-sidebar/90 lg:w-auto lg:flex-col lg:justify-center lg:gap-2 lg:px-7"
-                >
-                  <Users className="size-5 lg:size-6" />
-                  <span className="flex flex-1 flex-col text-left lg:flex-none lg:items-center lg:text-center">
-                    <span className="text-[15px] font-bold leading-tight">Ekibi Yönet</span>
-                    <span className="text-[11px] font-medium opacity-80">Davet, rol, erişim</span>
-                  </span>
-                  <ArrowRight className="size-5 shrink-0 transition-transform group-hover:translate-x-1 lg:hidden" />
-                </Link>
-              </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-[13.5px] font-semibold">Verilerimi indir</p>
+            <p className="text-xs text-muted-foreground">Profil ve üyelik bilgileriniz, JSON dosyası olarak.</p>
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={onExport} className="gap-1.5">
+            <Download className="size-3.5" /> İndir
+          </Button>
+        </div>
+
+        <div className="border-t px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[13.5px] font-semibold text-destructive">Hesabımı sil</p>
+              <p className="text-xs text-muted-foreground">
+                Hesabınız ve bilgileriniz kalıcı olarak silinir. <strong className="text-foreground">Geri alınamaz.</strong>
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            {!showDelete && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDelete(true)}
+                className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="size-3.5" /> Sil
+              </Button>
+            )}
+          </div>
+          {showDelete && (
+            <div className="mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-destructive/30 bg-destructive/[0.04] p-3">
+              <label className="min-w-[220px] flex-1 space-y-1.5">
+                <span className="block text-xs">
+                  Onaylamak için <strong className="font-mono">SİL</strong> yazın
+                </span>
+                <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="SİL" className="h-9 font-mono font-semibold" autoFocus />
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowDelete(false);
+                  setConfirmText("");
+                }}
+              >
+                Vazgeç
+              </Button>
+              <Button type="button" variant="destructive" size="sm" onClick={onDelete} disabled={confirmText !== "SİL"} className="gap-1.5">
+                <Trash2 className="size-3.5" /> Kalıcı olarak sil
+              </Button>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
 
-function MetaCell({
-  icon,
-  label,
-  value,
+function Panel({
+  icon: Icon,
+  title,
+  desc,
+  children,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
+  title: string;
+  desc: string;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 bg-card px-5 py-3.5">
-      <IconBox icon={icon} />
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className="mt-0.5 truncate text-sm font-semibold">{value}</p>
+    <section className="rounded-xl border bg-card">
+      <div className="flex items-start gap-3 border-b px-5 py-3.5">
+        <Icon className="mt-0.5 size-4 text-muted-foreground" />
+        <div>
+          <h2 className="text-sm font-semibold">{title}</h2>
+          <p className="text-xs text-muted-foreground">{desc}</p>
+        </div>
       </div>
-    </div>
+      <div className="px-5 py-4">{children}</div>
+    </section>
   );
 }
