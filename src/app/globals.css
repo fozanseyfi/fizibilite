@@ -151,3 +151,12 @@ details > summary::-webkit-details-marker { display: none; }
 
 /* EN: sayfa çevrilene kadar Türkçe metin görünmesin (en fazla 2,5 sn) */
 html.i18n-pending body { visibility: hidden; }
+
+/* İletişim başlığı: soluk renk bandı soldan sağa akar */
+@keyframes contact-flow { from { background-position: 0% 50%; } to { background-position: -200% 50%; } }
+.contact-flow {
+  background-image: linear-gradient(90deg, transparent 0%, rgb(16 185 129 / 0.10) 20%, rgb(59 130 246 / 0.10) 40%, transparent 60%, rgb(16 185 129 / 0.08) 80%, transparent 100%);
+  background-size: 200% 100%;
+  animation: contact-flow 14s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .contact-flow { animation: none; } }

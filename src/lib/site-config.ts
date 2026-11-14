@@ -8,7 +8,7 @@ export const siteConfig = {
     company: "Huawei",
     education: "Yıldız Teknik Üniversitesi",
     expertise: "Utility scale projelerin yönetimi, yatırım ve operasyon",
-    bio: "Yenilenebilir enerjide aktif çalışan bir mühendis olarak GES yatırım kararlarında yaşadığım ihtiyaçlardan doğdu. Bireysel bir inisiyatifle geliştirdim; sektör paydaşlarıyla iyi niyetle paylaşıyorum.",
+    bio: "Yenilenebilir enerji sektöründe, büyük ölçekli GES projelerinin geliştirme, yatırım ve işletme süreçlerinde çalışıyorum. Bu platformu, yatırım kararlarında ihtiyaç duyduğum hesapları tek bir yerde, şeffaf ve hızlı yapabilmek için bireysel olarak geliştirdim; sektördeki meslektaşlarımın da işine yarayacağı inancıyla paylaşıyorum.",
     phone: "+90 506 684 29 33",
     email: "fozanseyfi@gmail.com",
     linkedin: {

@@ -5,6 +5,8 @@ import {
   ArrowUpRight,
   Boxes,
   Bug,
+  ChevronDown,
+  Code2,
   FolderKanban,
   Globe,
   HelpCircle,
@@ -69,6 +71,7 @@ export function ContactView() {
     <div className="mx-auto max-w-7xl space-y-8">
       {/* HERO */}
       <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-bg2 via-card to-emerald-500/5 p-8 md:p-12">
+        <div className="contact-flow pointer-events-none absolute inset-0" />
         <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-emerald-500/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 left-1/3 size-72 rounded-full bg-blue/10 blur-3xl" />
         <div className="relative max-w-3xl">
@@ -94,7 +97,7 @@ export function ContactView() {
             <div className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-emerald-500/20 blur-2xl" />
             <div className="relative">
               <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-500/20 ring-1 ring-emerald-500/30 backdrop-blur">
-                <Sparkles className="size-5 text-white" />
+                <Code2 className="size-5 text-white" />
               </div>
               <div className="mt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-400">Geliştirici</div>
               <h2 className="mt-1.5 text-2xl font-bold tracking-tight" data-no-i18n>{DEV.name}</h2>
@@ -419,8 +422,8 @@ const DISCLAIMER_SECTIONS: { n: string; title: string; body: React.ReactNode }[]
 
 function DisclaimerSection() {
   return (
-    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-      <div className="flex items-start gap-4 border-b border-yellow/30 bg-gradient-to-r from-yellow/15 via-yellow/5 to-card px-6 py-5">
+    <details className="group overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <summary className="flex cursor-pointer list-none items-start gap-4 [&::-webkit-details-marker]:hidden border-yellow/30 group-open:border-b bg-gradient-to-r from-yellow/15 via-yellow/5 to-card px-6 py-5">
         <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-yellow text-white shadow-sm">
           <Scale className="size-5" />
         </span>
@@ -435,7 +438,12 @@ function DisclaimerSection() {
             başına bağlayıcı kabul edilemez. Platformu kullanmaya devam ederek aşağıdaki şartları kabul etmiş sayılırsınız.
           </p>
         </div>
-      </div>
+        <span className="ml-auto mt-1 inline-flex shrink-0 items-center gap-1 rounded-md border bg-card px-2.5 py-1 text-[11px] font-semibold text-text2">
+          <span className="group-open:hidden">Göster</span>
+          <span className="hidden group-open:inline">Gizle</span>
+          <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
+        </span>
+      </summary>
 
       <div className="grid grid-cols-1 gap-x-8 gap-y-5 px-6 py-6 md:grid-cols-2">
         {DISCLAIMER_SECTIONS.map((s) => (
@@ -457,7 +465,7 @@ function DisclaimerSection() {
         </span>
         <span>solar-fizibilite-platformu</span>
       </div>
-    </section>
+    </details>
   );
 }
 
