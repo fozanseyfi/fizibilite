@@ -216,13 +216,28 @@ export async function clickText(page, text, selector) {
 /** React kontrollü input'a değer yaz (mevcut içeriği silerek). */
 export async function fill(page, selector, value) {
   const el = typeof selector === "string" ? await page.waitForSelector(selector, { visible: true }) : selector;
-  await el.click({ clickCount: 3 });
-  // Sayı alanlarında üç tık her zaman seçmez (varsayılan 0 kalıp 0585 olur): tümünü seç + sil
-  await page.keyboard.down("Control");
-  await page.keyboard.press("KeyA");
-  await page.keyboard.up("Control");
-  await page.keyboard.press("Backspace");
-  await el.type(String(value), { delay: 8 });
+  await el.click();
+  // Eski değeri programla boşalt (React kontrollü alanlar için input olayıyla). Klavyeyle seçip silmek
+  // sayı alanlarında güvenilir değil: eski değer kalıp yeni değer yanına eklenebiliyor (120 → 120120).
+  await el.evaluate((n) => {
+    const proto = n instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    Object.getOwnPropertyDescriptor(proto, "value").set.call(n, "");
+    n.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  // Sayı alanları her tuşta yeniden biçimlenebilir (2.5 yazarken nokta düşer): değeri tek seferde ata
+  const isNumber = await el.evaluate((n) => n instanceof HTMLInputElement && n.type === "number");
+  if (isNumber) {
+    await el.evaluate((n, v) => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(n, v);
+      n.dispatchEvent(new Event("input", { bubbles: true }));
+      n.dispatchEvent(new Event("change", { bubbles: true }));
+    }, String(value));
+    await sleep(60);
+  } else {
+    await el.type(String(value), { delay: 8 });
+  }
+  const got = await el.evaluate((n) => n.value);
+  if (got !== String(value) && Number(got) !== Number(value)) throw new Error(`Alan doldurulamadı: "${got}" ≠ "${value}"`);
 }
 
 /**
