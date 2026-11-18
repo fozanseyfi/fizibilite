@@ -1,0 +1,993 @@
+{
+ "generatedAt": "2026-11-18T22:09:34.582Z",
+ "viewport": {
+  "w": 1440,
+  "h": 900
+ },
+ "modules": [
+  {
+   "id": "giris",
+   "group": "Başlarken",
+   "title": "Giriş ve Genel Görünüm",
+   "intro": "Platforma e-posta ve şifreyle girilir. Solda bütün modellere ve sayfalara giden menü, üstte hesap menüsü, dil (TR/EN) ve gece modu bulunur.",
+   "steps": [
+    {
+     "img": "/tanitim/giris-01.webp",
+     "title": "Hesap oluşturma",
+     "text": "İlk kez kullanıyorsanız “Hesap Oluştur” ile ad soyad, e-posta ve şifrenizi girin. Hesap açılınca doğrudan Dashboard'a geçilir.",
+     "marks": [
+      {
+       "x": 6.74,
+       "y": 67.11,
+       "w": 31.67,
+       "h": 5.33
+      }
+     ],
+     "cursor": {
+      "x": 22.58,
+      "y": 69.78
+     }
+    },
+    {
+     "img": "/tanitim/giris-02.webp",
+     "title": "Giriş ekranı",
+     "text": "Kayıtlı kullanıcılar e-posta ve şifreyle girer. Şifrenizi unuttuysanız “Şifremi unuttum” bağlantısını kullanın. Sağda platformun örnek ekranları ve veri gizliliği notu yer alır.",
+     "marks": [
+      {
+       "x": 6.74,
+       "y": 47.11,
+       "w": 31.67,
+       "h": 5.33
+      }
+     ],
+     "cursor": {
+      "x": 22.58,
+      "y": 49.78
+     }
+    },
+    {
+     "img": "/tanitim/giris-03.webp",
+     "title": "Dashboard",
+     "text": "Girişten sonra Dashboard açılır: kayıtlı projeler model tipi, kapasite, IRR, geri ödeme süresi ve güncelleme tarihiyle listelenir; “Rapor al” raporu doğrudan hazırlar. “Yeni Proje” ile dört modelden biri seçilerek başlanır.",
+     "marks": [
+      {
+       "x": 90.47,
+       "y": 11.78,
+       "w": 7.59,
+       "h": 4.44
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/giris-04.webp",
+     "title": "Hesap menüsü",
+     "text": "Sol üstteki adınıza tıklayınca hesap menüsü açılır: rolünüz, Hesabım sayfası ve çıkış buradadır.",
+     "marks": [
+      {
+       "x": 16.94,
+       "y": 0.17,
+       "w": 18.78,
+       "h": 5.78
+      }
+     ],
+     "cursor": {
+      "x": 26.33,
+      "y": 3.06
+     }
+    },
+    {
+     "img": "/tanitim/giris-05.webp",
+     "title": "Gece modu",
+     "text": "Sağ üstteki ay simgesiyle gece moduna geçilir; tercih tarayıcıda saklanır ve bütün sayfalarda geçerlidir.",
+     "marks": [
+      {
+       "x": 95.56,
+       "y": 0.61,
+       "w": 3.06,
+       "h": 4.89
+      }
+     ],
+     "cursor": {
+      "x": 97.09,
+      "y": 3.06
+     }
+    },
+    {
+     "img": "/tanitim/giris-06.webp",
+     "title": "İngilizce arayüz",
+     "text": "TR / EN düğmesiyle bütün menüler, başlıklar ve açıklamalar İngilizceye geçer; model hesapları aynı kalır.",
+     "marks": [
+      {
+       "x": 92.68,
+       "y": 0.72,
+       "w": 3.08,
+       "h": 4.67
+      }
+     ],
+     "cursor": {
+      "x": 94.22,
+      "y": 3.06
+     }
+    }
+   ]
+  },
+  {
+   "id": "yeni-proje",
+   "group": "Başlarken",
+   "title": "Yeni Proje ve Model Seçimi",
+   "intro": "Her fizibilite bir model üzerinde kurulur: Utility (GES + BESS proje finansmanı), C&I / Mesken (saatlik mahsuplaşma), Batarya · C&I ve Batarya · Utility.",
+   "steps": [
+    {
+     "img": "/tanitim/yeni-proje-01.webp",
+     "title": "Model seçimi",
+     "text": "“Yeni Proje”de dört model kartı bulunur. Arazi ölçekli, kredili santraller için Utility; çatı ve tüketim tesisleri için C&I / Mesken; mevcut tesise batarya eklemek için Batarya modelleri seçilir.",
+     "marks": [
+      {
+       "x": 26.39,
+       "y": 32.67,
+       "w": 31.11,
+       "h": 24.22
+      },
+      {
+       "x": 58.06,
+       "y": 32.67,
+       "w": 31.11,
+       "h": 24.22
+      }
+     ],
+     "cursor": null
+    }
+   ]
+  },
+  {
+   "id": "utility",
+   "group": "Fizibilite Modelleri",
+   "title": "Utility GES + BESS Proje Finansmanı",
+   "intro": "Arazi ölçekli GES (ve isteğe bağlı batarya) için proje finansmanı modeli: CAPEX, üretim, OPEX, gelir, vergi, inşaat dönemi ve kredi yapısı girilir; IRR, NPV, DSCR, LCOE ve nakit akışları anında hesaplanır.",
+   "steps": [
+    {
+     "img": "/tanitim/utility-01.webp",
+     "title": "Proje bilgileri",
+     "text": "Sayfanın başında proje adı, firma, lokasyon ve hazırlayan girilir; bu bilgiler rapor kapağında ve proje listesinde görünür. Üstteki sekmeler model, Huawei değer analizi ve sonuçlar arasında geçiş yapar.",
+     "marks": [
+      {
+       "x": 20.49,
+       "y": 33.72,
+       "w": 18.33,
+       "h": 5.52
+      },
+      {
+       "x": 18.89,
+       "y": 21.41,
+       "w": 11.32,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 29.65,
+      "y": 36.48
+     }
+    },
+    {
+     "img": "/tanitim/utility-02.webp",
+     "title": "Adım 1 · PV yatırım maliyeti (CAPEX)",
+     "text": "Kurulu güç (MWp) ve birim EPC maliyeti ($/kWp) girilir; toplam PV CAPEX yanda formülüyle hesaplanır. Formül kutuları her sonucun nasıl bulunduğunu açıkça gösterir.",
+     "marks": [
+      {
+       "x": 20.63,
+       "y": 23.57,
+       "w": 28.33,
+       "h": 5.52
+      },
+      {
+       "x": 20.63,
+       "y": 32.13,
+       "w": 28.33,
+       "h": 5.52
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-03.webp",
+     "title": "Adım 2 · Enerji üretimi",
+     "text": "Spesifik üretim (P50), P90 oranı, availability, curtailment ve yıllık degradasyon girilir. Model ilk yıl üretimini ve 30 yıllık üretim eğrisini bu değerlerden kurar.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-04.webp",
+     "title": "Adım 3 · İşletme gideri (OPEX)",
+     "text": "Yıllık OPEX ($/MWp), TL payı, inverter yenileme yılı ve maliyeti ile santralin ömür sonu uç değeri girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-05.webp",
+     "title": "Adım 4 · Gelir ve kur–enflasyon",
+     "text": "Satış fiyatı modeli (YEKDEM / serbest piyasa), birim fiyat, TL ve USD enflasyonları ile kur projeksiyonu seçilir. TL gelirlerin dolar karşılığı her yıl kur farkıyla yeniden hesaplanır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-06.webp",
+     "title": "Adım 5 · Batarya modülü (BESS)",
+     "text": "İsteğe bağlı batarya: kutucuk işaretlenince kapasite, süre, birim maliyet ve arbitraj marjı girilir; batarya geliri ve yatırımı proje nakit akışına eklenir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-07.webp",
+     "title": "Adım 6 · Vergi, amortisman, KDV",
+     "text": "Kurumlar vergisi, amortisman süresi, vergi teşviki ve KDV iadesi girilir. Yanda yıl yıl vergi hesabı formülüyle açıklanır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-08.webp",
+     "title": "Adım 7 · İnşaat dönemi",
+     "text": "İnşaat süresi ve harcama profili seçilir; inşaat dönemi faizi (IDC) ve kredi çekiş takvimi buna göre hesaplanır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-09.webp",
+     "title": "Adım 8 · Borç yapısı",
+     "text": "Kaldıraç oranı, kredi faizi, vade, ödemesiz dönem ve hedef DSCR girilir. Kredi tutarı DSCR'ye göre boyutlanır; ödeme planı ve DSRA hesabı yanda adım adım gösterilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-10.webp",
+     "title": "Kaynak–kullanım ve sonuçlar",
+     "text": "Kullanımlar (CAPEX, IDC, DSRA) ve kaynaklar (kredi, özkaynak) tablosunun altında temel göstergeler yer alır: NPV, proje ve özkaynak IRR'ı, LCOE, minimum ve ortalama DSCR, LLCR ve geri ödeme süresi.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-11.webp",
+     "title": "Duyarlılık analizi",
+     "text": "Fiyat ve üretimdeki ±%10 değişimlerin proje IRR'ı ve minimum DSCR üzerindeki etkisi tabloda görünür; baz senaryo vurgulanır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-12.webp",
+     "title": "Kırılma noktası (breakeven)",
+     "text": "NPV'yi sıfırlayan satış fiyatı, üretim ve CAPEX ile bankanın hedef DSCR'sini sağlayan en düşük değerler hesaplanır; mevcut değere göre güvenlik payı yanda yazılır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-13.webp",
+     "title": "Teknoloji karşılaştırması",
+     "text": "Sabit, bifacial, tracker ve farklı DC/AC oranları aynı tabloda karşılaştırılır: her biri için üretim, CAPEX, OPEX ile NPV, IRR ve DSCR sonuçları yan yana görünür.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-14.webp",
+     "title": "Senaryo matrisi",
+     "text": "Kötümser, baz ve iyimser senaryolar fiyat, üretim, CAPEX ve kur varsayımlarıyla birlikte hesaplanır; sonuçlar tek tabloda karşılaştırılır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-15.webp",
+     "title": "Kümülatif nakit akışı grafiği",
+     "text": "Kaldıraçsız serbest nakit akışının iskontolu kümülatif değeri yıl yıl çizilir; eğrinin sıfırı geçtiği yıl iskontolu geri ödeme süresidir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-16.webp",
+     "title": "İşletme dönemi nakit akışı",
+     "text": "30 yıllık tablo: üretim, fiyat, gelir, OPEX, EBITDA, vergi, borç servisi, serbest nakit akışı, DSCR ve kümülatif nakit yıl yıl listelenir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-17.webp",
+     "title": "Borç takvimi",
+     "text": "Kredinin yıl yıl açılış bakiyesi, faiz, anapara, toplam borç servisi ve CFADS'a göre DSCR değeri tabloda görünür.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/utility-18.webp",
+     "title": "Huawei değer analizi",
+     "text": "İnverter seçiminin değeri: verim, arıza oranı, garanti ve servis farkları inverter bazında girilir; farkın santral ömrü boyunca iskontolu net değeri hesaplanır.",
+     "marks": [
+      {
+       "x": 29.93,
+       "y": 21.41,
+       "w": 14.2,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 37.03,
+      "y": 24.27
+     }
+    },
+    {
+     "img": "/tanitim/utility-19.webp",
+     "title": "Sonuçlar sekmesi",
+     "text": "Yatırım kuruluna sunulacak özet: proje bilgileri, temel göstergeler, kaynak–kullanım tablosu ve nakit akışı grafikleri tek sayfada.",
+     "marks": [
+      {
+       "x": 43.86,
+       "y": 21.41,
+       "w": 8.38,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 48.05,
+      "y": 24.27
+     }
+    },
+    {
+     "img": "/tanitim/utility-20.webp",
+     "title": "Projeyi kaydetme",
+     "text": "“Projeyi Kaydet” ile bütün girdiler saklanır ve proje listesine eklenir. “Rapor çıktısı al” ise sonuçları yazdırılabilir rapor olarak hazırlar.",
+     "marks": [
+      {
+       "x": 88.4,
+       "y": 22.08,
+       "w": 8.27,
+       "h": 4.38
+      },
+      {
+       "x": 80.21,
+       "y": 22.08,
+       "w": 8.33,
+       "h": 4.38
+      }
+     ],
+     "cursor": {
+      "x": 92.54,
+      "y": 24.27
+     }
+    }
+   ]
+  },
+  {
+   "id": "ci",
+   "group": "Fizibilite Modelleri",
+   "title": "C&I / Mesken Saatlik Mahsuplaşma",
+   "intro": "Çatı GES'li tüketim tesisleri için EPDK 14531 saatlik mahsuplaşma modeli: tüketim profili, üretim, tarife ve finansman girilir; saat saat mahsup, fatura etkisi ve yatırım getirisi hesaplanır.",
+   "steps": [
+    {
+     "img": "/tanitim/ci-01.webp",
+     "title": "Abone ve yıllık tüketim",
+     "text": "Proje bilgilerinden sonra abone grubu, bağlantı tipi ve yıllık tüketim girilir. Hafta içi ve hafta sonu tüketimi farklıysa kutucuk işaretlenir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-02.webp",
+     "title": "Aylık tüketim dağılımı",
+     "text": "Yıllık tüketimin aylara dağılımı yüzde olarak girilir (Aralık otomatik kalan). Sağdaki grafik dağılımı anında gösterir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-03.webp",
+     "title": "Gün içi saatlik profil",
+     "text": "Seçilen ayın günlerine ve günün saatlerine dağılım girilir. Saatlik mahsuplaşmada en önemli girdi budur: üretimle tüketimin aynı saatte örtüşmesi mahsup oranını belirler.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-04.webp",
+     "title": "GES ve üretim",
+     "text": "Kurulu güç, il bazlı üretim profili, panel ve inverter verimleri, degradasyon girilir; model saatlik üretimi bu değerlerden çıkarır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-05.webp",
+     "title": "Tarife ve fiyatlar",
+     "text": "Tarife grubu, tek / üç zamanlı fiyatlar, dağıtım bedeli ve fazla üretimin satış fiyatı girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-06.webp",
+     "title": "Batarya (BESS)",
+     "text": "İsteğe bağlı: tüketim tesisine batarya eklenirse kapasite ve maliyet girilir; fazla üretim akşam saatlerine kaydırılarak mahsup oranı artırılır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-07.webp",
+     "title": "Yatırım ve finansman",
+     "text": "Yatırım tutarı, özkaynak / kredi oranı, faiz, vade, iskonto oranı ve kur varsayımları girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-08.webp",
+     "title": "Saatlik mahsuplaşma motoru",
+     "text": "Mahsuplaşma sekmesi: her ay ve gün tipi için saat saat üretim, tüketim, mahsup edilen ve şebekeye verilen enerji. Bir döneme tıklayınca ayrıntısı açılır.",
+     "marks": [
+      {
+       "x": 29.93,
+       "y": 23.74,
+       "w": 10.75,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 35.31,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/ci-09.webp",
+     "title": "Enerji akışı",
+     "text": "Enerjinin nereden gelip nereye gittiği: GES'ten doğrudan tüketim, mahsup, bedelli satış ve şebekeden çekiş miktarları akış şemasında gösterilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-10.webp",
+     "title": "Bedelli üretim limiti",
+     "text": "Yönetmelikteki bedelli üretim sınırı ve projenizin bu sınıra göre durumu: limit aşılırsa fazla üretim bedelsiz kalır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-11.webp",
+     "title": "Saatlik veri",
+     "text": "Seçilen ayın temsili gününde üretim ve tüketim saat saat karşılaştırılır; altta gün, ay ve yıl toplamları bulunur.",
+     "marks": [
+      {
+       "x": 40.41,
+       "y": 23.74,
+       "w": 9.47,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 45.15,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/ci-12.webp",
+     "title": "Fatura analizi",
+     "text": "Mevcut operasyon ile GES'li operasyonun aktif enerji faturası karşılaştırılır: yıl-1 özeti ve 12 aylık kırılım.",
+     "marks": [
+      {
+       "x": 49.6,
+       "y": 23.74,
+       "w": 10.63,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 54.92,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/ci-13.webp",
+     "title": "Saatlik vs aylık mahsuplaşma",
+     "text": "Eski (aylık) ve yeni (saatlik) rejimin farkı formülleriyle açıklanır; altta sizin projenizin iki rejimdeki sonucu yan yana görünür.",
+     "marks": [
+      {
+       "x": 59.95,
+       "y": 23.74,
+       "w": 11.2,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 65.55,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/ci-14.webp",
+     "title": "Projenizin iki rejimdeki sonucu",
+     "text": "Aylık ve saatlik mahsuplaşmada yıllık tasarruf, mahsup oranı ve geri ödeme süresi karşılaştırılır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ci-15.webp",
+     "title": "Sonuçlar",
+     "text": "Özet göstergeler, aylık mahsup / bedelli / çekiş dağılımı ve kümülatif iskontolu nakit akışı. Sıfır geçişi iskontolu geri ödeme süresidir.",
+     "marks": [
+      {
+       "x": 70.88,
+       "y": 23.74,
+       "w": 8.38,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 75.07,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/ci-16.webp",
+     "title": "Kaydetme",
+     "text": "“Projeyi Kaydet” ile proje saklanır; daha sonra Projeler listesinden açılıp güncellenebilir.",
+     "marks": [
+      {
+       "x": 88.4,
+       "y": 24.41,
+       "w": 8.27,
+       "h": 4.38
+      }
+     ],
+     "cursor": {
+      "x": 92.54,
+      "y": 26.6
+     }
+    }
+   ]
+  },
+  {
+   "id": "bess-ci",
+   "group": "Fizibilite Modelleri",
+   "title": "Batarya Ekleme · C&I / Mesken",
+   "intro": "Mevcut GES'li tüketim tesisine batarya eklemenin fizibilitesi: güneş fazlasını akşama kaydırma, tarife arbitrajı, zirve tıraşlama ve kesinti yedeklemesinden gelen tasarruf hesaplanır.",
+   "steps": [
+    {
+     "img": "/tanitim/bess-ci-01.webp",
+     "title": "Kullanım şekilleri",
+     "text": "Bataryanın hangi amaçlarla kullanılacağı seçilir: güneş fazlasını akşama kaydırma, gece şarj / puant deşarj arbitrajı, güç bedelini düşüren zirve tıraşlama ve kesinti yedeklemesi.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-ci-02.webp",
+     "title": "Mevcut GES ve tüketim",
+     "text": "Tesisin mevcut GES gücü, yıllık üretimi ve tüketimi ile tüketim profili girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-ci-03.webp",
+     "title": "Tarife ve fiyatlar",
+     "text": "Zaman dilimli tarife fiyatları, güç bedeli ve fazla üretimin satış fiyatı girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-ci-04.webp",
+     "title": "Batarya",
+     "text": "Batarya kapasitesi (kWh), gücü (C-oranı), verimi, deşarj derinliği ve birim maliyeti girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-ci-05.webp",
+     "title": "Sonuçlar",
+     "text": "Yıllık kazancın kullanım şekillerine göre kırılımı, Temmuz ve Ocak için tipik gün şarj/deşarj grafiği ile kümülatif ve yıllık nakit akışı.",
+     "marks": [
+      {
+       "x": 26.55,
+       "y": 23.74,
+       "w": 8.36,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 30.73,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/bess-ci-06.webp",
+     "title": "Tipik gün",
+     "text": "Bataryanın gün içinde ne zaman şarj, ne zaman deşarj olduğu saat saat görünür; yaz ve kış günleri ayrı ayrı çizilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-ci-07.webp",
+     "title": "Boyut optimizasyonu",
+     "text": "Farklı kapasite ve C-oranı kombinasyonları aynı fiyatlarla denenir; en yüksek NPV'yi veren boyut işaretlenir.",
+     "marks": [
+      {
+       "x": 34.64,
+       "y": 23.74,
+       "w": 10.66,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 39.97,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/bess-ci-08.webp",
+     "title": "Kullanım analizi",
+     "text": "Aynı batarya farklı kullanım şekilleriyle (tek tek ve birlikte) karşılaştırılır; hangi kullanımın ne kadar değer kattığı görünür.",
+     "marks": [
+      {
+       "x": 45.02,
+       "y": 23.74,
+       "w": 11.53,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 50.79,
+      "y": 26.6
+     }
+    }
+   ]
+  },
+  {
+   "id": "bess-utility",
+   "group": "Fizibilite Modelleri",
+   "title": "Batarya Ekleme · Utility",
+   "intro": "Lisanslı GES santraline batarya eklemenin fizibilitesi: kırpılan üretimi kurtarma, PTF arbitrajı, yan hizmetler ve dengesizlik maliyeti; batarya sağlığı ve kapasite şartıyla birlikte.",
+   "steps": [
+    {
+     "img": "/tanitim/bess-utility-01.webp",
+     "title": "Kullanım şekilleri",
+     "text": "Gelir kaynakları seçilir: kırpılan (curtailment) üretimi kurtarma, öğle–akşam PTF arbitrajı, TEİAŞ yan hizmetleri (PFK / SFK) ve dengesizlik maliyetini azaltma.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-utility-02.webp",
+     "title": "Mevcut santral",
+     "text": "Santralin DC / AC gücü, yıllık üretimi, kırpılan enerji oranı ve YEKDEM bitiş yılı girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-utility-03.webp",
+     "title": "Fiyatlar",
+     "text": "PTF profili, YEKDEM fiyatı, yan hizmet bedelleri ve dengesizlik maliyeti girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-utility-04.webp",
+     "title": "Batarya ve finansal varsayımlar",
+     "text": "Batarya kapasitesi, süresi, verimi, yıllık kapasite kaybı ve maliyeti ile iskonto oranı, vergi ve kur varsayımları girilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-utility-05.webp",
+     "title": "Sonuçlar · gelir kırılımı",
+     "text": "Birinci yıl gelirinin kaynaklara göre dağılımı ve 15 yıllık toplam gelir. YEKDEM bitip serbest piyasaya geçilen yıl ayrıca gösterilir.",
+     "marks": [
+      {
+       "x": 26.55,
+       "y": 23.74,
+       "w": 8.36,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 30.73,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/bess-utility-06.webp",
+     "title": "Tipik gün",
+     "text": "Yaz ve kış günü için üretim, kırpılan enerji, batarya şarj/deşarjı ve şebekeye verilen enerji saat saat çizilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-utility-07.webp",
+     "title": "Batarya sağlığı (SOH)",
+     "text": "Bataryanın yıl sonu sağlığı ve beyan edilen kapasiteye oranı çizilir; sözleşmedeki kapasite şartının hangi yıl riske girdiği görünür.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-utility-08.webp",
+     "title": "Nakit akışı",
+     "text": "Kümülatif ve yıllık nakit akışı grafikleri: yatırım, gelir, OPEX ve kapasite takviyesi harcamaları dahil.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bess-utility-09.webp",
+     "title": "Boyut optimizasyonu",
+     "text": "Kapasite ve C-oranı kombinasyonları denenir; NPV ve IRR'ı en yüksek boyut öne çıkarılır.",
+     "marks": [
+      {
+       "x": 34.64,
+       "y": 23.74,
+       "w": 10.66,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 39.97,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/bess-utility-10.webp",
+     "title": "Kullanım analizi",
+     "text": "Gelir kaynaklarının kombinasyonları, YEKDEM süresi, yan hizmet payı, arbitraj ve DC artırma seçenekleri karşılaştırılır.",
+     "marks": [
+      {
+       "x": 45.02,
+       "y": 23.74,
+       "w": 11.53,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 50.79,
+      "y": 26.6
+     }
+    },
+    {
+     "img": "/tanitim/bess-utility-11.webp",
+     "title": "Sağlık şartı stratejisi",
+     "text": "5. yılda %90, 10. yılda %80 kapasite şartını en ucuza sağlamanın yolları karşılaştırılır: baştan fazla kapasite, ara takviye veya hücre değişimi.",
+     "marks": [
+      {
+       "x": 56.28,
+       "y": 23.74,
+       "w": 13.64,
+       "h": 5.71
+      }
+     ],
+     "cursor": {
+      "x": 63.1,
+      "y": 26.6
+     }
+    }
+   ]
+  },
+  {
+   "id": "projeler",
+   "group": "Projeler ve Paylaşım",
+   "title": "Projeler ve Paylaşım Linkleri",
+   "intro": "Kaydedilen projeler listelenir, açılıp güncellenir. Paylaşım linkiyle bir projenin raporu giriş yapmadan görüntülenebilir hâlde gönderilir.",
+   "steps": [
+    {
+     "img": "/tanitim/projeler-01.webp",
+     "title": "Proje listesi",
+     "text": "Bütün projeler model türü, kayıt tarihi ve temel sonuçlarıyla listelenir. Bir projeye tıklayınca model, kaydedilen girdilerle açılır.",
+     "marks": [
+      {
+       "x": 17.5,
+       "y": 9.33,
+       "w": 80.56,
+       "h": 71.78
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/projeler-02.webp",
+     "title": "Kayıtlı projeyi açma",
+     "text": "Kayıtlı proje açıldığında girdiler yerindedir; değişiklik yapıp “Güncelle & Kaydet” ile saklayabilir, gerekmiyorsa projeyi silebilirsiniz.",
+     "marks": [
+      {
+       "x": 86.78,
+       "y": 24.41,
+       "w": 9.88,
+       "h": 4.38
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/projeler-03.webp",
+     "title": "Paylaşım linkleri",
+     "text": "Paylaşım Linkleri sayfasında oluşturduğunuz linkler, süreleri ve durumlarıyla listelenir. “Link Oluştur” ile yeni link hazırlanır.",
+     "marks": [
+      {
+       "x": 88.39,
+       "y": 10.22,
+       "w": 9.67,
+       "h": 5.33
+      }
+     ],
+     "cursor": {
+      "x": 93.23,
+      "y": 12.89
+     }
+    },
+    {
+     "img": "/tanitim/projeler-04.webp",
+     "title": "Link oluşturma",
+     "text": "Paylaşılacak proje ve linkin geçerlilik süresi (7, 30, 90 gün veya süresiz) seçilir. Link, projenin o andaki girdilerini taşır; açan kişi raporu yeniden hesaplanmış olarak görür.",
+     "marks": [
+      {
+       "x": 35.56,
+       "y": 44.28,
+       "w": 28.89,
+       "h": 5.33
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/projeler-05.webp",
+     "title": "Link hazır",
+     "text": "Link oluşunca gönderme penceresi açılır: link tek tıkla kopyalanır ya da e-posta, WhatsApp, SMS veya karekodla gönderilir. Link, Paylaşım Linkleri listesine de eklenir.",
+     "marks": [
+      {
+       "x": 60.99,
+       "y": 41.83,
+       "w": 7.9,
+       "h": 5.33
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/projeler-06.webp",
+     "title": "Paylaşılan rapor",
+     "text": "Linki açan kişi giriş yapmadan proje raporunu görür: proje bilgileri, temel göstergeler ve grafikler. Girdiler değiştirilemez.",
+     "marks": [],
+     "cursor": null
+    }
+   ]
+  },
+  {
+   "id": "ekip",
+   "group": "Yönetim",
+   "title": "Ekip ve Hesap",
+   "intro": "Ekibinizi platforma davet eder, rollerini (Yönetici, Kullanıcı, Görüntüleyici) belirlersiniz. Hesabım sayfasında ad, şifre ve verileriniz yönetilir.",
+   "steps": [
+    {
+     "img": "/tanitim/ekip-01.webp",
+     "title": "Kullanıcılar",
+     "text": "Ekipteki kişiler rolleriyle listelenir; üstteki sekmelerle role göre süzülür, arama kutusuyla isim veya e-postaya göre bulunur.",
+     "marks": [
+      {
+       "x": 86.32,
+       "y": 16.89,
+       "w": 10,
+       "h": 5.33
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ekip-02.webp",
+     "title": "Kişi davet etme",
+     "text": "“Kişi davet et” ile e-posta ve rol girilir. Yönetici her şeyi, Kullanıcı proje oluşturup düzenlemeyi, Görüntüleyici yalnız okumayı yapabilir.",
+     "marks": [
+      {
+       "x": 35.63,
+       "y": 32.57,
+       "w": 28.75,
+       "h": 5.33
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/ekip-03.webp",
+     "title": "Hesabım",
+     "text": "Ad soyad ve şifre güncellenir; verilerinizi indirebilir veya hesabınızı silebilirsiniz.",
+     "marks": [],
+     "cursor": null
+    }
+   ]
+  },
+  {
+   "id": "bilgi",
+   "group": "Destek",
+   "title": "Bilgi Merkezi",
+   "intro": "Modellerin arkasındaki kavramlar: saatlik mahsuplaşmanın mantığı, saatlik ve aylık rejim farkı, finansal terimler sözlüğü ve platformun nasıl çalıştığı.",
+   "steps": [
+    {
+     "img": "/tanitim/bilgi-01.webp",
+     "title": "Mahsuplaşma 101",
+     "text": "Saatlik mahsuplaşma örneklerle anlatılır: ofis, üç vardiyalı fabrika ve otel profilleri için üretim–tüketim uyumu ve mahsup oranı.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bilgi-02.webp",
+     "title": "Örnek profiller",
+     "text": "Bir örneğe tıklayınca o profilin saatlik grafiği ve mahsuplaşma sonucu açılır.",
+     "marks": [
+      {
+       "x": 46.32,
+       "y": 44.89,
+       "w": 22.92,
+       "h": 10.22
+      }
+     ],
+     "cursor": {
+      "x": 57.78,
+      "y": 50
+     }
+    },
+    {
+     "img": "/tanitim/bilgi-03.webp",
+     "title": "Saatlik vs aylık",
+     "text": "Aynı tesis için saatlik ve aylık mahsuplaşmanın sonuçları karşılaştırılır; farkın nereden geldiği adım adım gösterilir.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bilgi-04.webp",
+     "title": "Finansal terimler",
+     "text": "DSCR, NPV, IRR, EBITDA, cash waterfall gibi 80'i aşkın terim kategorilere ayrılmış olarak açıklanır.",
+     "marks": [],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/bilgi-05.webp",
+     "title": "Terim arama",
+     "text": "Arama kutusuna terimi yazınca liste anında süzülür.",
+     "marks": [
+      {
+       "x": 18.68,
+       "y": 20.11,
+       "w": 78.19,
+       "h": 5.33
+      }
+     ],
+     "cursor": {
+      "x": 57.78,
+      "y": 22.78
+     }
+    },
+    {
+     "img": "/tanitim/bilgi-06.webp",
+     "title": "Nasıl çalışır",
+     "text": "Platformun işleyişi, modellerin hesap mantığı ve verilerin nerede saklandığı özetlenir.",
+     "marks": [],
+     "cursor": null
+    }
+   ]
+  },
+  {
+   "id": "destek",
+   "group": "Destek",
+   "title": "İletişim ve Platformlarım",
+   "intro": "Hata bildirimi, öneri ve sorular İletişime Geç sayfasından gönderilir. Platformlarım bölümünden bu tanıtıma ve diğer platformlara geçilir.",
+   "steps": [
+    {
+     "img": "/tanitim/destek-01.webp",
+     "title": "İletişime geç",
+     "text": "Konu türü (geri bildirim, hata, öneri, soru) seçilir, konu ve mesaj yazılır; mesaj e-posta uygulamanızda taslak olarak açılır.",
+     "marks": [
+      {
+       "x": 53.82,
+       "y": 40.74,
+       "w": 41.94,
+       "h": 18.44
+      }
+     ],
+     "cursor": null
+    },
+    {
+     "img": "/tanitim/destek-02.webp",
+     "title": "Platformlarım",
+     "text": "Sol menüdeki Platformlarım bölümünden bu tanıtıma ve teklif, proje yönetimi, satınalma karar destek ve konstrüksiyon BoM platformlarına geçilir.",
+     "marks": [
+      {
+       "x": 0.56,
+       "y": 62.89,
+       "w": 14.44,
+       "h": 4.22
+      }
+     ],
+     "cursor": null
+    }
+   ]
+  }
+ ]
+}

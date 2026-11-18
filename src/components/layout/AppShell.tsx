@@ -15,11 +15,11 @@ const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
 const isAuthRoute = (p: string) => AUTH_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
 
 /** Herkese açık sayfalar: oturum gerekmez, oturum olsa da yönlendirme yapılmaz (paylaşım linki) */
-const PUBLIC_ROUTES = ["/p"];
+const PUBLIC_ROUTES = ["/p", "/tanitim"];
 const isPublicRoute = (p: string) => PUBLIC_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
 
 /** Diğer platformlarla ortak şablonu koruyan sayfalar: klasik görünüm uygulanmaz */
-const PLATFORM_ROUTES = ['/admin/users', '/admin/account', '/admin/platforms', '/admin/contact'];
+const PLATFORM_ROUTES = ['/admin/users', '/admin/account', '/admin/platforms', '/admin/contact', '/platform-tanitimi'];
 const isPlatformRoute = (p: string) => PLATFORM_ROUTES.some((r) => p === r || p.startsWith(`${r}/`));
 
 /** Model sayfaları: başlık kapağı üst çubuğun hemen altından başlar (üst boşluk yok) */

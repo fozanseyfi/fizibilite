@@ -9,6 +9,7 @@ import { AuthAlert, AuthChrome, AuthHeading } from "@/components/auth/auth-chrom
 import { PasswordInput } from "@/components/auth/password-input";
 import { PlatformNoteCard, PrivacyCard } from "@/components/auth/login-info";
 import { LoginShowcase } from "@/components/auth/login-showcase";
+import { TourLink } from "@/components/auth/tour-promo";
 import { useAuthStore } from "@/lib/auth-store";
 
 export default function LoginPage() {
@@ -67,6 +68,10 @@ export default function LoginPage() {
                 Hemen kayıt ol
               </Link>
             </p>
+
+            <div className="mt-4">
+              <TourLink />
+            </div>
 
             <div className="mt-5 sm:mt-6">
               <PlatformNoteCard />

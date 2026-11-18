@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, FolderOpen, Plus, BookOpen, FlaskConical, BookText, HelpCircle,
-  MessageCircle, Users, Share2, UserCircle2, Boxes,
+  MessageCircle, Users, Share2, UserCircle2, Boxes, PlayCircle,
   ChevronLeft, ChevronRight, ChevronDown, Menu, X, LogOut,
 } from 'lucide-react';
 import { BrandMark } from '@/components/layout/BrandMark';
@@ -58,8 +58,11 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: 'Diğer Platformlar',
-    items: [{ href: '/admin/platforms', icon: Boxes, label: 'Diğer Platformlar' }],
+    label: 'Platformlarım',
+    items: [
+      { href: '/platform-tanitimi', icon: PlayCircle, label: 'Platform Tanıtımı' },
+      { href: '/admin/platforms', icon: Boxes, label: 'Platformlarım' },
+    ],
   },
 ];
 

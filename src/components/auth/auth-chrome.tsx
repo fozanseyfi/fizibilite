@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { PlayCircle, Sparkles } from "lucide-react";
 import { BrandMark } from "@/components/layout/BrandMark";
 import { AppFooter, SocialLinks } from "@/components/layout/AppShell";
 import { OtherPlatforms } from "@/components/auth/other-platforms";
+import { TourPromo } from "@/components/auth/tour-promo";
 
 /**
  * Auth sayfalarının ortak çerçevesi (header + diğer platformlar + footer).
@@ -38,6 +39,14 @@ export function AuthChrome({
               <SocialLinks />
             </div>
             <Link
+              href="/tanitim"
+              className="inline-flex h-8 items-center gap-1 rounded-lg border border-border bg-card px-2.5 text-[11px] font-semibold text-foreground transition-colors hover:border-[#0B2350]/40 sm:ml-2 sm:h-9 sm:gap-1.5 sm:px-3.5 sm:text-xs"
+            >
+              <PlayCircle className="size-3 sm:size-3.5" />
+              <span className="hidden sm:inline">Platform Tanıtımı</span>
+              <span className="sm:hidden">Tanıtım</span>
+            </Link>
+            <Link
               href={cta === "register" ? "/register" : "/login"}
               className="inline-flex h-8 items-center gap-1 rounded-lg bg-[#0B2350] px-2.5 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-[#0B2350]/90 sm:ml-2 sm:h-9 sm:gap-1.5 sm:px-3.5 sm:text-xs"
             >
@@ -49,6 +58,9 @@ export function AuthChrome({
       </header>
 
       {children}
+
+      {/* Platform tanıtımı — kayıt olmadan önce gerçek ekranlarla */}
+      <TourPromo />
 
       <OtherPlatforms />
       <AppFooter wide />
