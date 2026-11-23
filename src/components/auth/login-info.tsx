@@ -1,82 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronUp, ChevronDown, Heart, ShieldCheck, Check } from "lucide-react";
+import { ShieldCheck, Check } from "lucide-react";
 
 /**
  * Login sayfasında formun altındaki "Bilgi Paylaşımı" notu ve sağdaki
  * "Veri Gizliliği" kartı — diğer platformlarla ortak içerik.
  */
 
+/** Geliştirici notu — bütün platformlarda aynı metin (Teklif'teki login-kit ile birebir). */
 export function PlatformNoteCard() {
-  const [open, setOpen] = useState(false);
   return (
-    <div className="w-full rounded-2xl border border-primary/20 bg-primary/[0.06] p-4">
-      <div className="flex items-center gap-2.5">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#0B2350] text-white shadow-sm">
-          <Heart className="size-4" />
-        </div>
-        <p className="text-[13.5px] font-bold tracking-tight text-foreground">
-          Bireysel İnisiyatifle Geliştirilmiş Bir Araç
-        </p>
-      </div>
-      <p className="mt-2.5 text-[13px] leading-relaxed text-muted-foreground">
-        Bu platform bir satış aracı değil; sahadaki günlük ihtiyaçlardan doğan,{" "}
-        <strong className="text-foreground">kişisel kullanım için geliştirilmiş</strong> ve sektör
-        paydaşlarıyla <strong className="text-foreground">iyi niyetle paylaşılan</strong> bir araçtır.
+    <div className="w-full rounded-2xl border border-primary/20 bg-primary/[0.06] p-4 text-[13px] leading-relaxed text-muted-foreground">
+      <p className="text-[13.5px] font-bold text-foreground">Merhaba, ben Ozan.</p>
+      <p className="mt-2">
+        Uzun süre sahada ve masa başında, teklif hazırlarken, keşif çıkarırken, tedarikçi karşılaştırırken hep
+        aynı Excel dosyalarıyla uğraştım. Bu platformlar, önce kendi işimi kolaylaştırmak için yazdığım
+        araçlardan doğdu.
       </p>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-primary/15 bg-background/70 px-3 py-1.5 text-[12.5px] font-semibold text-foreground/80 transition-colors hover:bg-background"
-      >
-        {open ? (
-          <>
-            Notu kapat <ChevronUp className="size-3.5" />
-          </>
-        ) : (
-          <>
-            Notu aç <ChevronDown className="size-3.5" />
-          </>
-        )}
-      </button>
-
-      {open && (
-        <div className="mt-3 space-y-3 text-[13px] leading-relaxed text-muted-foreground animate-in-up">
-          <p>
-            Bu platform,{" "}
-            <strong className="text-foreground">uzun yıllar boyunca yürüttüğüm operasyonlarda</strong>{" "}
-            verimliliği artırmak adına{" "}
-            <strong className="text-foreground">kendi kullanımım için geliştirdiğim yapının</strong>,
-            modern bir arayüzle sektöre kazandırılmış halidir.
-          </p>
-          <p>
-            Sahadaki ihtiyaçları ve yönetimsel zorlukları bizzat deneyimlemiş bir mühendis olarak; bu
-            projeyi <strong className="text-foreground">hiçbir ticari beklenti gütmeksizin</strong>,
-            tamamen bireysel bir katkı ve sektör paydaşlarımıza pratik bir çözüm desteği olarak
-            sunuyorum.
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold text-solar-dark dark:text-solar-light">
-              ✦ Bireysel katkı
-            </span>
-            <span className="rounded-full border border-eco/25 bg-eco/10 px-3 py-1 text-[11px] font-semibold text-eco-dark dark:text-eco-light">
-              ✦ Veri sizin
-            </span>
-            <span className="rounded-full border border-blue/25 bg-blue/10 px-3 py-1 text-[11px] font-semibold text-blue2 dark:text-blue">
-              ✦ Geri bildirim açık
-            </span>
-          </div>
-          <p>
-            Sizlerin tecrübeleriyle şekillenecek{" "}
-            <strong className="text-foreground">
-              her türlü geri bildirim ve görüş benim için çok kıymetli.
-            </strong>{" "}
-            Platformu daha işlevsel hale getirecek fikir ve önerilerinizi paylaşmanızdan memnuniyet
-            duyarım.
-          </p>
-        </div>
-      )}
+      <p className="mt-2">
+        Arkasında bir şirket yok, size satmaya çalıştığım bir şey de yok. İşinize yararsa ne mutlu bana. Eksik
+        gördüğünüz ya da canınızı sıkan bir şey olursa{" "}
+        <a href="mailto:ozan.seyfi@kontrolmatik.com" className="font-semibold text-primary hover:underline">yazın</a>; bir sonraki özellik sizin
+        &ldquo;şu da olsa&rdquo; demenizle gelebilir.
+      </p>
+      <p className="mt-2 text-foreground">— Furkan Ozan Seyfi</p>
     </div>
   );
 }
