@@ -26,7 +26,7 @@ export interface SharePayload {
   e?: string;
 }
 
-const KINDS: ProjectKind[] = ["utility", "ci", "bess-ci", "bess-utility"];
+const KINDS: ProjectKind[] = ["utility", "ci", "mesken", "bess-ci", "bess-utility"];
 
 function toB64Url(bytes: Uint8Array): string {
   let s = "";

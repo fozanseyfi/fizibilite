@@ -4,7 +4,9 @@ import { numLocale } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { computeCi, ciDefaultDayW, ciDayCons, ciDow, type CiInputs } from '@/lib/models/ci/engine';
 import { downloadOsosTemplate, parseOsosFile } from '@/lib/models/ci/osos';
-import { defaultCiInputs } from '@/lib/models/ci/defaults';
+import { defaultCiInputs, defaultMeskenInputs } from '@/lib/models/ci/defaults';
+import { defaultHome } from '@/lib/models/ci/home-estimate';
+import { HomeEstimator } from '@/components/models/native/home-estimator';
 import {
   MONTHS, PROFILE_LABELS, WE_RATIO, shapesForProfile, monthlyForSeason,
   type ProfileKey, type SeasonKey,
@@ -113,9 +115,16 @@ function Step({ no, title, why, children }: { no: string; title: string; why?: s
 }
 function Html({ html, className }: { html: string; className?: string }) { return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />; }
 
-export function CiModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: CiInputs }) {
+export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectId?: string; initialInputs?: CiInputs; variant?: 'ci' | 'mesken' }) {
+  /** Mesken ayrı bir fizibilite: aylık mahsuplaşma, limit yok, batarya yok, hane tüketim tahmini var */
+  const mesken = variant === 'mesken';
   // Eski kayıtlarda weSplit yok: o projeler hafta içi/sonu ayrımıyla kaydedildi, aynen korunur
-  const [inputs, setInputs] = useState<CiInputs>(() => ({ ...defaultCiInputs(), ...(initialInputs ?? {}), ...(initialInputs && initialInputs.weSplit === undefined ? { weSplit: true } : {}) }));
+  const [inputs, setInputs] = useState<CiInputs>(() => {
+    const merged: CiInputs = { ...(mesken ? defaultMeskenInputs() : defaultCiInputs()), ...(initialInputs ?? {}), ...(initialInputs && initialInputs.weSplit === undefined ? { weSplit: true } : {}) };
+    return mesken
+      ? { ...merged, abone: 'mesken', bessOn: false, consPrev: merged.consY, home: merged.home ?? defaultHome() }
+      : { ...merged, abone: 'ci' };
+  });
   const [tab, setTab] = useState<'fiz' | 'net' | 'hours' | 'bill' | 'cmp' | 'sum'>('fiz');
   const [nv, setNv] = useState<R.NetChartState>({ mi: 5, view: 'd', wd: true, we: true });
   // Enerji akışı (Sankey) kendi filtresiyle çalışır — mahsuplaşma grafiğinden bağımsız
@@ -124,9 +133,8 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   const [modal, setModal] = useState<{ title: string; body: string } | null>(null);
   const [printing, setPrinting] = useState(false);
 
-  const set = <K extends keyof CiInputs>(k: K, v: CiInputs[K]) => setInputs((p) => ({ ...p, [k]: v }));
+  const set = <K extends keyof CiInputs>(k: K, v: CiInputs[K]) => setInputs((p) => ({ ...p, [k]: v, ...(k === 'consY' && p.abone === 'mesken' ? { consPrev: v as number } : {}) }));
   const m = useMemo(() => computeCi(inputs), [inputs]);
-  const mesken = inputs.abone === 'mesken';
   /** Hafta içi / hafta sonu ayrı profil mi? Değilse hafta sonu filtreleri gizlenir, her gün aynı profil. */
   const split = inputs.weSplit !== false;
   // Excel (OSOS) verisi yüklüyse ön ayarlar / kopyalama kilitli; sürükleme ve elle düzeltme açık
@@ -271,6 +279,10 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
     }
   };
   const net = useMemo(() => R.netChart(inputs, nvE), [inputs, nv, split]);
+  const meskenFlows = useMemo(() => {
+    const s1 = m.years[0].s;
+    return { prod: s1.prod, cons: s1.monthly.reduce((a, d) => a + d.cons, 0), mah: s1.mah, ch: 0, dch: 0, faz: s1.faz, cek: s1.cek, label: 'Yıl-1 toplamı · aylık mahsuplaşma' };
+  }, [m]);
   const flows = useMemo(() => R.netFlows(inputs, fvE, split), [inputs, fv, split]);
 
   function downloadCsv() {
@@ -284,9 +296,9 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
   const buildSummary = useCallback((): ProjectSummary => {
     const y1 = m.years[0];
     const selfC = y1.s.prod > 0 ? (y1.s.mah + y1.s.shift) / y1.s.prod : 0;
-    return { kind: 'ci', capexUsd: m.capex, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.pb, selfConsumption: selfC, capacityLabel: inputs.bessOn ? `${inputs.kwp} kWp + ${inputs.bKwh} kWh` : `${inputs.kwp} kWp` };
-  }, [m, inputs]);
-  const { save, del, err } = useProjectSave({ projectId, kind: 'ci', inputs, name: inputs.pname || 'C&I Projesi', buildSummary });
+    return { kind: variant, capexUsd: m.capex, npvUsd: m.npv, irrPct: m.irr, paybackYears: m.pb, selfConsumption: selfC, capacityLabel: inputs.bessOn ? `${inputs.kwp} kWp + ${inputs.bKwh} kWh` : `${inputs.kwp} kWp` };
+  }, [m, inputs, variant]);
+  const { save, del, err } = useProjectSave({ projectId, kind: variant, inputs, name: inputs.pname || (mesken ? 'Mesken Projesi' : 'C&I Projesi'), buildSummary });
   const saving = false;
 
 
@@ -297,9 +309,19 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
         <StepRail />
         <div className="m-header">
           <div className="hwrap">
-            <div className="eyebrow">C&I Solar · EPDK Karar 14531 · Saatlik Mahsuplaşma</div>
-            <h1>C&I Saatlik Mahsuplaşma Fizibilite Kokpiti</h1>
-            <p className="sub">Saatlik min(üretim, tüketim) eşleşmesi, bedelli üretim limiti, BESS kaydırma ve USD bazlı yatırım analizi (TL tarife → kur projeksiyonu) — her işletme yılı, 12 ay × hafta içi/sonu temsili günlerle saatlik simüle edilir. Her formül, girilen değerlerle dolu halde gösterilir.</p>
+            {mesken ? (
+              <>
+                <div className="eyebrow">Mesken Çatı GES · Aylık Mahsuplaşma</div>
+                <h1>Mesken GES Fizibilitesi</h1>
+                <p className="sub">Evinizin çatısına kurulacak GES için: hane bilgilerinden tüketim tahmini, ay toplamı üzerinden mahsuplaşma (mesken abonelerinde saatlik eşleşme ve bedelli limit yok), fatura karşılaştırması ve USD bazlı geri ödeme analizi.</p>
+              </>
+            ) : (
+              <>
+                <div className="eyebrow">C&I Solar · EPDK Karar 14531 · Saatlik Mahsuplaşma</div>
+                <h1>C&I Saatlik Mahsuplaşma Fizibilite Kokpiti</h1>
+                <p className="sub">Saatlik min(üretim, tüketim) eşleşmesi, bedelli üretim limiti, BESS kaydırma ve USD bazlı yatırım analizi (TL tarife → kur projeksiyonu) — her işletme yılı, 12 ay × hafta içi/sonu temsili günlerle saatlik simüle edilir. Her formül, girilen değerlerle dolu halde gösterilir.</p>
+              </>
+            )}
           </div>
         </div>
         <div className="m-tabs">
@@ -307,10 +329,10 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
             <nav role="tablist">
               {chip(tab === 'fiz', '1 · Fizibilite Modeli', () => setTab('fiz'))}
               {chip(tab === 'net', '2 · Mahsuplaşma', () => setTab('net'))}
-              {chip(tab === 'hours', '3 · Saatlik Veri', () => setTab('hours'))}
-              {chip(tab === 'bill', '4 · Fatura Analizi', () => setTab('bill'))}
-              {chip(tab === 'cmp', '5 · Saatlik vs Aylık', () => setTab('cmp'))}
-              {chip(tab === 'sum', '6 · Sonuçlar', () => setTab('sum'))}
+              {!mesken && chip(tab === 'hours', '3 · Saatlik Veri', () => setTab('hours'))}
+              {chip(tab === 'bill', mesken ? '3 · Fatura Analizi' : '4 · Fatura Analizi', () => setTab('bill'))}
+              {!mesken && chip(tab === 'cmp', '5 · Saatlik vs Aylık', () => setTab('cmp'))}
+              {chip(tab === 'sum', mesken ? '4 · Sonuçlar' : '6 · Sonuçlar', () => setTab('sum'))}
             </nav>
             <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} onDelete={projectId ? del : undefined} err={err} saving={saving} />
           </div>
@@ -326,30 +348,35 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               <TxtF label="Hazırlayan" value={inputs.prep} onChange={(v) => set('prep', v)} />
             </div>
 
-            <Step no="ADIM 1" title="Tesis ve Tüketim Profili" why="Saatlik rejimde fizibilitenin kalbi tüketim profilidir: aynı üretimle net fayda %30+ değişir.">
+            <Step no="ADIM 1" title={mesken ? 'Hane ve Tüketim' : 'Tesis ve Tüketim Profili'} why={mesken ? 'Mesken aylık mahsuplaşmada üretim ile tüketim ay toplamında nettleşir: aylık tüketim ne kadar doğruysa sonuç o kadar doğru.' : 'Saatlik rejimde fizibilitenin kalbi tüketim profilidir: aynı üretimle net fayda %30+ değişir.'}>
               {/* ---------- 1) YIL ---------- */}
-              <Card title="Abone ve yıllık tüketim">
-                <div className="top-grid3">
-                  <SelF label="Abone grubu" tip={R.CI_TIPS.i_abone} value={inputs.abone} onChange={(v) => set('abone', v)} options={[{ value: 'ci', label: 'Ticarethane / Sanayi (C&I — saatlik rejim)' }, { value: 'mesken', label: 'Mesken (aylık rejim, limitsiz)' }]} />
-                  <NumF label="Yıllık tüketim" unit="kWh" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={10000} thousands />
-                  <NumF label="Önceki yıl tüketimi" unit="kWh" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} thousands />
-                </div>
-                <div className="top-grid2">
-                  {!mesken ? (
-                    <div className="top-box">
-                      <div className="top-box-h">Hafta içi / hafta sonu</div>
-                      <ChkF label="Hafta içi ve hafta sonu tüketimim farklı" checked={split} onChange={(v) => set('weSplit', v)} />
-                      <p className="tsub">{split
-                        ? 'Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda ayrı gösterilir.'
-                        : 'İşaretli değilken her gün (hafta sonu dahil) aynı profille hesaplanır. Hafta sonu belirgin farklıysa (ör. fabrika kapalı) işaretleyin.'}</p>
-                      {split && <div className="top-inline"><NumF label="Hafta sonu günlük tüketim" unit="% hafta içine göre" value={inputs.weRatio} onChange={(v) => set('weRatio', v)} step={5} /></div>}
-                    </div>
-                  ) : (
+              {mesken ? (
+                <Card title="Hane bilgileri ve tüketim tahmini" small="· birkaç kısa soru">
+                  <HomeEstimator value={inputs.home} consY={inputs.consY} onChange={(h) => set('home', h)}
+                    onApply={(total, pct) => setInputs((p) => ({ ...p, consY: total, consPrev: total, monthly: pct, season: 'flat' }))} />
+                  <div className="top-grid2" style={{ marginTop: 14 }}>
+                    <NumF label="Yıllık tüketim" unit="kWh · faturanızdan da yazabilirsiniz" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={100} thousands />
                     <div className="top-box">
                       <div className="top-box-h">Mesken · aylık mahsuplaşma</div>
-                      <p className="tsub">Mesken abonelerinde üretim ve tüketim ay toplamı üzerinden nettleşir; gün ve saat dağılımı sonucu etkilemez.</p>
+                      <p className="tsub">Üretim ve tüketim ay toplamı üzerinden nettleşir; önceki yıl tüketimi ve bedelli üretim limiti mesken için kullanılmaz.</p>
                     </div>
-                  )}
+                  </div>
+                </Card>
+              ) : (
+              <Card title="Abone ve yıllık tüketim">
+                <div className="top-grid2">
+                  <NumF label="Yıllık tüketim" unit="kWh" tip={R.CI_TIPS.i_cons} value={inputs.consY} onChange={(v) => set('consY', v)} step={10000} thousands />
+                  <NumF label="Önceki yıl tüketimi" unit="kWh · bedelli limit için" tip={R.CI_TIPS.i_consPrev} value={inputs.consPrev} onChange={(v) => set('consPrev', v)} step={10000} thousands />
+                </div>
+                <div className="top-grid2">
+                  <div className="top-box">
+                    <div className="top-box-h">Hafta içi / hafta sonu</div>
+                    <ChkF label="Hafta içi ve hafta sonu tüketimim farklı" checked={split} onChange={(v) => set('weSplit', v)} />
+                    <p className="tsub">{split
+                      ? 'Hafta sonu için ayrı günlük tüketim oranı ve ayrı saatlik dağılım girilir; grafik ve tablolarda ayrı gösterilir.'
+                      : 'İşaretli değilken her gün (hafta sonu dahil) aynı profille hesaplanır. Hafta sonu belirgin farklıysa (ör. fabrika kapalı) işaretleyin.'}</p>
+                    {split && <div className="top-inline"><NumF label="Hafta sonu günlük tüketim" unit="% hafta içine göre" value={inputs.weRatio} onChange={(v) => set('weRatio', v)} step={5} /></div>}
+                  </div>
                   <div className="top-box osos-box">
                     <div className="top-box-h">OSOS / sayaç verisi (Excel)</div>
                     <p className="tsub">Şablonu indirip doldurun ve yükleyin: <b>Saatlik (OSOS)</b> sayfası (8.760 saat) en ayrıntılısıdır; yoksa <b>Aylık</b> ya da <b>Yıllık</b> sayfası yeterli. Değerler aşağıdaki bölümlere otomatik dolar.</p>
@@ -370,6 +397,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                   </div>
                 </div>
               </Card>
+              )}
 
               {/* ---------- 2) AYLAR ---------- */}
               <Card title="Aylık tüketim dağılımı" small="· yılın %'si · Aralık otomatik kalan">
@@ -391,7 +419,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
 
               {mesken ? (
                 <div className="note" style={{ borderLeftColor: 'var(--green)', background: 'var(--green-soft)' }}>
-                  <b>Mesken abonesi = aylık mahsuplaşma.</b> EPDK Karar 14531 mesken abonelerini saatlik rejimin dışında bıraktı; bu modda üretim ile tüketim <b>ay toplamı</b> üzerinden nettleşir ve saat uyumu aranmaz. Bu yüzden ay içi ve gün içi dağılım sonucu etkilemez ve gizlendi — yalnızca <b>aylık dağılım</b> yüzdeleri anlamlıdır. Bedelli üretim limiti de mesken için uygulanmaz.
+                  <b>Mesken abonesi = aylık mahsuplaşma.</b> EPDK Karar 14531 mesken abonelerini saatlik rejimin dışında bıraktı; üretim ile tüketim <b>ay toplamı</b> üzerinden nettleşir, saat uyumu aranmaz. Bu yüzden yalnızca <b>aylık dağılım</b> anlamlıdır; bedelli üretim limiti ve batarya kaydırması mesken için hesaba girmez.
                 </div>
               ) : (
                 <>
@@ -547,18 +575,25 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 </>
               )}
 
+              {mesken ? (
+              <div className="formula">
+                <div className="fl">Formül · aylık tüketim</div>
+                <span className="ml"><span className="lbl">Ay:</span>Ay tüketimi = Yıllık tüketim × Ay yüzdesi</span>
+              </div>
+              ) : (
               <div className="formula">
                 <div className="fl">Formül · saatlik tüketimin kuruluşu</div>
                 <span className="ml"><span className="lbl">Ay:</span>Ay tüketimi = Yıllık tüketim × Ay yüzdesi</span>
                 <span className="ml"><span className="lbl">Gün:</span>Gün tüketimi = Ay tüketimi × Gün yüzdesi (ay içi dağılım)</span>
                 <span className="ml"><span className="lbl">Saat:</span>Saat tüketimi = Gün tüketimi × Saat yüzdesi{split ? ' (hafta içi / hafta sonu profili)' : ''}</span>
               </div>
+              )}
             </Step>
 
             <Step no="ADIM 2" title="GES ve Üretim" why="Üretim, aylık güneş dağılımı × gün eğrisiyle saatlere yayılır; doğu-batı yerleşim eğriyi yayar.">
               <Card>
                 <div className="grid3">
-                  <NumF label="Kurulu güç" unit="kWp, DC" tip={R.CI_TIPS.i_kwp} value={inputs.kwp} onChange={(v) => set('kwp', v)} step={10} />
+                  <NumF label="Kurulu güç" unit="kWp, DC" tip={R.CI_TIPS.i_kwp} value={inputs.kwp} onChange={(v) => set('kwp', v)} step={mesken ? 0.5 : 10} />
                   <NumF label="Spesifik üretim" unit="kWh/kWp/yıl" tip={R.CI_TIPS.i_spec} value={inputs.spec} onChange={(v) => set('spec', v)} step={10} />
                   <SelF label="Panel yerleşimi" tip={R.CI_TIPS.i_orient} value={inputs.orient} onChange={(v) => set('orient', v)} options={[{ value: 's', label: 'Güney (öğle tepeli)' }, { value: 'ew', label: 'Doğu-Batı (yayvan)' }]} />
                   <NumF label="Degradasyon" unit="%/yıl" tip={R.CI_TIPS.i_degr} value={inputs.degr} onChange={(v) => set('degr', v)} step={0.1} />
@@ -573,7 +608,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               </Card>
             </Step>
 
-            <Step no="ADIM 3" title="Tarife ve Fiyatlar" why="Mahsup ve çekiş alış fiyatından; bedelli fazla satış fiyatından; limit üstü 0 TL.">
+            <Step no="ADIM 3" title="Tarife ve Fiyatlar" why={mesken ? 'Mahsup ve çekiş alış fiyatından, ay sonu fazla üretim satış fiyatından değerlenir.' : 'Mahsup ve çekiş alış fiyatından; bedelli fazla satış fiyatından; limit üstü 0 TL.'}>
               <Card>
                 <div className="grid3">
                   <div className="field"><label><Tip tip={R.CI_TIPS.i_tarpre}>Tarife ön ayarı</Tip></label>
@@ -587,7 +622,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                   <NumF label="USD enflasyonu" unit="%/yıl" value={inputs.piUS} onChange={(v) => set('piUS', v)} step={0.5} />
                   <SelF label="Kur artışı" value={inputs.fxMode} onChange={(v) => set('fxMode', v)} options={[{ value: 'ppp', label: 'SAGP: enflasyon farkı kadar' }, { value: 'man', label: 'Manuel oran' }]} />
                   {inputs.fxMode === 'man' && <NumF label="Manuel kur artışı" unit="%/yıl" value={inputs.fxMan} onChange={(v) => set('fxMan', v)} />}
-                  <NumF label="Limit üstü SKB" unit="TL/kWh, ops. maliyet" tip={R.CI_TIPS.i_skb} value={inputs.skb} onChange={(v) => set('skb', v)} step={0.05} />
+                  {!mesken && <NumF label="Limit üstü SKB" unit="TL/kWh, ops. maliyet" tip={R.CI_TIPS.i_skb} value={inputs.skb} onChange={(v) => set('skb', v)} step={0.05} />}
                 </div>
                 <div className="formula">
                   <div className="fl">Formül · yıllık fayda</div>
@@ -600,7 +635,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               </Card>
             </Step>
 
-            <Step no="ADIM 4" title="Batarya (BESS)" why="Gündüz fazlası akşama kayar: satış fiyatı alış fiyatına terfi eder.">
+            {!mesken && <Step no="ADIM 4" title="Batarya (BESS)" why="Gündüz fazlası akşama kayar: satış fiyatı alış fiyatına terfi eder.">
               <Card>
                 <ChkF label="BESS'i modele dahil et" tip={R.CI_TIPS.b_on} checked={inputs.bessOn} onChange={(v) => set('bessOn', v)} />
                 <div className="grid3" style={{ marginTop: 12 }}>
@@ -619,9 +654,9 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                   <Html className="subst" html={R.sBess(inputs, m)} />
                 </div>
               </Card>
-            </Step>
+            </Step>}
 
-            <Step no="ADIM 5" title="Yatırım ve Finansman" why="CAPEX ve sonuçlar USD; TL gelirler kur projeksiyonuyla çevrilir. OPEX TL girilir, TL enflasyonuyla büyür.">
+            <Step no={mesken ? 'ADIM 4' : 'ADIM 5'} title="Yatırım ve Finansman" why="CAPEX ve sonuçlar USD; TL gelirler kur projeksiyonuyla çevrilir. OPEX TL girilir, TL enflasyonuyla büyür.">
               <Card>
                 <div className="grid3">
                   <NumF label="GES CAPEX" unit="$/kWp, anahtar teslim" tip={R.CI_TIPS.i_capex} value={inputs.capexU} onChange={(v) => set('capexU', v)} step={10} />
@@ -651,6 +686,30 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
           </div>
 
           {/* ==================== TAB 2: MAHSUPLAŞMA ==================== */}
+          {mesken ? (
+          <div className={`tab ${tab === 'net' ? 'active' : ''}`}>
+            <Step no="MOTOR" title="Aylık Mahsuplaşma" why="Her ay: mahsup = min(aylık üretim, aylık tüketim). Ay sonundaki fazla üretim satış fiyatından satılır.">
+              <Card title="Aylık mahsuplaşma" small="· yıl-1">
+                <svg viewBox="0 0 900 250" width="100%" dangerouslySetInnerHTML={{ __html: R.monthlyChart(m) }} />
+                <div className="legend">
+                  <span><i style={{ background: '#1E7F4F' }} />Mahsuplaşan</span>
+                  <span><i style={{ background: '#E8A020' }} />Fazla (satılan)</span>
+                  <span><i style={{ background: '#C9D3E4' }} />Şebekeden çekiş</span>
+                </div>
+                <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.meskenMonthlyHtml(m) }} /></div>
+              </Card>
+              <Card title="Enerji akışı" small="· yıl-1 toplamı">
+                <NetSankey f={meskenFlows} />
+              </Card>
+              <div className="formula">
+                <div className="fl">Formül · aylık mahsuplaşma</div>
+                <span className="ml"><span className="lbl">Mahsup:</span>Mahsup<sub>ay</sub> = min(Üretim<sub>ay</sub>, Tüketim<sub>ay</sub>)</span>
+                <span className="ml"><span className="lbl">Fazla:</span>Fazla<sub>ay</sub> = Üretim<sub>ay</sub> − Mahsup<sub>ay</sub> <span className="lbl">→ satış fiyatından, limit yok</span></span>
+                <span className="ml"><span className="lbl">Çekiş:</span>Çekiş<sub>ay</sub> = Tüketim<sub>ay</sub> − Mahsup<sub>ay</sub></span>
+              </div>
+            </Step>
+          </div>
+          ) : (<>
           <div className={`tab ${tab === 'net' ? 'active' : ''}`}>
             <Step no="MOTOR" title="Saatlik Mahsuplaşma Motoru" why="Her saat: mahsup = min(üretim, tüketim). Grafik ve enerji akışı seçilen dönem ve gün tipini izler.">
               <Card title="Mahsuplaşma görünümü" small="· dönem ve gün tipini tıkla">
@@ -756,10 +815,12 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
             </Step>
           </div>
 
+          </>)}
+
           {/* ==================== TAB 3: FATURA ==================== */}
           <div className={`tab ${tab === 'bill' ? 'active' : ''}`}>
             <Step no="FATURA" title="Mevcut Operasyon vs GES Operasyonu" why="GES kurulmadan önce fatura ne gelecekti, kurulunca ne gelecek?">
-              <Card title="Yıl-1 Özet — Aktif Enerji Faturası" small="· saatlik rejim, girdiğin tarifeyle">
+              <Card title="Yıl-1 Özet — Aktif Enerji Faturası" small={mesken ? '· aylık rejim, girdiğin tarifeyle' : '· saatlik rejim, girdiğin tarifeyle'}>
                 <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.billSumHtml(inputs, m) }} /></div>
                 <p className="tsub">Tablo aktif enerji kalemini karşılaştırır. GES&apos;li satırda fazla satış geliri fatura mahsubu değil, görevli tedarik şirketinden alacaktır. GES işletme gideri (OPEX) bir fatura kalemi olmadığından buraya dahil edilmez.</p>
               </Card>
@@ -770,13 +831,14 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                 <div className="fl">Formül · fatura karşılaştırması</div>
                 <span className="ml"><span className="lbl">GES&apos;siz:</span>Fatura = Tüketim × Alış fiyatı</span>
                 <span className="ml"><span className="lbl">GES&apos;li:</span>Fatura = Şebekeden çekiş × Alış fiyatı</span>
-                <span className="ml"><span className="lbl">Net fatura:</span>GES&apos;li fatura − Bedelli satış geliri + SKB <span className="lbl">(OPEX hariç)</span></span>
+                <span className="ml"><span className="lbl">Net fatura:</span>{mesken ? <>GES&apos;li fatura − Fazla satış geliri <span className="lbl">(OPEX hariç)</span></> : <>GES&apos;li fatura − Bedelli satış geliri + SKB <span className="lbl">(OPEX hariç)</span></>}</span>
                 <Html className="subst" html={R.sBill(inputs, m)} />
               </div>
             </Step>
           </div>
 
           {/* ==================== TAB 4: SAATLIK vs AYLIK ==================== */}
+          {!mesken && (
           <div className={`tab ${tab === 'cmp' ? 'active' : ''}`}>
             <Step no="REJİM" title="Saatlik vs Aylık Mahsuplaşma — Ne Değişti?" why="EPDK Karar 14531 (01.05.2026): rejim aylıktan saatliğe döndü.">
               <p style={{ fontSize: '14.5px', color: 'var(--ink-soft)' }}>EPDK Karar 14531 (01.05.2026 yürürlük) ile mahsuplaşma rejimi <b>aylıktan saatliğe</b> değişti. Bu değişiklik C&I (ticari/sanayi) yatırımcıları için ciddi gelir azalmasına yol açtı.</p>
@@ -803,6 +865,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
               </Card>
             </Step>
           </div>
+          )}
 
           {/* ==================== TAB 5: SONUÇLAR ==================== */}
           <div className={`tab ${tab === 'sum' ? 'active' : ''}`}>
@@ -816,7 +879,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
                     <div className="eh-top">
                       <div>
                         <div className="eh-eyebrow">Yönetici Özeti · Otomatik Oluşturulur</div>
-                        <h2>{inputs.pname || 'C&I GES Projesi'}</h2>
+                        <h2>{inputs.pname || (mesken ? 'Mesken GES Projesi' : 'C&I GES Projesi')}</h2>
                         <div className="eh-sub">{inputs.firm ? `${inputs.firm} · ` : ''}{inputs.loc ? `${inputs.loc} · ` : ''}{nf(inputs.kwp)} kWp{inputs.bessOn ? ` + ${nf(inputs.bKwh)} kWh BESS` : ''} · {nf(inputs.consY / 1000)} MWh/yıl tüketim · {mesken ? 'aylık rejim (mesken)' : 'saatlik rejim (EPDK 14531)'} · {inputs.life} yıl · iskonto {pct(inputs.r, 1)} USD</div>
                       </div>
                       <span className={`exec-badge ${vd.cls}`}>{vd.cls === 'good' ? '✓ Değer yaratıyor' : '✗ NPV negatif'}</span>
@@ -836,7 +899,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
 
                   <div className="exec-sect">Grafikler</div>
                   <div className="exec-grid2">
-                    <Card title="Aylık Dağılım" small="mahsup / bedelli / çekiş (MWh, yıl-1)">
+                    <Card title="Aylık Dağılım" small={mesken ? 'mahsup / satılan fazla / çekiş (yıl-1)' : 'mahsup / bedelli / çekiş (yıl-1)'}>
                       <svg viewBox="0 0 900 250" width="100%" dangerouslySetInnerHTML={{ __html: R.monthlyChart(m) }} />
                       <div className="legend">
                         <span><i style={{ background: '#1E7F4F' }} />Mahsuplaşan</span>
@@ -866,7 +929,7 @@ export function CiModel({ projectId, initialInputs }: { projectId?: string; init
 
       {modal && <Modal title={modal.title} onClose={() => setModal(null)}><Html html={modal.body} /></Modal>}
       <PrintReport open={printing} onClose={() => setPrinting(false)}>
-        <div dangerouslySetInnerHTML={{ __html: R.reportCi(inputs, m, { title: inputs.pname || 'C&I Projesi', prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString(numLocale(), { day: 'numeric', month: 'long', year: 'numeric' }), profileLabel: PROFILE_LABELS[inputs.profileId as ProfileKey] || inputs.profileId }) }} />
+        <div dangerouslySetInnerHTML={{ __html: R.reportCi(inputs, m, { title: inputs.pname || (mesken ? 'Mesken Projesi' : 'C&I Projesi'), prep: inputs.prep, firm: inputs.firm, loc: inputs.loc, date: new Date().toLocaleDateString(numLocale(), { day: 'numeric', month: 'long', year: 'numeric' }), profileLabel: PROFILE_LABELS[inputs.profileId as ProfileKey] || inputs.profileId }) }} />
       </PrintReport>
     </>
   );

@@ -30,6 +30,8 @@ export interface CiInputs {
   hourWe?: (number[] | null)[];
   /** Gerçek takvim yılı (ör. OSOS verisinin yılı). Tanımsız → her ayın 1'i pazartesi kabul edilir (temsili takvim). */
   calYear?: number;
+  /** Mesken: tüketim tahmini için hane bilgileri (yalnız form; matematiğe yıllık tüketim ve aylık dağılım olarak girer) */
+  home?: import('./home-estimate').HomeAnswers;
   /** Excel (OSOS) verisi yüklendiyse kaynağı — ön ayarlar kilitlenir */
   osos?: { file: string; level: 'saatlik' | 'aylık' | 'yıllık' } | null;
 

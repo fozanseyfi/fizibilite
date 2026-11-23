@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { printActivePage } from '@/components/models/native/page-print';
 import type { SohCheck } from '@/lib/models/bess/common';
 import { sizeGrid, type OptRow } from '@/lib/models/bess/optimize';
 import { NumF } from '@/components/models/native/mdl-kit';
@@ -240,6 +241,7 @@ export function TabActions({ onReport, onSave, saveLabel, onDelete, saving, err 
     <div className="tab-actions no-print">
       {err && <span className="ta-err">{err}</span>}
       {onDelete && <button type="button" className="ta-btn danger" onClick={onDelete} disabled={saving}>Sil</button>}
+      <button type="button" className="ta-btn ghost" onClick={(e) => printActivePage(e.currentTarget)} disabled={saving} title="Yalnızca açık olan sekmeyi PDF olarak kaydet">Sayfa PDF</button>
       <button type="button" className="ta-btn ghost" onClick={onReport} disabled={saving}>Rapor çıktısı al</button>
       <button type="button" className="ta-btn primary" onClick={onSave} disabled={saving}>{saving ? 'Kaydediliyor…' : saveLabel}</button>
     </div>

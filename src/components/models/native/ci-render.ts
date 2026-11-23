@@ -137,6 +137,34 @@ export function billSumHtml(i: CiInputs, m: CiModel): string {
     + `<tr class="tot"><td>Net yıllık fatura (TL, OPEX hariç)</td><td>${fmt(billNo)}</td><td>${fmt(netYes)}</td><td style="color:var(--green)">−${fmt(savTL)} (−%${fmt(savTL / billNo * 100, 1)})</td></tr>`
     + `<tr class="tot"><td>USD karşılığı (kur ${fmt(fx, 1)})</td><td>${usd(billNo / fx)}</td><td>${usd(netYes / fx)}</td><td style="color:var(--green)">−${usd(savTL / fx)}</td></tr></tbody>`;
 }
+/** Mesken — aylık rejimde ay ay mahsuplaşma tablosu (yıl-1, kWh). */
+export function meskenMonthlyHtml(m: CiModel): string {
+  const s1 = m.years[0].s;
+  let rows = '';
+  s1.monthly.forEach((d, mi) => {
+    rows += `<tr><td>${MONTHS[mi]}</td><td>${fmt(d.prod)}</td><td>${fmt(d.cons)}</td><td>${fmt(d.mah)}</td><td>${fmt(d.faz)}</td><td>${fmt(d.cek)}</td></tr>`;
+  });
+  const cons = s1.monthly.reduce((a, d) => a + d.cons, 0);
+  return `<thead><tr><th>Ay</th><th>Üretim (kWh)</th><th>Tüketim (kWh)</th><th>Mahsup (kWh)</th><th>Fazla — satılan (kWh)</th><th>Şebekeden çekiş (kWh)</th></tr></thead><tbody>${rows}`
+    + `<tr class="tot"><td>Σ Yıl</td><td>${fmt(s1.prod)}</td><td>${fmt(cons)}</td><td>${fmt(s1.mah)}</td><td>${fmt(s1.faz)}</td><td>${fmt(s1.cek)}</td></tr></tbody>`;
+}
+
+const HOME_TXT: Record<string, Record<string, string>> = {
+  home: { small: 'daire ≤100 m²', large: 'daire >100 m²', detached: 'müstakil' },
+  heating: { gas: 'doğalgaz ısınma', heatpump: 'klima/ısı pompası ile ısınma', electric: 'elektrikli ısınma', other: 'elektriksiz ısınma' },
+  water: { gas: 'doğalgazlı sıcak su', electric: 'elektrikli termosifon', solar: 'güneş kolektörü' },
+  cooking: { gas: 'doğalgaz ocak', electric: 'elektrikli ocak' },
+};
+function homeLine(i: CiInputs): string {
+  const h = i.home;
+  if (!h) return '';
+  const parts = [`${h.people} kişi`, HOME_TXT.home[h.home], HOME_TXT.heating[h.heating], HOME_TXT.water[h.water], HOME_TXT.cooking[h.cooking], `${h.ac} klima`];
+  if (h.ev) parts.push(`elektrikli araç (${fmt(h.evKm)} km/yıl)`);
+  if (h.pool) parts.push('havuz');
+  if (h.wfh) parts.push('evden çalışma');
+  return parts.filter(Boolean).join(' · ');
+}
+
 export function billMonthlyHtml(i: CiInputs, m: CiModel): string {
   const y1 = m.years[0], s1 = y1.s, L1 = y1.L, buy = y1.buy;
   const fazTot = s1.faz || 1, bedTot = L1.bedelli;
@@ -335,17 +363,21 @@ export function monthlyChart(m: CiModel): string {
   const W = 900, H = 250, pl = 56, pr = 12, pt = 14, pb = 26;
   const fazTot = y1.s.faz || 1;
   const data = y1.s.monthly;
-  const mx = Math.max(...data.map((d) => Math.max(d.mah + d.shift, d.faz, d.cek))) / 1000 || 1;
+  // Ev ölçeğinde (ay başına <10 MWh) kWh, C&I ölçeğinde MWh
+  const peak = Math.max(...data.map((d) => Math.max(d.mah + d.shift, d.faz, d.cek)));
+  const div = peak < 10000 ? 1 : 1000, unit = div === 1 ? 'kWh' : 'MWh';
+  const mx = peak / div || 1;
   const x = (k: number) => pl + (W - pl - pr) * (k + 0.5) / 12, bw = (W - pl - pr) / 12 * 0.22;
   const y = (v: number) => pt + (H - pt - pb) * (1 - v / mx);
   let s = '';
-  for (let g = 0; g <= 4; g++) { const v = mx * g / 4; s += `<line x1="${pl}" y1="${y(v)}" x2="${W - pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl - 6}" y="${y(v) + 3}" text-anchor="end">${fmt(v, 0)}</text>`; }
+  for (let g = 0; g <= 4; g++) { const v = mx * g / 4; s += `<line x1="${pl}" y1="${y(v)}" x2="${W - pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl - 6}" y="${y(v) + 3}" text-anchor="end">${fmt(v, mx < 10 ? 1 : 0)}</text>`; }
+  s += `<text x="${pl + 4}" y="${pt - 3}" text-anchor="start" style="font-weight:600">${unit}</text>`;
   data.forEach((d, k) => {
-    const bfree = (L.bedelsiz > 0 ? d.faz / fazTot * L.bedelsiz : 0) / 1000, bpaid = d.faz / 1000 - bfree;
-    s += `<rect x="${x(k) - bw * 1.6}" y="${y((d.mah + d.shift) / 1000)}" width="${bw}" height="${H - pb - y((d.mah + d.shift) / 1000)}" fill="#1E7F4F"/>`;
+    const bfree = (L.bedelsiz > 0 ? d.faz / fazTot * L.bedelsiz : 0) / div, bpaid = d.faz / div - bfree;
+    s += `<rect x="${x(k) - bw * 1.6}" y="${y((d.mah + d.shift) / div)}" width="${bw}" height="${H - pb - y((d.mah + d.shift) / div)}" fill="#1E7F4F"/>`;
     s += `<rect x="${x(k) - bw * 0.5}" y="${y(bpaid)}" width="${bw}" height="${H - pb - y(bpaid)}" fill="#E8A020"/>`;
     if (bfree > 0.01) s += `<rect x="${x(k) - bw * 0.5}" y="${y(bpaid + bfree)}" width="${bw}" height="${y(bpaid) - y(bpaid + bfree)}" fill="#C7000B"/>`;
-    s += `<rect x="${x(k) + bw * 0.6}" y="${y(d.cek / 1000)}" width="${bw}" height="${H - pb - y(d.cek / 1000)}" fill="#C9D3E4"/>`;
+    s += `<rect x="${x(k) + bw * 0.6}" y="${y(d.cek / div)}" width="${bw}" height="${H - pb - y(d.cek / div)}" fill="#C9D3E4"/>`;
     s += `<text x="${x(k)}" y="${H - 8}" text-anchor="middle">${MONTHS[k]}</text>`;
   });
   return s;
@@ -450,11 +482,15 @@ export interface CiReportMeta { title: string; prep: string; date: string; profi
 export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
   const y1 = m.years[0];
   const selfC = (y1.s.mah + y1.s.shift) / Math.max(y1.s.prod, 1) * 100;
-  const rejim = i.abone === 'mesken' ? 'Mesken (aylık rejim)' : 'C&I (saatlik rejim)';
+  const mesken = i.abone === 'mesken';
+  const rejim = mesken ? 'Mesken (aylık rejim)' : 'C&I (saatlik rejim)';
+  let secNo = 0;
+  const sec = (title: string) => `<div class="r-block"><h2><span class="rn">${String(++secNo).padStart(2, '0')}</span>${title}</h2>`;
+  const billNo = i.consY * y1.buy, netYes = y1.s.cek * y1.buy - y1.rev + y1.cost, savTL = billNo - netYes;
   const kpi = (l: string, v: string, cls = '') => `<div class="r-kpi${cls ? ' ' + cls : ''}"><div class="l">${l}</div><div class="v">${v}</div></div>`;
   let rows = '';
   m.years.forEach((yy) => { rows += `<tr><td>${yy.y}</td><td>${fmt((yy.s.mah + yy.s.shift) / 1000, 1)}</td><td>${fmt(yy.L.bedelli / 1000, 1)}</td><td>${fmt(yy.L.bedelsiz / 1000, 1)}</td><td>${fmt(yy.buy, 2)}</td><td>${fmt(yy.fx, 1)}</td><td>${fmt(yy.cfTL)}</td><td>${fmt(yy.cf)}</td></tr>`; });
-  return `<div class="r-cover"><div class="r-eyebrow">C&I Saatlik Mahsuplaşma · Ön Fizibilite Raporu · EPDK Karar 14531</div><h1>${esc(meta.title)}</h1>`
+  return `<div class="r-cover"><div class="r-eyebrow">${mesken ? 'Mesken Çatı GES · Aylık Mahsuplaşma · Ön Fizibilite Raporu' : 'C&I Saatlik Mahsuplaşma · Ön Fizibilite Raporu · EPDK Karar 14531'}</div><h1>${esc(meta.title)}</h1>`
     + `<div class="r-sub">${fmt(i.kwp)} kWp${i.bessOn ? ' + ' + fmt(i.bKwh) + ' kWh BESS' : ''} · ${fmt(i.consY / 1000, 0)} MWh/yıl tüketim · ${rejim} · ${fmt(i.life)} yıl analiz</div>`
     + `<div class="r-facts">`
     + (meta.firm ? `<div class="r-fact"><b>Firma</b><span>${esc(meta.firm)}</span></div>` : '')
@@ -462,7 +498,7 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
     + `<div class="r-fact"><b>Tarih</b><span>${esc(meta.date)}</span></div>`
     + (meta.prep ? `<div class="r-fact"><b>Hazırlayan</b><span>${esc(meta.prep)}</span></div>` : '')
     + `<div class="r-fact"><b>Rejim</b><span>${rejim}</span></div>`
-    + `<div class="r-fact"><b>Tüketim profili</b><span>${esc(meta.profileLabel)}</span></div>`
+    + (mesken ? '' : `<div class="r-fact"><b>Tüketim profili</b><span>${esc(meta.profileLabel)}</span></div>`)
     + `<div class="r-fact"><b>Para birimi</b><span>USD · TL tarife kur projeksiyonuyla</span></div></div>`
     + `<div class="r-stats">`
     + `<div class="r-stat"><div class="l">NPV</div><div class="v gold">${usd(m.npv)}</div></div>`
@@ -471,30 +507,36 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
     + `<div class="r-stat"><div class="l">1. Yıl Net Fayda</div><div class="v">${usd(y1.cf)}</div></div>`
     + `<div class="r-stat"><div class="l">Öz Tüketim</div><div class="v">${pct(selfC, 0)}</div></div>`
     + `</div></div>`
-    + `<div class="r-block"><h2><span class="rn">01</span>Yönetici Özeti</h2>`
+    + sec('Yönetici Özeti')
     + `<div class="r-kpis">${kpi('CAPEX', usd(m.capex))}${kpi('NPV', usd(m.npv), m.npv >= 0 ? 'good' : 'bad')}${kpi('Proje IRR', pct(m.irr * 100, 1), m.irr > i.r / 100 ? 'good' : 'bad')}${kpi('Basit geri ödeme', fmt(m.pb, 2) + ' yıl')}</div>`
     + `<div class="r-kpis">${kpi('1. yıl net fayda', usd(y1.cf), 'good')}${kpi('Öz tüketim', pct(selfC, 1))}${kpi('İskontolu geri ödeme', Number.isFinite(m.pbD) ? fmt(m.pbD, 2) + ' yıl' : '—')}${i.lOn ? kpi('Equity IRR', pct(m.eIRR * 100, 1), 'good') : kpi('Otonomi', pct((y1.s.mah + y1.s.shift) / i.consY * 100, 1))}</div>`
     + `<div class="r-verdict ${m.npv >= 0 ? 'good' : 'bad'}">${m.npv >= 0 ? `✓ Proje bu varsayımlarla USD bazında değer yaratıyor: iç verim oranı (%${fmt(m.irr * 100, 1)}) iskonto oranını (%${fmt(i.r, 1)}) aşıyor, basit geri ödeme ${fmt(m.pb, 2)} yıl. Yıl-1 öz tüketim oranı %${fmt(selfC, 0)}.` : `✗ Proje bu varsayımlarla negatif NPV veriyor (${usd(m.npv)}); sistem boyutunu tüketim profiline yaklaştırmak, BESS ile öz tüketimi artırmak veya CAPEX/tarife varsayımlarını gözden geçirmek önerilir.`}</div></div>`
-    + `<div class="r-block"><h2><span class="rn">02</span>Girdiler ve Varsayımlar</h2><table class="r-assume"><tbody>`
+    + sec('Girdiler ve Varsayımlar') + `<table class="r-assume"><tbody>`
     + `<tr><td>GES</td><td>${fmt(i.kwp)} kWp · ${fmt(i.spec)} kWh/kWp/yıl · ${i.orient === 'ew' ? 'doğu-batı yerleşim' : 'güney yerleşim'} · degradasyon ${pct(i.degr, 1)}/yıl · ${fmt(i.life)} yıl</td></tr>`
-    + `<tr><td>Tüketim</td><td>${fmt(i.consY / 1000, 0)} MWh/yıl · profil: ${esc(meta.profileLabel)} · aylık dağılım düzenlenebilir yüzde</td></tr>`
-    + `<tr><td>Bedelli limit</td><td>${i.abone === 'mesken' ? 'uygulanmaz (mesken abone grubu)' : fmt(i.consPrev * 2 / 1000, 0) + ' MWh (önceki yıl tüketimi × 2)'}</td></tr>`
+    + (mesken
+      ? `<tr><td>Tüketim</td><td>${fmt(i.consY)} kWh/yıl (≈ ${fmt(i.consY / 12)} kWh/ay) · aylık dağılım ile ay ay${i.home ? ' · tahmin: ' + homeLine(i) : ''}</td></tr>`
+      : `<tr><td>Tüketim</td><td>${fmt(i.consY / 1000, 0)} MWh/yıl · profil: ${esc(meta.profileLabel)} · aylık dağılım düzenlenebilir yüzde</td></tr>`)
+    + `<tr><td>Bedelli limit</td><td>${mesken ? 'uygulanmaz (mesken abone grubu, aylık mahsuplaşma)' : fmt(i.consPrev * 2 / 1000, 0) + ' MWh (önceki yıl tüketimi × 2)'}</td></tr>`
     + `<tr><td>Tarife</td><td>alış ${fmt(i.pBuy, 2)} / satış ${fmt(i.pSell, 2)} TL/kWh · TL enflasyonu %${fmt(i.esc1)} (ilk 5y) → %${fmt(i.esc2)}${i.preal ? ' · reel +%' + fmt(i.preal, 1) : ''}</td></tr>`
     + `<tr><td>Kur</td><td>başlangıç ${fmt(i.fx0, 1)} TL/$ · ${i.fxMode === 'ppp' ? 'SAGP: enflasyon farkı kadar artış' : 'manuel %' + fmt(i.fxMan) + '/yıl'} · USD enflasyonu %${fmt(i.piUS, 1)}</td></tr>`
     + (i.bessOn ? `<tr><td>Batarya (BESS)</td><td>${fmt(i.bKwh)} kWh / ${fmt(i.bKw)} kW · round-trip %${fmt(i.bRte)} · CAPEX ${fmt(i.bCapex)} $/kWh · degradasyon ${pct(i.bDegr, 1)}/yıl</td></tr>` : '')
     + `<tr><td>Finansman</td><td>GES CAPEX ${fmt(i.capexU)} $/kWp · OPEX ${fmt(i.opexU)} TL/kWp-yıl (TL enfl.) · iskonto %${fmt(i.r, 1)} USD${i.lOn ? ' · kredi %' + fmt(i.lRatio) + ' / faiz %' + fmt(i.lRate, 1) + ' / ' + i.lTerm + ' yıl' : ' · kredisiz'}</td></tr>`
     + `</tbody></table></div>`
-    + `<div class="r-block"><h2><span class="rn">03</span>Yıl-1 Enerji Dengesi</h2><table>${balHtml(i, m)}</table>`
+    + sec('Yıl-1 Enerji Dengesi') + `<table>${balHtml(i, m)}</table>`
     + `<div class="r-chart"><div class="r-cap">Aylık dağılım — mahsup / bedelli satış / şebekeden çekiş (MWh)</div><svg viewBox="0 0 900 250" width="100%">${monthlyChart(m)}</svg>`
-    + `<div class="r-legend"><span><i style="background:#1E7F4F"></i>Mahsuplaşan</span><span><i style="background:#E8A020"></i>Fazla (bedelli)</span><span><i style="background:#C9D3E4"></i>Çekiş</span><span><i style="background:#C7000B"></i>Bedelsiz</span></div></div></div>`
-    + `<div class="r-block"><h2><span class="rn">04</span>Saatlik vs Aylık Rejim</h2><table>${compareHtml(i)}</table></div>`
-    + `<div class="r-block"><h2><span class="rn">05</span>Yıllık Nakit Akışı (${fmt(i.life)} yıl)</h2>`
-    + `<table><thead><tr><th>Yıl</th><th>Mahsup (MWh)</th><th>Bedelli (MWh)</th><th>Bedelsiz (MWh)</th><th>Alış ₺/kWh</th><th>Kur ₺/$</th><th>Net CF (TL)</th><th>Net CF ($)</th></tr></thead><tbody>${rows}</tbody></table>`
+    + `<div class="r-legend"><span><i style="background:#1E7F4F"></i>Mahsuplaşan</span><span><i style="background:#E8A020"></i>Fazla (bedelli)</span><span><i style="background:#C9D3E4"></i>Çekiş</span>${mesken ? '' : '<span><i style="background:#C7000B"></i>Bedelsiz</span>'}</div></div></div>`
+    + sec("Fatura Analizi — GES'siz Ne Gelecekti, GES'li Ne Geliyor")
+    + `<p class="r-note">Yıl-1, girdiğiniz tarifeyle aktif enerji faturası: GES kurulmasaydı ödenecek tutar ile GES'li durumda şebekeden çekilen enerji ve fazla satış geliri sonrası kalan net tutar. GES'siz yıllık fatura <b>${fmt(billNo)} TL</b>, GES'li net fatura <b>${fmt(netYes)} TL</b>; fark <b>${fmt(savTL)} TL</b> (%${fmt(billNo > 0 ? savTL / billNo * 100 : 0, 1)}). İşletme gideri (OPEX) fatura kalemi olmadığından dahil değildir.</p>`
+    + `<table>${billSumHtml(i, m)}</table><div class="r-cap" style="margin-top:10px">Aylık kırılım (yıl-1, TL)</div><table>${billMonthlyHtml(i, m)}</table></div>`
+    + (mesken ? '' : sec('Saatlik vs Aylık Rejim') + `<table>${compareHtml(i)}</table></div>`)
+    + sec(`Yıllık Nakit Akışı (${fmt(i.life)} yıl)`)
+    + `<table><thead><tr><th>Yıl</th><th>Mahsup (MWh)</th><th>${mesken ? 'Satılan fazla' : 'Bedelli'} (MWh)</th><th>Bedelsiz (MWh)</th><th>Alış ₺/kWh</th><th>Kur ₺/$</th><th>Net CF (TL)</th><th>Net CF ($)</th></tr></thead><tbody>${rows}</tbody></table>`
     + `<div class="r-chart"><div class="r-cap">Kümülatif iskontolu nakit akışı (USD) — sıfırı geçtiği an iskontolu geri ödeme</div><svg viewBox="0 0 900 240" width="100%">${cumChart(i, m)}</svg></div></div>`
-    + `<div class="r-block"><h2><span class="rn">06</span>Senaryo Matrisi — Kötümser / Baz / İyimser</h2>${scenMatrixCi(i)}</div>`
-    + `<div class="r-block"><h2><span class="rn">07</span>Metodoloji ve Uyarılar</h2>`
-    + `<p class="r-note">Motor, her işletme yılını 12 ay × takvim günü (hafta içi/sonu) deseniyle saatlik simüle eder; mahsup = Σ min(üretim, tüketim). Ay içi üretim, aylık ortalamalar arası interpolasyonla gün gün eğimlendirilir (ay toplamı korunur). Bedelli üretim limiti = önceki yıl tüketimi × 2; bedelli satış = min(yıllık fazla, limit − mahsup); kalan miktar YEKDEM'e bedelsiz yazılır (EPDK Karar 14531, MADDE 7 ve 9). BESS günlük döngüsel dispatch: fazladan şarj, çekişe RTE ile deşarj — arbitraj modellenmez. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır; hava durumu rastgeleliği bilinçli modellenmez (P50). Bu bir ön fizibilitedir; tarife, bedelli limit ve şebeke bağlantı koşulları güncel mevzuat ve ilgili şebeke işletmecisinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>`
-    + `<div class="r-foot"><span>© 2026 <b>Fizibilite Platformu</b> · Furkan Ozan Seyfi</span><span>EPDK Karar 14531 · ${esc(meta.date)}</span></div></div>`;
+    + sec('Senaryo Matrisi — Kötümser / Baz / İyimser') + `${scenMatrixCi(i)}</div>`
+    + sec('Metodoloji ve Uyarılar')
+    + (mesken ? `<p class="r-note">Mesken aboneleri aylık mahsuplaşmaya tabidir: her ay mahsup = min(aylık üretim, aylık tüketim); ay sonundaki fazla üretim satış fiyatından değerlenir, bedelli üretim limiti uygulanmaz. Yıllık tüketim ${i.home ? 'hane bilgilerinden yapılan tahmine ya da ' : ''}girilen değere, aylık dağılım ise ısınma ve soğutma mevsimselliğine dayanır. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır. Bu bir ön fizibilitedir; tarife ve bağlantı koşulları dağıtım şirketinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>` : '')
+    + (mesken ? '' : `<p class="r-note">Motor, her işletme yılını 12 ay × takvim günü (hafta içi/sonu) deseniyle saatlik simüle eder; mahsup = Σ min(üretim, tüketim). Ay içi üretim, aylık ortalamalar arası interpolasyonla gün gün eğimlendirilir (ay toplamı korunur). Bedelli üretim limiti = önceki yıl tüketimi × 2; bedelli satış = min(yıllık fazla, limit − mahsup); kalan miktar YEKDEM'e bedelsiz yazılır (EPDK Karar 14531, MADDE 7 ve 9). BESS günlük döngüsel dispatch: fazladan şarj, çekişe RTE ile deşarj — arbitraj modellenmez. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır; hava durumu rastgeleliği bilinçli modellenmez (P50). Bu bir ön fizibilitedir; tarife, bedelli limit ve şebeke bağlantı koşulları güncel mevzuat ve ilgili şebeke işletmecisinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>`)
+    + `<div class="r-foot"><span>© 2026 <b>Fizibilite Platformu</b> · Furkan Ozan Seyfi</span><span>${mesken ? 'Mesken · aylık mahsuplaşma' : 'EPDK Karar 14531'} · ${esc(meta.date)}</span></div></div>`;
 }
 
 /** Enerji akışı toplamları (kWh) — mahsuplaşma görünümünde seçili dönem ve gün tipleri için. */

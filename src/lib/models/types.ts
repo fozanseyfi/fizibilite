@@ -6,11 +6,12 @@
 import type { UtilityInputs } from './utility/engine';
 import type { CiInputs } from './ci/engine';
 
-export type ModelKind = 'utility' | 'ci' | 'bess-ci' | 'bess-utility';
+export type ModelKind = 'utility' | 'ci' | 'mesken' | 'bess-ci' | 'bess-utility';
 
 export const MODEL_LABELS: Record<ModelKind, string> = {
   utility: 'Utility (GES + BESS Proje Finansmanı)',
-  ci: 'C&I / Mesken (Saatlik Mahsuplaşma)',
+  ci: 'C&I (Saatlik Mahsuplaşma)',
+  mesken: 'Mesken (Aylık Mahsuplaşma)',
   'bess-ci': 'Batarya Ekleme — C&I / Mesken',
   'bess-utility': 'Batarya Ekleme — Utility',
 };
@@ -47,7 +48,8 @@ export interface ProjectSummary {
 /** Listelerde kısa tip etiketi */
 export const KIND_SHORT: Record<ModelKind, string> = {
   utility: 'Utility',
-  ci: 'C&I / Mesken',
+  ci: 'C&I',
+  mesken: 'Mesken',
   'bess-ci': 'Batarya · C&I',
   'bess-utility': 'Batarya · Utility',
 };

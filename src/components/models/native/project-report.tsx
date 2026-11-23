@@ -9,7 +9,7 @@ import { PrintReport } from '@/components/models/native/mdl-kit';
 import * as CiR from '@/components/models/native/ci-render';
 import * as UtR from '@/components/models/native/utility-render';
 import { computeCi, type CiInputs } from '@/lib/models/ci/engine';
-import { defaultCiInputs } from '@/lib/models/ci/defaults';
+import { defaultCiInputs, defaultMeskenInputs } from '@/lib/models/ci/defaults';
 import { PROFILE_LABELS, type ProfileKey } from '@/lib/models/ci/presets';
 import { computeUtility, computeUtilityHuawei, type UtilityInputs } from '@/lib/models/utility/engine';
 import { defaultUtilityInputs } from '@/lib/models/utility/defaults';
@@ -32,8 +32,9 @@ export function buildReportHtml(project: StoredProject): string {
     const i: BessUtilityInputs = bessUtilityFromSaved(project.inputs as Partial<BessUtilityInputs>);
     return reportBessUtility(i, computeBessUtility(i), meta(i));
   }
-  if (project.kind === 'ci') {
-    const i: CiInputs = { ...defaultCiInputs(), ...(project.inputs as Partial<CiInputs>) };
+  if (project.kind === 'ci' || project.kind === 'mesken') {
+    const base = project.kind === 'mesken' ? defaultMeskenInputs() : defaultCiInputs();
+    const i: CiInputs = { ...base, ...(project.inputs as Partial<CiInputs>), ...(project.kind === 'mesken' ? { abone: 'mesken' as const } : {}) };
     const m = computeCi(i);
     return CiR.reportCi(i, m, {
       title: i.pname || project.name,

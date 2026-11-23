@@ -40,7 +40,10 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   // key: farklı projeye geçişte model state'i sıfırlansın
   switch (row.kind) {
     case 'ci':
-      return <CiModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as CiInputs} />;
+      // Eski kayıtlar: C&I içinde mesken abonesi seçilmiş projeler artık Mesken modelinde açılır
+      return <CiModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as CiInputs} variant={(row.inputs as unknown as CiInputs).abone === 'mesken' ? 'mesken' : 'ci'} />;
+    case 'mesken':
+      return <CiModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as CiInputs} variant="mesken" />;
     case 'bess-ci':
       return <BessCiModel key={row.id} projectId={row.id} initialInputs={row.inputs as unknown as BessCiInputs} />;
     case 'bess-utility':

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, BatteryCharging, Building2, Home } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BatteryCharging, Building2, Factory, Home } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,7 @@ export default function NewProjectSelectPage() {
       </div>
 
       <SectionTitle title="GES fizibilitesi" desc="Yeni GES (isteğe bağlı bataryayla) yatırımı." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <ModelCard
           href="/projects/new/utility"
           icon={<Building2 className="h-6 w-6" />}
@@ -36,16 +36,29 @@ export default function NewProjectSelectPage() {
         />
         <ModelCard
           href="/projects/new/ci"
-          icon={<Home className="h-6 w-6" />}
-          title="C&I / Mesken"
-          subtitle="Saatlik Mahsuplaşma — EPDK 14531"
+          icon={<Factory className="h-6 w-6" />}
+          title="C&I"
+          subtitle="Ticarethane / Sanayi · Saatlik Mahsuplaşma — EPDK 14531"
           points={[
-            'Çatı C&I / mesken — kWp bazlı',
+            'Çatı C&I — kWp bazlı',
             'Saatlik min(üretim, tüketim) mahsuplaşma',
             'Bedelli üretim limiti + BESS kaydırma',
             'Saatlik vs aylık rejim + fatura analizi',
           ]}
           accent="bg-eco/10 text-eco-dark"
+        />
+        <ModelCard
+          href="/projects/new/mesken"
+          icon={<Home className="h-6 w-6" />}
+          title="Mesken"
+          subtitle="Ev çatısı · Aylık Mahsuplaşma"
+          points={[
+            'Hane bilgilerinden tüketim tahmini',
+            'Aylık min(üretim, tüketim) mahsuplaşma, limit yok',
+            'GES öncesi / sonrası fatura karşılaştırması',
+            'Geri ödeme, NPV ve IRR',
+          ]}
+          accent="bg-solar/10 text-solar-dark"
         />
       </div>
 

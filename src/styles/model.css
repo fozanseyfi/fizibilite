@@ -418,3 +418,18 @@
 .mdl .btn-link { appearance: none; background: none; border: 0; padding: 8px 0 0; color: var(--navy); font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .mdl .strat-ways { margin: 0 0 0 18px; padding: 0; list-style: disc; font-size: 13.5px; color: var(--ink); line-height: 1.55; }
 .mdl .strat-ways li { margin-bottom: 4px; }
+
+/* ---------- Sayfa PDF (yalnız aktif sekme) — page-print.ts ---------- */
+#mdl-page-print { display: none; }
+#mdl-page-print .pp-tabname { font-weight: 700; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: #5A6478; padding: 10px 2px 4px; border-bottom: 1px solid #D9E0EC; margin-bottom: 8px; }
+#mdl-page-print .page-print .no-print,
+#mdl-page-print .page-print .step-rail,
+#mdl-page-print .page-print .hc-tip { display: none !important; }
+#mdl-page-print .page-print .m-main { padding-top: 0; }
+@media print {
+  body.mdl-page-printing > *:not(#mdl-page-print) { display: none !important; }
+  body.mdl-page-printing #mdl-page-print { display: block; }
+  body.mdl-page-printing { background: #fff; }
+  #mdl-page-print * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #mdl-page-print .card, #mdl-page-print .step, #mdl-page-print table, #mdl-page-print svg { break-inside: avoid; }
+}

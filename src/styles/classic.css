@@ -466,3 +466,23 @@
 .mdl .lock-note { font-size: 12.5px; color: #4d3d10; background: #fff8e1; border: 1px solid #ecd9a0; border-radius: 4px; padding: 8px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .mdl .lock-note .btn-mini { margin-top: 0; }
 .dark .mdl .lock-note { background: #2a2414; border-color: #5a4a20; color: #f0dfa8; }
+
+/* Mesken — hane tüketim tahmini */
+.mdl .home-est .home-yes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin: 12px 0 4px; font-size: 13.5px; }
+.mdl .home-est .home-yes .chk { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.mdl .home-est .home-km .field { display: flex; align-items: center; gap: 8px; margin: 0; }
+.mdl .home-est .home-km .field label { margin: 0; white-space: nowrap; }
+.mdl .home-est .home-km input { width: 110px; }
+.mdl .home-est .home-out { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 14px 22px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line, #d4d9e0); align-items: start; }
+.mdl .home-est .home-total { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; background: var(--green-soft, #eaf4ee); border-radius: 4px; }
+.mdl .home-est .home-total span { font-size: 12px; color: var(--ink-soft, #5a6478); font-weight: 600; }
+.mdl .home-est .home-total b { font-size: 24px; color: var(--navy-deep, #0e2a5e); font-variant-numeric: tabular-nums; }
+.mdl .home-est .home-total small { font-size: 12px; color: var(--ink-soft, #5a6478); }
+.mdl .home-est .home-parts { width: 100%; font-size: 12.5px; }
+.mdl .home-est .home-parts td { padding: 3px 6px; border-bottom: 1px dashed var(--line, #d4d9e0); }
+.mdl .home-est .home-parts td:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mdl .home-est .home-act { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.mdl .home-est .home-act .tsub { margin: 0; flex: 1 1 260px; }
+@media (max-width: 640px) { .mdl .home-est .home-out { grid-template-columns: 1fr; } }
+.dark .mdl .home-est .home-total { background: rgba(47, 107, 79, .18); }
+.dark .mdl .home-est .home-total b { color: #dbe5f3; }
