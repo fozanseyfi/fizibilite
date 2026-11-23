@@ -20,7 +20,7 @@ export function PlatformNoteCard() {
       <p className="mt-2">
         Arkasında bir şirket yok, size satmaya çalıştığım bir şey de yok. İşinize yararsa ne mutlu bana. Eksik
         gördüğünüz ya da canınızı sıkan bir şey olursa{" "}
-        <a href="mailto:ozan.seyfi@kontrolmatik.com" className="font-semibold text-primary hover:underline">yazın</a>; bir sonraki özellik sizin
+        <a href="mailto:fozanseyfi@gmail.com" className="font-semibold text-primary hover:underline">yazın</a>; bir sonraki özellik sizin
         &ldquo;şu da olsa&rdquo; demenizle gelebilir.
       </p>
       <p className="mt-2 text-foreground">— Furkan Ozan Seyfi</p>
