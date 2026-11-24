@@ -332,6 +332,13 @@
   #mdl-report table { font-size: 9.4px; }
   #mdl-report .r-note { font-size: 9.4px; }
   #mdl-report svg text { font-size: 11px; }
+  /* Sayfa doldurma: bölümler sayfa arasında bölünebilir (boş yarım sayfa kalmaz); grafik, not ve tablo satırı bölünmez */
+  #mdl-report .r-block { page-break-inside: auto; break-inside: auto; }
+  #mdl-report .r-block.pagebreak { page-break-before: always; break-before: page; }
+  #mdl-report h2 { break-after: avoid; }
+  #mdl-report .r-chart, #mdl-report .r-note, #mdl-report .r-kpis, #mdl-report .r-verdict { break-inside: avoid; }
+  #mdl-report .r-assume td:nth-child(2) { text-align: left; }
+  #mdl-report .r-assume td { padding: 5px 8px; }
   #mdl-report .r-chart .r-cap, #mdl-report .r-eyebrow, #mdl-report h2 .rn { letter-spacing: .06em; }
 
   /* Alt bilgi */

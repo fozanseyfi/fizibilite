@@ -886,7 +886,7 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
                       <div>
                         <div className="eh-eyebrow">Yönetici Özeti · Otomatik Oluşturulur</div>
                         <h2>{inputs.pname || (mesken ? 'Mesken GES Projesi' : 'C&I GES Projesi')}</h2>
-                        <div className="eh-sub">{inputs.firm ? `${inputs.firm} · ` : ''}{inputs.loc ? `${inputs.loc} · ` : ''}{nf(inputs.kwp)} kWp{inputs.bessOn ? ` + ${nf(inputs.bKwh)} kWh BESS` : ''} · {nf(inputs.consY / 1000)} MWh/yıl tüketim · {mesken ? 'aylık rejim (mesken)' : 'saatlik rejim (EPDK 14531)'} · {inputs.life} yıl · iskonto {pct(inputs.r, 1)} USD</div>
+                        <div className="eh-sub">{inputs.firm ? `${inputs.firm} · ` : ''}{inputs.loc ? `${inputs.loc} · ` : ''}{nf(inputs.kwp)} kWp{inputs.bessOn ? ` + ${nf(inputs.bKwh)} kWh BESS` : ''} · {mesken ? `${nf(inputs.consY)} kWh/yıl` : `${nf(inputs.consY / 1000)} MWh/yıl`} tüketim · {mesken ? 'aylık rejim (mesken)' : 'saatlik rejim (EPDK 14531)'} · {inputs.life} yıl · iskonto {pct(inputs.r, 1)} USD</div>
                       </div>
                       <span className={`exec-badge ${vd.cls}`}>{vd.cls === 'good' ? '✓ Değer yaratıyor' : '✗ NPV negatif'}</span>
                     </div>
