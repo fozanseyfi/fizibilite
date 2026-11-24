@@ -66,6 +66,7 @@ export const PLATFORMS: Platform[] = [
     logo: "bom",
     color: "#1A4A94",
     softColor: "#eef3fb",
+    href: "https://konstruksiyon.fozanseyfi.com/",
   },
 ];
 
