@@ -40,6 +40,8 @@ export interface CiInputs {
   season: string;
 
   kwp: number;
+  /** İnverter AC gücü (kWe). Saatlik üretim bu değerde kırpılır. Tanımsız → kırpma yok (eski kayıtlar). */
+  kwac?: number;
   spec: number;
   orient: 's' | 'ew';
   degr: number;       // (%/yıl)
@@ -79,7 +81,7 @@ interface CParams {
   pname: string; prep: string;
   abone: 'ci' | 'mesken'; consY: number; consPrev: number;
   mPct: number[]; weRatio: number; wd: number[]; we: number[]; dayW: (number[] | null)[]; hourWd: (number[] | null)[]; hourWe: (number[] | null)[]; dow: number[][];
-  kwp: number; spec: number; orient: 's' | 'ew'; degr: number; life: number;
+  kwp: number; kwac: number; spec: number; orient: 's' | 'ew'; degr: number; life: number;
   skb: number;
   pBuy: number; pSell: number; esc1: number; esc2: number; preal: number;
   fx0: number; piUS: number; fxMode: 'ppp' | 'man'; fxMan: number;
@@ -119,6 +121,20 @@ function dailyProd(p: CParams, m: number, scale: number): number[] {
   const mProd = (p.kwp * p.spec * SOLAR_M[m]) / 100 * scale;
   const dProd = mProd / DAYS[m];
   return sun.map((s) => s * dProd);
+}
+/** Ay üretimi (kWh): gün eğimi × saatlik eğri, her saat inverter AC gücünde kırpılır. */
+function monthProdClipped(p: CParams, m: number, scale: number): number {
+  const pd = dailyProd(p, m, scale);
+  let s = 0;
+  for (let d = 0; d < DAYS[m]; d++) for (const v of pd) s += Math.min(v * DAYF[m][d], p.kwac);
+  return s;
+}
+/** Yıl-1 inverter kırpma kaybı: DC üretim, AC'de kırpılmış üretim, kayıp oranı ve DC/AC oranı. */
+export function ciClipping(inputs: CiInputs): { dc: number; ac: number; lossPct: number; ratio: number } {
+  const p = normalizeCi(inputs);
+  let dc = 0, ac = 0;
+  for (let m = 0; m < 12; m++) { dc += dailyProd(p, m, 1).reduce((a, b) => a + b, 0) * DAYS[m]; ac += monthProdClipped(p, m, 1); }
+  return { dc, ac, lossPct: dc > 0 ? (1 - ac / dc) * 100 : 0, ratio: Number.isFinite(p.kwac) && p.kwac > 0 ? p.kwp / p.kwac : 0 };
 }
 function monthCons(p: CParams, mi: number): number {
   return (p.consY * p.mPct[mi]) / 100;
@@ -204,18 +220,18 @@ function simYear(p: CParams, yr: number): YearSim {
   let mah = 0, faz = 0, cek = 0, shift = 0, prod = 0;
   for (let m = 0; m < 12; m++) {
     const pd = dailyProd(p, m, prodScale);
-    prod += pd.reduce((a, b) => a + b, 0) * DAYS[m];
-    let mm = 0, mf = 0, mc = 0, ms = 0;
+    let mm = 0, mf = 0, mc = 0, ms = 0, mp = 0;
     const cdW = dayCons(p, m, 'wd'), cdE = dayCons(p, m, 'we');
     const custom = !!p.dayW[m];
     for (let d = 0; d < DAYS[m]; d++) {
       const f = DAYF[m][d];
-      const pdd = pd.map((v) => v * f);
+      const pdd = pd.map((v) => Math.min(v * f, p.kwac));
+      mp += pdd.reduce((a, b) => a + b, 0);
       const r = hourlyNet(pdd, custom ? dayConsAt(p, m, d) : dowOf(p, m, d) >= 5 ? cdE : cdW, bess);
       mm += r.mah; mf += r.faz; mc += r.cek; ms += r.shift;
     }
-    mah += mm; faz += mf; cek += mc; shift += ms;
-    monthly.push({ mah: mm, faz: mf, cek: mc, shift: ms, prod: pd.reduce((a, b) => a + b, 0) * DAYS[m], cons: monthCons(p, m) });
+    mah += mm; faz += mf; cek += mc; shift += ms; prod += mp;
+    monthly.push({ mah: mm, faz: mf, cek: mc, shift: ms, prod: mp, cons: monthCons(p, m) });
   }
   return { mah, faz, cek, shift, prod, monthly };
 }
@@ -225,8 +241,7 @@ function simYearMonthlyRegime(p: CParams, yr: number): YearSim {
   let mah = 0, faz = 0, cek = 0, prod = 0;
   const monthly: MonthAgg[] = [];
   for (let m = 0; m < 12; m++) {
-    const pd = dailyProd(p, m, prodScale);
-    const pm = pd.reduce((a, b) => a + b, 0) * DAYS[m];
+    const pm = monthProdClipped(p, m, prodScale);
     const cm = monthCons(p, m);
     const mm = Math.min(pm, cm);
     mah += mm; faz += pm - mm; cek += cm - mm; prod += pm;
@@ -375,7 +390,7 @@ export function normalizeCi(i: CiInputs): CParams {
     pname: i.pname || 'C&I GES Projesi', prep: i.prep,
     abone: i.abone, consY: cl(i.consY, 1, 1e12), consPrev: cl(i.consPrev, 1, 1e12),
     mPct: i.monthly, weRatio: i.weSplit === false ? 1 : cl(i.weRatio, 0, 300) / 100, wd: i.wd, we: i.weSplit === false ? i.wd : i.we, dayW: normDayW(i.dayW), dow: dowTable(i.calYear), hourWd: normHourW(i.hourWd), hourWe: i.weSplit === false ? normHourW(i.hourWd) : normHourW(i.hourWe),
-    kwp: cl(i.kwp, 0, 1e9), spec: cl(i.spec, 0, 5000), orient: i.orient, degr: cl(i.degr, 0, 10) / 100, life: cl(Math.round(i.life), 5, 40),
+    kwp: cl(i.kwp, 0, 1e9), kwac: i.kwac && i.kwac > 0 ? cl(i.kwac, 0.1, 1e9) : Infinity, spec: cl(i.spec, 0, 5000), orient: i.orient, degr: cl(i.degr, 0, 10) / 100, life: cl(Math.round(i.life), 5, 40),
     skb: cl(i.skb, 0, 1e6),
     pBuy: cl(i.pBuy, 0, 1e6), pSell: cl(i.pSell, 0, 1e6), esc1: cl(i.esc1, -50, 500) / 100, esc2: cl(i.esc2, -50, 500) / 100, preal: cl(i.preal, -50, 50) / 100,
     fx0: cl(i.fx0, 0.01, 1e6), piUS: cl(i.piUS, 0, 50) / 100, fxMode: i.fxMode, fxMan: cl(i.fxMan, -50, 500) / 100,
@@ -392,7 +407,7 @@ export function computeCi(inputs: CiInputs): CiModel {
 /** Yıl-1 saatlik gün detayı (grafik/tablo/CSV için). */
 export function ciDayDetail(inputs: CiInputs, mi: number, dt: 'wd' | 'we', pf = 1, day?: number): DayTrack {
   const p = normalizeCi(inputs);
-  const pd = dailyProd(p, mi, 1).map((v) => v * pf);
+  const pd = dailyProd(p, mi, 1).map((v) => Math.min(v * pf, p.kwac));
   const cd = day !== undefined && p.dayW[mi] ? dayConsAt(p, mi, day) : dayCons(p, mi, dt);
   const bess: Bess | null = p.bessOn ? { cap: p.bKwh, kw: p.bKw, rte: p.bRte } : null;
   const t: DayTrack = { prod: [], cons: [], mah: [], ch: [], dch: [], faz: [], cek: [] };

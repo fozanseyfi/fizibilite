@@ -426,6 +426,9 @@
 #mdl-page-print .page-print .step-rail,
 #mdl-page-print .page-print .hc-tip { display: none !important; }
 #mdl-page-print .page-print .m-main { padding-top: 0; }
+/* Kopya yeni eklendiği için açılış animasyonu (opacity 0 → 1) baskıda başlangıçta donar → boş sayfa. Kapat. */
+#mdl-page-print, #mdl-page-print * { animation: none !important; transition: none !important; }
+#mdl-page-print .tab.active { display: block !important; opacity: 1 !important; transform: none !important; }
 @media print {
   body.mdl-page-printing > *:not(#mdl-page-print) { display: none !important; }
   body.mdl-page-printing #mdl-page-print { display: block; }

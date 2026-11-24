@@ -1479,7 +1479,7 @@
 "GES CAPEX {0} $/kWp · OPEX {1} TL/kWp-yıl (TL enfl.) · iskonto %{2} USD{3}":"PV CAPEX {0} $/kWp · OPEX {1} TL/kWp-year (TL infl.) · discount {2}% USD{3}",
 "TL/kWp-yıl (TL enfl.) · iskonto %":"TL/kWp-year (TL infl.) · discount",
 "· kredi %":"· loan",
-"Yıl-1 Enerji Dengesi":"Year-1 Energy Balance",
+"1. Yıl Enerji Dengesi":"Year 1 Energy Balance",
 "Aylık dağılım — mahsup / bedelli satış / şebekeden çekiş (MWh)":"Monthly distribution — netting / paid sales / grid draw (MWh)",
 "Fazla (bedelli)":"Surplus (paid)",
 "Saatlik vs Aylık Rejim":"Hourly vs Monthly Regime",

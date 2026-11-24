@@ -43,3 +43,14 @@ describe('Mesken modeli', () => {
     expect(rc).toContain('Saatlik vs Aylık Rejim');
   });
 });
+
+describe('Rapor enerji akışı', () => {
+  it('C&I ve Mesken raporlarında Sankey var', () => {
+    for (const i of [defaultCiInputs(), defaultMeskenInputs()]) {
+      const r = reportCi(i, computeCi(i), meta);
+      expect(r).toContain('Enerji akışı');
+      expect(r).toContain('Yük kullanımı');
+      expect(r).not.toContain('NaN');
+    }
+  });
+});

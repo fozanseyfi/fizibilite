@@ -2,7 +2,7 @@
 import { numLocale } from '@/lib/i18n';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { computeCi, ciDefaultDayW, ciDayCons, ciDow, type CiInputs } from '@/lib/models/ci/engine';
+import { ciClipping, computeCi, ciDefaultDayW, ciDayCons, ciDow, type CiInputs } from '@/lib/models/ci/engine';
 import { downloadOsosTemplate, parseOsosFile } from '@/lib/models/ci/osos';
 import { defaultCiInputs, defaultMeskenInputs } from '@/lib/models/ci/defaults';
 import { defaultHome } from '@/lib/models/ci/home-estimate';
@@ -147,7 +147,11 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
   const hvDt: 'wd' | 'we' = split ? hv.dt : 'wd';
 
   const onSeason = (key: string) => setInputs((p) => ({ ...p, season: key, monthly: monthlyForSeason(key as SeasonKey) }));
-  const onTarpre = (key: string) => { if (key === 'tic') setInputs((p) => ({ ...p, pBuy: 4.28, pSell: 3.95 })); else setInputs((p) => ({ ...p, pBuy: 3.10, pSell: 2.85 })); };
+  const TARPRE: Record<string, [number, number]> = { tic: [4.28, 3.95], mesken: [3.10, 2.85] };
+  const onTarpre = (key: string) => { const t = TARPRE[key]; if (t) setInputs((p) => ({ ...p, pBuy: t[0], pSell: t[1] })); };
+  /** Seçili ön ayar: alış/satış bir ön ayarla birebir aynıysa o, değilse "özel" */
+  const tarpre = Object.keys(TARPRE).find((k) => Math.abs(TARPRE[k][0] - inputs.pBuy) < 1e-6 && Math.abs(TARPRE[k][1] - inputs.pSell) < 1e-6) ?? 'custom';
+  const clipInfo = useMemo(() => ciClipping(inputs), [inputs]);
 
   // Ay içi gün dağılımı: seçili ay (dm) — elle girilmişse dayW[dm], değilse varsayılan
   const [dm, setDm] = useState(5);
@@ -594,6 +598,7 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
               <Card>
                 <div className="grid3">
                   <NumF label="Kurulu güç" unit="kWp, DC" tip={R.CI_TIPS.i_kwp} value={inputs.kwp} onChange={(v) => set('kwp', v)} step={mesken ? 0.5 : 10} />
+                  <NumF label="İnverter AC gücü" unit={`kWe · DC/AC ${clipInfo.ratio ? clipInfo.ratio.toFixed(2).replace('.', ',') : '—'}`} tip={R.CI_TIPS.i_kwac} value={inputs.kwac ?? inputs.kwp} onChange={(v) => set('kwac', v)} step={mesken ? 0.5 : 10} />
                   <NumF label="Spesifik üretim" unit="kWh/kWp/yıl" tip={R.CI_TIPS.i_spec} value={inputs.spec} onChange={(v) => set('spec', v)} step={10} />
                   <SelF label="Panel yerleşimi" tip={R.CI_TIPS.i_orient} value={inputs.orient} onChange={(v) => set('orient', v)} options={[{ value: 's', label: 'Güney (öğle tepeli)' }, { value: 'ew', label: 'Doğu-Batı (yayvan)' }]} />
                   <NumF label="Degradasyon" unit="%/yıl" tip={R.CI_TIPS.i_degr} value={inputs.degr} onChange={(v) => set('degr', v)} step={0.1} />
@@ -602,7 +607,8 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
                 <div className="formula">
                   <div className="fl">Formül · üretimin saate dağılımı</div>
                   <span className="ml"><span className="lbl">Aylık:</span>Üretim<sub>ay</sub> = kWp × spesifik üretim × ay payı (%)</span>
-                  <span className="ml"><span className="lbl">Saatlik:</span>Üretim<sub>ay,saat</sub> = Üretim<sub>ay,gün</sub> × gün şekli[saat]</span>
+                  <span className="ml"><span className="lbl">Saatlik:</span>Üretim<sub>ay,saat</sub> = min(Üretim<sub>ay,gün</sub> × gün şekli[saat], AC gücü)</span>
+                  <span className="ml"><span className="lbl">Kırpma:</span>DC {nf(inputs.kwp)} kWp / AC {nf(inputs.kwac ?? inputs.kwp)} kWe = {clipInfo.ratio ? clipInfo.ratio.toFixed(2).replace('.', ',') : '—'} · yıl-1 kırpma kaybı {nf(clipInfo.dc - clipInfo.ac)} kWh (%{clipInfo.lossPct.toFixed(1).replace('.', ',')})</span>
                   <Html className="subst" html={R.sProd(inputs)} />
                 </div>
               </Card>
@@ -612,7 +618,7 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
               <Card>
                 <div className="grid3">
                   <div className="field"><label><Tip tip={R.CI_TIPS.i_tarpre}>Tarife ön ayarı</Tip></label>
-                    <select value="" onChange={(e) => onTarpre(e.target.value)}><option value="" disabled>Seç…</option><option value="tic">Ticarethane AG (4,28 / 3,95)</option><option value="mesken">Mesken AG (3,10 / 2,85 — temsilî)</option></select></div>
+                    <select value={tarpre} onChange={(e) => onTarpre(e.target.value)}><option value="custom" disabled>Özel (elle girilen)</option><option value="tic">Ticarethane AG (4,28 / 3,95)</option><option value="mesken">Mesken AG (3,10 / 2,85 — temsilî)</option></select></div>
                   <NumF label="Alış fiyatı" unit="TL/kWh, aktif enerji" tip={R.CI_TIPS.i_pBuy} value={inputs.pBuy} onChange={(v) => set('pBuy', v)} step={0.01} />
                   <NumF label="Satış fiyatı" unit="TL/kWh, bedelli fazla" tip={R.CI_TIPS.i_pSell} value={inputs.pSell} onChange={(v) => set('pSell', v)} step={0.01} />
                   <NumF label="TL enflasyonu, ilk 5 yıl" unit="%/yıl → tarife & OPEX zammı" tip={R.CI_TIPS.i_esc1} value={inputs.esc1} onChange={(v) => set('esc1', v)} />
@@ -913,7 +919,7 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
                     </Card>
                   </div>
 
-                  <div className="exec-sect">Yıl-1 Enerji Dengesi</div>
+                  <div className="exec-sect">1. Yıl Enerji Dengesi</div>
                   <Card>
                     <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.balHtml(inputs, m) }} /></div>
                   </Card>
