@@ -30,6 +30,16 @@ export function printActivePage(from: HTMLElement) {
       d.textContent = el.value;
     }
   });
+  // SVG id çakışması: gradyan/klip id'leri gizli orijinalde de var → kopyada yeniden adlandır
+  const ids = new Map<string, string>();
+  copy.querySelectorAll('[id]').forEach((el) => { const nid = el.id + '-pp'; ids.set(el.id, nid); el.id = nid; });
+  if (ids.size) copy.querySelectorAll('*').forEach((el) => {
+    for (const at of Array.from(el.attributes)) {
+      if (!at.value.includes('#')) continue;
+      const v = at.value.replace(/url\(#([^)]+)\)/g, (m, id) => (ids.has(id) ? `url(#${ids.get(id)})` : m)).replace(/^#(.+)$/, (m, id) => (ids.has(id) ? `#${ids.get(id)}` : m));
+      if (v !== at.value) el.setAttribute(at.name, v);
+    }
+  });
   // Kapalı açılır bölümler PDF'te açık görünsün
   copy.querySelectorAll('details').forEach((d) => d.setAttribute('open', ''));
 
