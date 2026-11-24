@@ -383,16 +383,19 @@ export function monthlyChart(m: CiModel): string {
   });
   return s;
 }
-export function cumChart(i: CiInputs, m: CiModel): string {
-  const r = i.r / 100;
+/** Kümülatif nakit akışı (USD). discounted=false → iskontosuz (basit geri ödeme). */
+export function cumChart(i: CiInputs, m: CiModel, discounted = true): string {
+  const r = discounted ? i.r / 100 : 0;
   const pts = [-m.capex]; let cum = -m.capex;
   m.cfs.forEach((cf, k) => { cum += cf / Math.pow(1 + r, k + 1); pts.push(cum); });
   const W = 900, H = 240, pl = 70, pr = 12, pt = 14, pb = 26;
   const mn = Math.min(...pts, 0), mx = Math.max(...pts, 0);
+  const span = mx - mn;
+  const tick = (v: number) => (Math.abs(v) < 0.5 ? '0' : span >= 2e6 ? fmt(v / 1e6, 1) + 'M$' : span >= 2e4 ? fmt(v / 1e3, 0) + 'k$' : fmt(v, 0) + '$');
   const x = (k: number) => pl + (W - pl - pr) * k / (pts.length - 1);
   const y = (v: number) => pt + (H - pt - pb) * (1 - (v - mn) / ((mx - mn) || 1));
   let s = '';
-  for (let g = 0; g <= 4; g++) { const v = mn + (mx - mn) * g / 4; s += `<line x1="${pl}" y1="${y(v)}" x2="${W - pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl - 6}" y="${y(v) + 3}" text-anchor="end">${(v / 1e3).toFixed(0)}k$</text>`; }
+  for (let g = 0; g <= 4; g++) { const v = mn + (mx - mn) * g / 4; s += `<line x1="${pl}" y1="${y(v)}" x2="${W - pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl - 6}" y="${y(v) + 3}" text-anchor="end">${tick(v)}</text>`; }
   s += `<line x1="${pl}" y1="${y(0)}" x2="${W - pr}" y2="${y(0)}" stroke="#5A6478" stroke-dasharray="4 3"/>`;
   const bw = Math.max(3, (W - pl - pr) / pts.length * 0.55);
   pts.forEach((v, k) => {
@@ -403,9 +406,30 @@ export function cumChart(i: CiInputs, m: CiModel): string {
     const frac = -pts[k - 1] / (pts[k] - pts[k - 1]);
     const xi = x(k - 1) + (x(k) - x(k - 1)) * frac, yi = y(0);
     s += `<line x1="${xi}" y1="${pt}" x2="${xi}" y2="${H - pb}" stroke="#E8A020" stroke-dasharray="3 3"/>`;
-    s += `<circle cx="${xi}" cy="${yi}" r="5" fill="#E8A020" stroke="#fff" stroke-width="2"/><text x="${xi}" y="${yi - 9}" text-anchor="middle" style="font-weight:600;fill:#9A6A0E">iskontolu geri ödeme: ${fmt(k - 1 + frac, 2)} yıl</text>`;
+    s += `<circle cx="${xi}" cy="${yi}" r="5" fill="#E8A020" stroke="#fff" stroke-width="2"/><text x="${xi}" y="${yi - 9}" text-anchor="middle" style="font-weight:600;fill:#9A6A0E">${discounted ? 'iskontolu' : 'basit'} geri ödeme: ${fmt(k - 1 + frac, 2)} yıl</text>`;
     break;
   }
+  return s;
+}
+
+/** Yıl-1 aylık üretim ve tüketim — basit çizgi grafik (birim kWh/MWh otomatik). */
+export function prodConsChart(m: CiModel): string {
+  const mo = m.years[0].s.monthly;
+  const peak = Math.max(...mo.map((d) => Math.max(d.prod, d.cons)), 1);
+  const big = peak >= 10000, k = big ? 1000 : 1, unit = big ? 'MWh' : 'kWh';
+  const W = 900, H = 250, pl = 56, pr = 14, pt = 18, pb = 28;
+  const raw = peak / k / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 2.5, 5, 10].map((f) => f * mag).find((v) => v >= raw) ?? raw;
+  const mx = step * 4;
+  const x = (j: number) => pl + (W - pl - pr) * (j + 0.5) / 12;
+  const y = (v: number) => pt + (H - pt - pb) * (1 - v / k / mx);
+  let s = `<text x="${pl + 4}" y="${pt - 5}" style="font-weight:600">${unit}</text>`;
+  for (let g = 0; g <= 4; g++) { const v = step * g; const yy = pt + (H - pt - pb) * (1 - g / 4); s += `<line x1="${pl}" y1="${yy}" x2="${W - pr}" y2="${yy}" stroke="#E2E7EF"/><text x="${pl - 6}" y="${yy + 3}" text-anchor="end">${fmt(v, step < 1 ? 1 : 0)}</text>`; }
+  const line = (key: 'prod' | 'cons', col: string) => {
+    const pts = mo.map((d, j) => `${x(j)},${y(d[key])}`).join(' ');
+    return `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round"/>` + mo.map((d, j) => `<circle cx="${x(j)}" cy="${y(d[key])}" r="3.5" fill="#fff" stroke="${col}" stroke-width="2"/>`).join('');
+  };
+  s += line('cons', '#4A86C8') + line('prod', '#E2B33C');
+  MONTHS.forEach((mn, j) => { s += `<text x="${x(j)}" y="${H - 9}" text-anchor="middle">${mn.slice(0, 3)}</text>`; });
   return s;
 }
 

@@ -909,10 +909,20 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
                       <svg viewBox="0 0 900 250" width="100%" dangerouslySetInnerHTML={{ __html: R.monthlyChart(m) }} />
                       <div className="legend">
                         <span><i style={{ background: '#1E7F4F' }} />Mahsuplaşan</span>
-                        <span><i style={{ background: '#E8A020' }} />Fazla (bedelli)</span>
+                        <span><i style={{ background: '#E8A020' }} />{mesken ? 'Satılan fazla' : 'Fazla (bedelli)'}</span>
                         <span><i style={{ background: '#C9D3E4' }} />Çekiş</span>
-                        <span><i style={{ background: '#C7000B' }} />Bedelsiz</span>
+                        {!mesken && <span><i style={{ background: '#C7000B' }} />Bedelsiz</span>}
                       </div>
+                    </Card>
+                    <Card title="Üretim ve Tüketim" small="aylık (yıl-1)">
+                      <svg viewBox="0 0 900 250" width="100%" dangerouslySetInnerHTML={{ __html: R.prodConsChart(m) }} />
+                      <div className="legend">
+                        <span><i style={{ background: '#E2B33C' }} />GES üretimi</span>
+                        <span><i style={{ background: '#4A86C8' }} />Tüketim</span>
+                      </div>
+                    </Card>
+                    <Card title="Kümülatif Nakit Akışı" small="(USD, iskontosuz) · sıfır geçişi = basit geri ödeme">
+                      <svg viewBox="0 0 900 240" width="100%" dangerouslySetInnerHTML={{ __html: R.cumChart(inputs, m, false) }} />
                     </Card>
                     <Card title="Kümülatif İskontolu Nakit Akışı" small="(USD) · sıfır geçişi = iskontolu geri ödeme">
                       <svg viewBox="0 0 900 240" width="100%" dangerouslySetInnerHTML={{ __html: R.cumChart(inputs, m) }} />
