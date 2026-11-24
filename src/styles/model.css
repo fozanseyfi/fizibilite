@@ -267,7 +267,7 @@
   @page { size: A4; margin: 12mm 11mm 14mm; }
   body.mdl-printing > *:not(#mdl-report) { display: none !important; }
   body.mdl-printing #mdl-report { display: block; }
-  body.mdl-printing { background: #fff; font-size: 10.5px; color: #1A2436; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  body.mdl-printing { background: #fff; font-size: 10.5px; color: #1A2436; font-family: 'Times New Roman', Times, serif; }
 }
 /* Rapor stilleri: baskıda ve paylaşılan link sayfasında (/p) ekranda da kullanılır */
   /* Kurumsal palet: lacivert + gri; renk yalnız küçük fark işaretlerinde (soluk yeşil/kırmızı). */
@@ -327,6 +327,12 @@
   #mdl-report .pagebreak { page-break-before: always; }
   #mdl-report svg { max-width: 100%; height: auto; display: block; }
   #mdl-report svg text { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; fill: #5A6478; }
+  /* Rapor yazı tipi: klasik Times (tüm başlık, tablo, grafik yazıları) */
+  #mdl-report, #mdl-report *, #mdl-report svg text { font-family: 'Times New Roman', Times, 'Liberation Serif', serif !important; }
+  #mdl-report table { font-size: 9.4px; }
+  #mdl-report .r-note { font-size: 9.4px; }
+  #mdl-report svg text { font-size: 11px; }
+  #mdl-report .r-chart .r-cap, #mdl-report .r-eyebrow, #mdl-report h2 .rn { letter-spacing: .06em; }
 
   /* Alt bilgi */
   #mdl-report .r-foot { margin-top: 16px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 8px; color: #8892A4; display: flex; justify-content: space-between; }

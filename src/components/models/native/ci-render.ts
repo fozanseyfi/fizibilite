@@ -389,13 +389,16 @@ export function cumChart(i: CiInputs, m: CiModel, discounted = true): string {
   const pts = [-m.capex]; let cum = -m.capex;
   m.cfs.forEach((cf, k) => { cum += cf / Math.pow(1 + r, k + 1); pts.push(cum); });
   const W = 900, H = 240, pl = 70, pr = 12, pt = 14, pb = 26;
-  const mn = Math.min(...pts, 0), mx = Math.max(...pts, 0);
+  const raw0 = (Math.max(...pts, 0) - Math.min(...pts, 0)) / 4 || 1;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw0)));
+  const stepV = [1, 2, 2.5, 5, 10].map((f) => f * mag).find((v) => v >= raw0) ?? raw0;
+  const mn = Math.floor(Math.min(...pts, 0) / stepV) * stepV, mx = Math.ceil(Math.max(...pts, 0) / stepV) * stepV;
   const span = mx - mn;
-  const tick = (v: number) => (Math.abs(v) < 0.5 ? '0' : span >= 2e6 ? fmt(v / 1e6, 1) + 'M$' : span >= 2e4 ? fmt(v / 1e3, 0) + 'k$' : fmt(v, 0) + '$');
+  const tick = (v: number) => (Math.abs(v) < stepV / 1e6 ? '0' : span >= 2e6 ? fmt(v / 1e6, stepV >= 1e6 ? 0 : 1) + 'M$' : span >= 2e4 ? fmt(v / 1e3, 0) + 'k$' : fmt(v, 0) + '$');
   const x = (k: number) => pl + (W - pl - pr) * k / (pts.length - 1);
   const y = (v: number) => pt + (H - pt - pb) * (1 - (v - mn) / ((mx - mn) || 1));
   let s = '';
-  for (let g = 0; g <= 4; g++) { const v = mn + (mx - mn) * g / 4; s += `<line x1="${pl}" y1="${y(v)}" x2="${W - pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl - 6}" y="${y(v) + 3}" text-anchor="end">${tick(v)}</text>`; }
+  for (let v = mn; v <= mx + stepV / 2; v += stepV) { s += `<line x1="${pl}" y1="${y(v)}" x2="${W - pr}" y2="${y(v)}" stroke="#E2E7EF"/><text x="${pl - 6}" y="${y(v) + 3}" text-anchor="end">${tick(v)}</text>`; }
   s += `<line x1="${pl}" y1="${y(0)}" x2="${W - pr}" y2="${y(0)}" stroke="#5A6478" stroke-dasharray="4 3"/>`;
   const bw = Math.max(3, (W - pl - pr) / pts.length * 0.55);
   pts.forEach((v, k) => {
@@ -510,11 +513,20 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
   const mesken = i.abone === 'mesken';
   const rejim = mesken ? 'Mesken (aylık rejim)' : 'C&I (saatlik rejim)';
   let secNo = 0;
-  const sec = (title: string) => `<div class="r-block"><h2><span class="rn">${String(++secNo).padStart(2, '0')}</span>${title}</h2>`;
+  const sec = (title: string, newPage = false) => `<div class="r-block${newPage ? ' pagebreak' : ''}"><h2><span class="rn">${String(++secNo).padStart(2, '0')}</span>${title}</h2>`;
   const billNo = i.consY * y1.buy, netYes = y1.s.cek * y1.buy - y1.rev + y1.cost, savTL = billNo - netYes;
   const kpi = (l: string, v: string, cls = '') => `<div class="r-kpi${cls ? ' ' + cls : ''}"><div class="l">${l}</div><div class="v">${v}</div></div>`;
-  let rows = '';
-  m.years.forEach((yy) => { rows += `<tr><td>${yy.y}</td><td>${fmt((yy.s.mah + yy.s.shift) / 1000, 1)}</td><td>${fmt(yy.L.bedelli / 1000, 1)}</td><td>${fmt(yy.L.bedelsiz / 1000, 1)}</td><td>${fmt(yy.buy, 2)}</td><td>${fmt(yy.fx, 1)}</td><td>${fmt(yy.cfTL)}</td><td>${fmt(yy.cf)}</td></tr>`; });
+  // Nakit akışı tabloları (grafiklerle aynı seri: m.cfs, CAPEX yıl 0)
+  const rr = i.r / 100;
+  let cumU = -m.capex, cumD = -m.capex;
+  let rowsU = `<tr><td>0</td><td>—</td><td>—</td>${mesken ? '' : '<td>—</td>'}<td>—</td><td>${fmt(i.fx0, 1)}</td><td>—</td><td>${fmt(-m.capex)}</td><td>${fmt(cumU)}</td></tr>`;
+  let rowsD = `<tr><td>0</td><td>${fmt(-m.capex)}</td><td>1,000</td><td>${fmt(-m.capex)}</td><td>${fmt(cumD)}</td></tr>`;
+  m.years.forEach((yy, k) => {
+    const cf = m.cfs[k] ?? yy.cf, df = 1 / Math.pow(1 + rr, k + 1);
+    cumU += cf; cumD += cf * df;
+    rowsU += `<tr><td>${yy.y}</td><td>${fmt((yy.s.mah + yy.s.shift) / 1000, 1)}</td><td>${fmt(yy.L.bedelli / 1000, 1)}</td>${mesken ? '' : `<td>${fmt(yy.L.bedelsiz / 1000, 1)}</td>`}<td>${fmt(yy.buy, 2)}</td><td>${fmt(yy.fx, 1)}</td><td>${fmt(yy.cfTL)}</td><td>${fmt(cf)}</td><td>${fmt(cumU)}</td></tr>`;
+    rowsD += `<tr><td>${yy.y}</td><td>${fmt(cf)}</td><td>${fmt(df, 3)}</td><td>${fmt(cf * df)}</td><td>${fmt(cumD)}</td></tr>`;
+  });
   return `<div class="r-cover"><div class="r-eyebrow">${mesken ? 'Mesken Çatı GES · Aylık Mahsuplaşma · Ön Fizibilite Raporu' : 'C&I Saatlik Mahsuplaşma · Ön Fizibilite Raporu · EPDK Karar 14531'}</div><h1>${esc(meta.title)}</h1>`
     + `<div class="r-sub">${fmt(i.kwp)} kWp${i.bessOn ? ' + ' + fmt(i.bKwh) + ' kWh BESS' : ''} · ${fmt(i.consY / 1000, 0)} MWh/yıl tüketim · ${rejim} · ${fmt(i.life)} yıl analiz</div>`
     + `<div class="r-facts">`
@@ -547,17 +559,24 @@ export function reportCi(i: CiInputs, m: CiModel, meta: CiReportMeta): string {
     + (i.bessOn ? `<tr><td>Batarya (BESS)</td><td>${fmt(i.bKwh)} kWh / ${fmt(i.bKw)} kW · round-trip %${fmt(i.bRte)} · CAPEX ${fmt(i.bCapex)} $/kWh · degradasyon ${pct(i.bDegr, 1)}/yıl</td></tr>` : '')
     + `<tr><td>Finansman</td><td>GES CAPEX ${fmt(i.capexU)} $/kWp · OPEX ${fmt(i.opexU)} TL/kWp-yıl (TL enfl.) · iskonto %${fmt(i.r, 1)} USD${i.lOn ? ' · kredi %' + fmt(i.lRatio) + ' / faiz %' + fmt(i.lRate, 1) + ' / ' + i.lTerm + ' yıl' : ' · kredisiz'}</td></tr>`
     + `</tbody></table></div>`
-    + sec('1. Yıl Enerji Dengesi') + `<table>${balHtml(i, m)}</table>`
+    + sec('Yıllık Üretim ve Tüketim')
+    + `<div class="r-chart"><div class="r-cap">1. yıl aylık GES üretimi ve tüketim</div><svg viewBox="0 0 900 250" width="100%">${prodConsChart(m)}</svg>`
+    + `<div class="r-legend"><span><i style="background:#E2B33C"></i>GES üretimi (${fmt(y1.s.prod)} kWh/yıl)</span><span><i style="background:#4A86C8"></i>Tüketim (${fmt(i.consY)} kWh/yıl)</span></div></div>`
     + `<div class="r-chart"><div class="r-cap">Aylık dağılım — mahsup / ${mesken ? 'satılan fazla' : 'bedelli satış'} / şebekeden çekiş</div><svg viewBox="0 0 900 250" width="100%">${monthlyChart(m)}</svg>`
-    + `<div class="r-legend"><span><i style="background:#1E7F4F"></i>Mahsuplaşan</span><span><i style="background:#E8A020"></i>Fazla (bedelli)</span><span><i style="background:#C9D3E4"></i>Çekiş</span>${mesken ? '' : '<span><i style="background:#C7000B"></i>Bedelsiz</span>'}</div></div>${sankeySvg(reportFlows(i, m))}</div>`
+    + `<div class="r-legend"><span><i style="background:#1E7F4F"></i>Mahsuplaşan</span><span><i style="background:#E8A020"></i>${mesken ? 'Satılan fazla' : 'Fazla (bedelli)'}</span><span><i style="background:#C9D3E4"></i>Çekiş</span>${mesken ? '' : '<span><i style="background:#C7000B"></i>Bedelsiz</span>'}</div></div></div>`
+    + sec('Enerji Akışı — 1. Yıl') + sankeySvg(reportFlows(i, m)) + '</div>'
     + sec("Fatura Analizi — GES'siz Ne Gelecekti, GES'li Ne Geliyor")
     + `<p class="r-note">Yıl-1, girdiğiniz tarifeyle aktif enerji faturası: GES kurulmasaydı ödenecek tutar ile GES'li durumda şebekeden çekilen enerji ve fazla satış geliri sonrası kalan net tutar. GES'siz yıllık fatura <b>${fmt(billNo)} TL</b>, GES'li net fatura <b>${fmt(netYes)} TL</b>; fark <b>${fmt(savTL)} TL</b> (%${fmt(billNo > 0 ? savTL / billNo * 100 : 0, 1)}). İşletme gideri (OPEX) fatura kalemi olmadığından dahil değildir.</p>`
     + `<table>${billSumHtml(i, m)}</table><div class="r-cap" style="margin-top:10px">Aylık kırılım (yıl-1, TL)</div><table>${billMonthlyHtml(i, m)}</table></div>`
     + (mesken ? '' : sec('Saatlik vs Aylık Rejim') + `<table>${compareHtml(i)}</table></div>`)
-    + sec(`Yıllık Nakit Akışı (${fmt(i.life)} yıl)`)
-    + `<table><thead><tr><th>Yıl</th><th>Mahsup (MWh)</th><th>${mesken ? 'Satılan fazla' : 'Bedelli'} (MWh)</th><th>Bedelsiz (MWh)</th><th>Alış ₺/kWh</th><th>Kur ₺/$</th><th>Net CF (TL)</th><th>Net CF ($)</th></tr></thead><tbody>${rows}</tbody></table>`
+    + sec(`İskontosuz Nakit Akışı ve Basit Geri Ödeme (${fmt(i.life)} yıl)`, true)
+    + `<p class="r-note">Her yılın net nakit akışı (tasarruf + satış geliri − OPEX) USD'ye çevrilir ve iskonto uygulanmadan toplanır. Kümülatif değerin sıfırı geçtiği an basit geri ödemedir: <b>${Number.isFinite(m.pb) ? fmt(m.pb, 2) + ' yıl' : 'analiz süresinde geri ödenmiyor'}</b>.</p>`
+    + `<table><thead><tr><th>Yıl</th><th>Mahsup (MWh)</th><th>${mesken ? 'Satılan fazla' : 'Bedelli'} (MWh)</th>${mesken ? '' : '<th>Bedelsiz (MWh)</th>'}<th>Alış ₺/kWh</th><th>Kur ₺/$</th><th>Net CF (TL)</th><th>Net CF ($)</th><th>Kümülatif ($)</th></tr></thead><tbody>${rowsU}</tbody></table>`
+    + `<div class="r-chart"><div class="r-cap">Kümülatif nakit akışı (USD, iskontosuz) — sıfırı geçtiği an basit geri ödeme</div><svg viewBox="0 0 900 240" width="100%">${cumChart(i, m, false)}</svg></div></div>`
+    + sec(`İskontolu Nakit Akışı ve İskontolu Geri Ödeme (${fmt(i.life)} yıl)`, true)
+    + `<p class="r-note">Her yılın USD net nakit akışı %${fmt(i.r, 1)} iskonto oranıyla bugüne indirgenir: BD = CF ÷ (1 + r)<sup>t</sup>. Kümülatif bugünkü değerin sıfırı geçtiği an iskontolu geri ödemedir: <b>${Number.isFinite(m.pbD) ? fmt(m.pbD, 2) + ' yıl' : 'analiz süresinde geri ödenmiyor'}</b>. Son yıldaki kümülatif değer projenin NPV'sidir: <b>${usd(m.npv)}</b>.</p>`
+    + `<table><thead><tr><th>Yıl</th><th>Net CF ($)</th><th>İskonto faktörü</th><th>Bugünkü değer ($)</th><th>Kümülatif BD ($)</th></tr></thead><tbody>${rowsD}</tbody></table>`
     + `<div class="r-chart"><div class="r-cap">Kümülatif iskontolu nakit akışı (USD) — sıfırı geçtiği an iskontolu geri ödeme</div><svg viewBox="0 0 900 240" width="100%">${cumChart(i, m)}</svg></div></div>`
-    + sec('Senaryo Matrisi — Kötümser / Baz / İyimser') + `${scenMatrixCi(i)}</div>`
     + sec('Metodoloji ve Uyarılar')
     + (mesken ? `<p class="r-note">Mesken aboneleri aylık mahsuplaşmaya tabidir: her ay mahsup = min(aylık üretim, aylık tüketim); ay sonundaki fazla üretim satış fiyatından değerlenir, bedelli üretim limiti uygulanmaz. Yıllık tüketim ${i.home ? 'hane bilgilerinden yapılan tahmine ya da ' : ''}girilen değere, aylık dağılım ise ısınma ve soğutma mevsimselliğine dayanır. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır. Bu bir ön fizibilitedir; tarife ve bağlantı koşulları dağıtım şirketinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>` : '')
     + (mesken ? '' : `<p class="r-note">Motor, her işletme yılını 12 ay × takvim günü (hafta içi/sonu) deseniyle saatlik simüle eder; mahsup = Σ min(üretim, tüketim). Ay içi üretim, aylık ortalamalar arası interpolasyonla gün gün eğimlendirilir (ay toplamı korunur). Bedelli üretim limiti = önceki yıl tüketimi × 2; bedelli satış = min(yıllık fazla, limit − mahsup); kalan miktar YEKDEM'e bedelsiz yazılır (EPDK Karar 14531, MADDE 7 ve 9). BESS günlük döngüsel dispatch: fazladan şarj, çekişe RTE ile deşarj — arbitraj modellenmez. Mali sonuçlar USD'dir: TL net fayda her yıl kur patikasıyla çevrilir; tarife TL enflasyonu (+reel artış) ile zamlanır varsayılır; hava durumu rastgeleliği bilinçli modellenmez (P50). Bu bir ön fizibilitedir; tarife, bedelli limit ve şebeke bağlantı koşulları güncel mevzuat ve ilgili şebeke işletmecisinden teyit edilmelidir. Yatırım kararı için bağlayıcı değildir.</p>`)
@@ -573,11 +592,11 @@ export function reportFlows(i: CiInputs, m: CiModel): NetFlows {
   return netFlows(i, { mi: 'y', view: 'm', wd: true, we: true }, true);
 }
 
-/** Enerji akışı (Sankey) — rapor/baskı için statik SVG (ekrandaki NetSankey ile aynı düzen). */
+/** Enerji akışı (Sankey) — rapor/baskı için statik SVG: ince düğümler, etiketler dışarıda. */
 export function sankeySvg(f: NetFlows): string {
   type K = 'sun' | 'batOut' | 'grid' | 'batIn' | 'load' | 'gridOut';
-  const COL: Record<K, string> = { sun: '#E2B33C', batOut: '#4FA866', grid: '#4A86C8', batIn: '#4FA866', load: '#E07B3C', gridOut: '#4A86C8' };
-  const NAME: Record<K, string> = { sun: 'Güneş', batOut: 'Batarya', grid: 'Şebeke', batIn: 'Batarya', load: 'Yük kullanımı', gridOut: 'Şebeke' };
+  const COL: Record<K, string> = { sun: '#D9A21B', batOut: '#3E8E57', grid: '#3F78B5', batIn: '#3E8E57', load: '#D0662A', gridOut: '#3F78B5' };
+  const NAME: Record<K, string> = { sun: 'Güneş (GES)', batOut: 'Batarya deşarjı', grid: 'Şebekeden çekiş', batIn: 'Batarya şarjı', load: 'Tüketim (yük)', gridOut: 'Şebekeye fazla' };
   const big = Math.max(f.prod, f.cons) > 20000;
   const fE = (v: number) => `${fmt(big ? v / 1000 : v, big ? 1 : v < 100 ? 1 : 0)} ${big ? 'MWh' : 'kWh'}`;
   const flows = ([
@@ -589,49 +608,43 @@ export function sankeySvg(f: NetFlows): string {
   const right = (['batIn', 'load', 'gridOut'] as K[]).filter((k) => flows.some((x) => x.to === k));
   const tot = (k: K) => flows.filter((x) => x.from === k || x.to === k).reduce((s, x) => s + x.v, 0);
   const sumL = left.reduce((s, k) => s + tot(k), 0), sumR = right.reduce((s, k) => s + tot(k), 0);
-  const W = 900, H = 300, pt = 8, pb = 8, nodeW = 150, gap = 12, MIN = 24, avail = H - pt - pb;
-  const sideScale = (keys: K[], sum: number) => {
-    let sc = (avail - gap * (keys.length - 1)) / sum;
-    for (let it = 0; it < 3; it++) {
-      const small = keys.filter((k) => tot(k) * sc < MIN);
-      const rest = keys.filter((k) => !small.includes(k)).reduce((x, k) => x + tot(k), 0);
-      if (!small.length || rest <= 0) break;
-      sc = (avail - gap * (keys.length - 1) - MIN * small.length) / rest;
-    }
-    return sc;
-  };
-  const scale = Math.min(sideScale(left, sumL), sideScale(right, sumR));
+  const W = 900, H = 290, pt = 10, pb = 12, lab = 190, nodeW = 14, gap = 30, MIN = 6, avail = H - pt - pb;
+  const scale = Math.min((avail - gap * (left.length - 1)) / sumL, (avail - gap * (right.length - 1)) / sumR);
   const pos: Partial<Record<K, { x: number; y: number; h: number }>> = {};
   const place = (keys: K[], x: number) => {
     const hs = keys.map((k) => Math.max(tot(k) * scale, MIN));
     let y = pt + (avail - hs.reduce((a, h) => a + h, 0) - gap * (keys.length - 1)) / 2;
     keys.forEach((k, j) => { pos[k] = { x, y, h: hs[j] }; y += hs[j] + gap; });
   };
-  place(left, 0); place(right, W - nodeW);
+  place(left, lab); place(right, W - lab - nodeW);
   const outOff: Partial<Record<K, number>> = {}, inOff: Partial<Record<K, number>> = {};
   const b = new Map<(typeof flows)[number], { y0: number; y1: number; t: number }>();
   [...flows].sort((a, c) => right.indexOf(a.to) - right.indexOf(c.to)).forEach((x) => {
-    const o = outOff[x.from] ?? 0, t = x.v * scale; b.set(x, { y0: pos[x.from]!.y + o, y1: 0, t }); outOff[x.from] = o + t;
+    const o = outOff[x.from] ?? 0, t = Math.max(x.v * scale, 1); b.set(x, { y0: pos[x.from]!.y + o, y1: 0, t }); outOff[x.from] = o + t;
   });
   [...flows].sort((a, c) => left.indexOf(a.from) - left.indexOf(c.from)).forEach((x) => {
     const o = inOff[x.to] ?? 0, q = b.get(x)!; q.y1 = pos[x.to]!.y + o; inOff[x.to] = o + q.t;
   });
-  const x0 = nodeW, x1 = W - nodeW, cx = (x0 + x1) / 2;
-  let s = '<defs>' + flows.map((x, k) => `<linearGradient id="rsg${k}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="${COL[x.from]}"/><stop offset="1" stop-color="${COL[x.to]}"/></linearGradient>`).join('') + '</defs>';
-  flows.forEach((x, k) => {
+  const x0 = lab + nodeW, x1 = W - lab - nodeW, cx = (x0 + x1) / 2;
+  const T = (x: number, y: number, txt: string, st: string, anchor = 'start') => `<text x="${x}" y="${y}" text-anchor="${anchor}" style="${st}">${txt}</text>`;
+  const stName = 'font-family:inherit;font-size:13px;font-weight:700;fill:#1A2436';
+  const stVal = 'font-family:inherit;font-size:12px;fill:#4A5468';
+  let s = '';
+  flows.forEach((x) => {
     const q = b.get(x)!;
-    s += `<path d="M${x0},${q.y0} C${cx},${q.y0} ${cx},${q.y1} ${x1},${q.y1} L${x1},${q.y1 + q.t} C${cx},${q.y1 + q.t} ${cx},${q.y0 + q.t} ${x0},${q.y0 + q.t} Z" fill="url(#rsg${k})" opacity="0.45"/>`;
+    s += `<path d="M${x0},${q.y0} C${cx},${q.y0} ${cx},${q.y1} ${x1},${q.y1} L${x1},${q.y1 + q.t} C${cx},${q.y1 + q.t} ${cx},${q.y0 + q.t} ${x0},${q.y0 + q.t} Z" style="fill:${COL[x.from]};fill-opacity:.28;stroke:none"/>`;
+    // akış miktarı bandın ortasında (yeterince kalınsa)
+    if (q.t >= 14) s += T(x0 + 10, q.y0 + q.t / 2 + 4, `${fE(x.v)} → ${NAME[x.to].toLowerCase()}`, 'font-family:inherit;font-size:11.5px;font-weight:700;fill:#1A2436');
   });
   [...left, ...right].forEach((k) => {
-    const p = pos[k]!, isL = left.includes(k), share = tot(k) / (isL ? sumL : sumR) * 100, tall = p.h >= 44;
-    s += `<rect x="${p.x}" y="${p.y}" width="${nodeW}" height="${p.h}" rx="4" fill="${COL[k]}"/>`
-      + `<text x="${p.x + 9}" y="${p.y + (tall ? 17 : p.h / 2 + 4.5)}" fill="#fff" font-size="13" font-weight="700">${NAME[k]}${tall ? '' : '  ' + fE(tot(k))}</text>`
-      + (tall ? `<text x="${p.x + 9}" y="${p.y + 35}" fill="#fff" font-size="15" font-weight="700">${fE(tot(k))}</text>` : '')
-      + (p.h >= 70 ? `<text x="${p.x + nodeW - 9}" y="${p.y + p.h - 9}" text-anchor="end" fill="#fff" font-size="12.5" font-weight="600">%${fmt(share, 1)}</text>` : '');
+    const p = pos[k]!, isL = left.includes(k), share = tot(k) / (isL ? sumL : sumR) * 100;
+    s += `<rect x="${p.x}" y="${p.y}" width="${nodeW}" height="${p.h}" style="fill:${COL[k]}"/>`;
+    const tx = isL ? p.x - 10 : p.x + nodeW + 10, anchor = isL ? 'end' : 'start', cy = Math.min(Math.max(p.y + p.h / 2, pt + 12), H - 18);
+    s += T(tx, cy - 2, NAME[k], stName, anchor) + T(tx, cy + 13, `${fE(tot(k))} · %${fmt(share, 1)}`, stVal, anchor);
   });
   const c = Math.max(f.cons, 1e-9), pr = Math.max(f.prod, 1e-9);
-  return `<div class="r-chart"><div class="r-cap">Enerji akışı — ${esc(f.label)} · sol: enerji kaynağı, sağ: gittiği yer</div><svg viewBox="0 0 ${W} ${H}" width="100%" font-family="IBM Plex Sans, system-ui, sans-serif">${s}</svg>`
-    + `<p class="r-note">Yük kullanımının %${fmt(f.mah / c * 100, 1)}'i doğrudan güneşten${f.dch > 0 ? ', %' + fmt(f.dch / c * 100, 1) + "'i bataryadan" : ''}, %${fmt(f.cek / c * 100, 1)}'i şebekeden karşılanır. Üretimin %${fmt(f.faz / pr * 100, 1)}'i şebekeye fazla olarak gider.</p></div>`;
+  return `<div class="r-chart"><div class="r-cap">${esc(f.label)} · solda enerjinin kaynağı, sağda gittiği yer</div><svg viewBox="0 0 ${W} ${H}" width="100%">${s}</svg></div>`
+    + `<p class="r-note">Tüketimin %${fmt(f.mah / c * 100, 1)}'i doğrudan güneşten${f.dch > 0 ? ', %' + fmt(f.dch / c * 100, 1) + "'i bataryadan" : ''}, %${fmt(f.cek / c * 100, 1)}'i şebekeden karşılanır. Üretimin %${fmt(f.faz / pr * 100, 1)}'i şebekeye fazla olarak gider.</p>`;
 }
 
 /** Enerji akışı toplamları (kWh) — mahsuplaşma görünümünde seçili dönem ve gün tipleri için. */

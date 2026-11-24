@@ -48,8 +48,13 @@ describe('Rapor enerji akışı', () => {
   it('C&I ve Mesken raporlarında Sankey var', () => {
     for (const i of [defaultCiInputs(), defaultMeskenInputs()]) {
       const r = reportCi(i, computeCi(i), meta);
-      expect(r).toContain('Enerji akışı');
-      expect(r).toContain('Yük kullanımı');
+      expect(r).toContain('Enerji Akışı');
+      expect(r).toContain('Tüketim (yük)');
+      expect(r).toContain('Yıllık Üretim ve Tüketim');
+      expect(r).toContain('İskontosuz Nakit Akışı');
+      expect(r).toContain('İskontolu Nakit Akışı');
+      expect(r).not.toContain('Enerji Dengesi');
+      expect(r).not.toContain('Senaryo Matrisi');
       expect(r).not.toContain('NaN');
     }
   });
