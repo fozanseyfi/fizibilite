@@ -93,7 +93,7 @@ function Note({ children }: { children: React.ReactNode }) { return <div classNa
 
 export function UtilityModel({ projectId, initialInputs }: { projectId?: string; initialInputs?: UtilityInputs }) {
   const [inputs, setInputs] = useState<UtilityInputs>(() => ({ ...defaultUtilityInputs(), ...(initialInputs ?? {}) }));
-  const [tab, setTab] = useState<'fiz' | 'hw' | 'sum'>('fiz');
+  const [tab, setTab] = useState<'fiz' | 'cf' | 'sens' | 'tech' | 'hw' | 'sum'>('fiz');
   const [scens, setScens] = useState<R.TechScen[]>(() => R.techPresets({ ...defaultUtilityInputs(), ...(initialInputs ?? {}) }));
   const saving = false;
   const [printing, setPrinting] = useState(false);
@@ -132,8 +132,11 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
           <div className="hwrap tabs-row">
             <nav role="tablist">
               <button className={tab === 'fiz' ? 'active' : ''} onClick={() => setTab('fiz')}>1 · Fizibilite Modeli</button>
-              <button className={tab === 'hw' ? 'active' : ''} onClick={() => setTab('hw')}>2 · Huawei Değer Analizi</button>
-              <button className={tab === 'sum' ? 'active' : ''} onClick={() => setTab('sum')}>3 · Sonuçlar</button>
+              <button className={tab === 'cf' ? 'active' : ''} onClick={() => setTab('cf')}>2 · Nakit Akışı ve Borç</button>
+              <button className={tab === 'sens' ? 'active' : ''} onClick={() => setTab('sens')}>3 · Duyarlılık ve Senaryolar</button>
+              <button className={tab === 'tech' ? 'active' : ''} onClick={() => setTab('tech')}>4 · Teknoloji Karşılaştırması</button>
+              <button className={tab === 'hw' ? 'active' : ''} onClick={() => setTab('hw')}>5 · Huawei Değer Analizi</button>
+              <button className={tab === 'sum' ? 'active' : ''} onClick={() => setTab('sum')}>6 · Sonuçlar</button>
             </nav>
             <TabActions onReport={() => setPrinting(true)} onSave={save} saveLabel={projectId ? 'Güncelle & Kaydet' : 'Projeyi Kaydet'} onDelete={projectId ? del : undefined} err={err} saving={saving} />
           </div>
@@ -154,7 +157,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
                 <NumF label="Kurulu güç" unit="MWp, DC" tip={T.mw} value={inputs.mw} onChange={(v) => set('mw', v)} />
                 <NumF label="Toplam EPC CAPEX" unit="$/kWp" tip={T.capexUnit} value={inputs.capexUnit} onChange={(v) => set('capexUnit', v)} step={5} />
               </div>
-              <div className="explain"><Card label="Formül" html={R.sCapex(p, m)} /><Note>Bu model CAPEX ile çalışır; detaylı BoQ ve CAPEX-OPEX için <a href="https://teklif.fozanseyfi.com/" target="_blank" rel="noopener">teklif platformu</a>. Toplam proje maliyeti, IDC + ücretler + DSRA + KDV taşıma eklenerek Adım 9’da oluşur.</Note></div>
+              <div className="explain"><Card label="Formül" html={R.sCapex(p, m)} /><Note>Bu model CAPEX ile çalışır; detaylı BoQ ve CAPEX-OPEX için <a href="https://teklif.fozanseyfi.com/" target="_blank" rel="noopener">teklif platformu</a>. Toplam proje maliyeti, IDC + ücretler + DSRA + KDV taşıma eklenerek “Nakit Akışı ve Borç” sekmesinde oluşur.</Note></div>
             </Step>
 
             <Step no="ADIM 2" title="Enerji Üretimi — P50/P90, Availability, Curtailment" why="Banka P90 + curtailment ile test eder; yatırım komitesi P50’ye bakar.">
@@ -288,9 +291,13 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
               <div className="explain"><Card label="Formül · Kredi tutarına adım adım nasıl ulaşılır" html={R.sFin(p, m)} /><Note>Vade = grace (yalnız faiz) + itfa yılları. Sculpted’de vade sonunda bakiye kalırsa model uyarır — çözüm gearing’i düşürmek veya vadeyi uzatmaktır.</Note></div>
             </Step>
 
-            {/* ADIM 9 sonuçlar */}
+          </div>
+
+          {/* ==================== TAB 2 NAKİT AKIŞI VE BORÇ ==================== */}
+          <div className={`tab ${tab === 'cf' ? 'active' : ''}`}>
+            {/* Kaynak–kullanım */}
             <div className="step">
-              <div className="step-head"><span className="step-no">ADIM 9</span><h2>Kaynak–Kullanım ve Sonuçlar</h2></div>
+              <div className="step-head"><span className="step-no">FİNANSMAN</span><h2>Kaynak–Kullanım ve Ana Denklemler</h2><span className="why">Toplam proje maliyeti: EPC CAPEX + IDC + ücretler + DSRA + KDV taşıma.</span></div>
               <div className="step-body single">
                 <div className="su">
                   <div className="sucard"><h4>Kullanımlar (Uses)</h4><table><tbody>
@@ -309,6 +316,23 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
               </div>
             </div>
 
+            {/* Kümülatif grafik */}
+            <div className="chartcard">
+              <h3>Kümülatif iskontolu serbest nakit akışı (kaldıraçsız) — sıfırı geçtiği yıl iskontolu geri ödemedir</h3>
+              <SeriesChart points={R.cumPoints(m)} color="#18428F" />
+            </div>
+
+            <h3 className="sect">İşletme Dönemi Nakit Akışı</h3>
+            <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.cfTableHtml(p, m) }} /></div>
+            <p className="tsub">Sarı satır: basit geri ödeme yılı. Ekranda ilk 12 yıl + son yıl.</p>
+
+            <h3 className="sect">Borç Takvimi</h3>
+            <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.debtTableHtml(p, m) }} /></div>
+            <p className="tsub">Grace döneminde yalnız faiz ödenir. Sculpted yöntemde anapara, DSCR’ı hedefte tutacak şekilde yıllara dağıtılır.</p>
+          </div>
+
+          {/* ==================== TAB 3 DUYARLILIK VE SENARYOLAR ==================== */}
+          <div className={`tab ${tab === 'sens' ? 'active' : ''}`}>
             {/* Duyarlılık */}
             <div className="step">
               <div className="step-head"><span className="step-no">ANALİZ</span><h2>Duyarlılık — Proje IRR ve Min. DSCR</h2><span className="why">Banka, downside senaryolarında oranların dayanıp dayanmadığına bakar.</span></div>
@@ -321,6 +345,16 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
               <div className="step-body single"><div className="senswrap" dangerouslySetInnerHTML={{ __html: R.beHtml(inputs, p, m) }} /></div>
             </div>
 
+            {/* Senaryo matrisi */}
+            <div className="step">
+              <div className="step-head"><span className="step-no">ANALİZ</span><h2>Senaryo Matrisi — Kötümser / Baz / İyimser</h2><span className="why">Üç kaldıraç (fiyat, üretim, CAPEX) aynı anda hareket eder — yatırım komitesinin ilk baktığı tablo.</span></div>
+              <div className="step-body single"><div className="senswrap" dangerouslySetInnerHTML={{ __html: R.scenMatrix(inputs, p) }} /></div>
+            </div>
+
+          </div>
+
+          {/* ==================== TAB 4 TEKNOLOJİ ==================== */}
+          <div className={`tab ${tab === 'tech' ? 'active' : ''}`}>
             {/* Teknoloji senaryoları — Tracker / Bifacial / İnverter */}
             <div className="step">
               <div className="step-head"><span className="step-no">SENARYO</span><h2>Teknoloji Karşılaştırması — Sabit / Bifacial / Tracker / DC-AC</h2><span className="why">Aynı finansman yapısı altında teknoloji seçiminin KPI etkisi.</span></div>
@@ -347,32 +381,13 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
                 </table></div>
                 <button type="button" className="btn-mini" onClick={() => setScens(R.techPresets(inputs))}>↺ Varsayılan senaryolara dön (canlı girdilerden türet)</button>
                 <div className="tablewrap" style={{ marginTop: 12 }}><table dangerouslySetInnerHTML={{ __html: techOut }} /></div>
-                <p className="tsub" style={{ marginBottom: 0 }}>Baz sütunu Adım 1–2–3 girdilerini canlı izler; diğer sütunlar düzenlenebilir. Yeşil hücre: satırın en iyi değeri. Parantez: baza göre fark. Tipik teknoloji farkları sahaya göre değişir — kesin değerler PVsyst karşılaştırmasından alınmalıdır.</p>
+                <p className="tsub" style={{ marginBottom: 0 }}>Baz sütunu Fizibilite Modeli sekmesindeki Adım 1–2–3 girdilerini canlı izler; diğer sütunlar düzenlenebilir. Yeşil hücre: satırın en iyi değeri. Parantez: baza göre fark. Tipik teknoloji farkları sahaya göre değişir — kesin değerler PVsyst karşılaştırmasından alınmalıdır.</p>
               </div>
             </div>
 
-            {/* Senaryo matrisi */}
-            <div className="step">
-              <div className="step-head"><span className="step-no">ANALİZ</span><h2>Senaryo Matrisi — Kötümser / Baz / İyimser</h2><span className="why">Üç kaldıraç (fiyat, üretim, CAPEX) aynı anda hareket eder — yatırım komitesinin ilk baktığı tablo.</span></div>
-              <div className="step-body single"><div className="senswrap" dangerouslySetInnerHTML={{ __html: R.scenMatrix(inputs, p) }} /></div>
-            </div>
-
-            {/* Kümülatif grafik */}
-            <div className="chartcard">
-              <h3>Kümülatif iskontolu serbest nakit akışı (kaldıraçsız) — sıfırı geçtiği yıl iskontolu geri ödemedir</h3>
-              <SeriesChart points={R.cumPoints(m)} color="#18428F" />
-            </div>
-
-            <h3 className="sect">İşletme Dönemi Nakit Akışı</h3>
-            <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.cfTableHtml(p, m) }} /></div>
-            <p className="tsub">Sarı satır: basit geri ödeme yılı. Ekranda ilk 12 yıl + son yıl.</p>
-
-            <h3 className="sect">Borç Takvimi</h3>
-            <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.debtTableHtml(p, m) }} /></div>
-            <p className="tsub">Grace döneminde yalnız faiz ödenir. Sculpted yöntemde anapara, DSCR’ı hedefte tutacak şekilde yıllara dağıtılır.</p>
           </div>
 
-          {/* ==================== TAB 2 HUAWEI ==================== */}
+          {/* ==================== TAB 5 HUAWEI ==================== */}
           <div className={`tab ${tab === 'hw' ? 'active' : ''}`}>
             <div className="pitch">
               <div className="plabel">Özet değerlendirme · otomatik oluşturulur</div>
@@ -397,7 +412,7 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
             </div>
           </div>
 
-          {/* ==================== TAB 3 SONUÇLAR ==================== */}
+          {/* ==================== TAB 6 SONUÇLAR ==================== */}
           <div className={`tab ${tab === 'sum' ? 'active' : ''}`}>
             <div className="exec-hero">
               <div className="eh-top">
@@ -449,8 +464,6 @@ export function UtilityModel({ projectId, initialInputs }: { projectId?: string;
               </>
             )}
 
-            <div className="exec-sect">Senaryo Matrisi — Kötümser / Baz / İyimser</div>
-            <div className="senswrap" dangerouslySetInnerHTML={{ __html: R.scenMatrix(inputs, p) }} />
           </div>
         </div>
       </div>
