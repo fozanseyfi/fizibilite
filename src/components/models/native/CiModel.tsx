@@ -826,7 +826,7 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
           {/* ==================== TAB 3: FATURA ==================== */}
           <div className={`tab ${tab === 'bill' ? 'active' : ''}`}>
             <Step no="FATURA" title="Mevcut Operasyon vs GES Operasyonu" why="GES kurulmadan önce fatura ne gelecekti, kurulunca ne gelecek?">
-              <Card title="Yıl-1 Özet — Aktif Enerji Faturası" small={mesken ? '· aylık rejim, girdiğin tarifeyle' : '· saatlik rejim, girdiğin tarifeyle'}>
+              <Card title="1. Yıl Özet — Aktif Enerji Faturası" small={mesken ? '· aylık rejim, girdiğin tarifeyle' : '· saatlik rejim, girdiğin tarifeyle'}>
                 <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.billSumHtml(inputs, m) }} /></div>
                 <p className="tsub">Tablo aktif enerji kalemini karşılaştırır. GES&apos;li satırda fazla satış geliri fatura mahsubu değil, görevli tedarik şirketinden alacaktır. GES işletme gideri (OPEX) bir fatura kalemi olmadığından buraya dahil edilmez.</p>
               </Card>
@@ -919,9 +919,9 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
                     </Card>
                   </div>
 
-                  <div className="exec-sect">1. Yıl Enerji Dengesi</div>
+                  <div className="exec-sect">1. Yıl Özet — Aktif Enerji Faturası <span className="exec-sub">{mesken ? '· aylık rejim, girdiğin tarifeyle' : '· saatlik rejim, girdiğin tarifeyle'}</span></div>
                   <Card>
-                    <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.balHtml(inputs, m) }} /></div>
+                    <div className="tablewrap"><table dangerouslySetInnerHTML={{ __html: R.billSumHtml(inputs, m) }} /></div>
                   </Card>
 
                   <div className="exec-sect">Senaryo Matrisi — Kötümser / Baz / İyimser</div>

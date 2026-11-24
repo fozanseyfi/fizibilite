@@ -1666,7 +1666,7 @@
 "· seçili gün × gün sayısı → ay → yıl":"· selected day × number of days → month → year",
 "Ay toplamı = hafta içi günü × Hİ gün sayısı + hafta sonu günü × HS gün sayısı. Yıl toplamı, 12 ayın aynı yöntemle toplamıdır.":"Month total = weekday × number of WD days + weekend day × number of WE days. The year total is the sum of the 12 months with the same method.",
 "GES kurulmadan önce fatura ne gelecekti, kurulunca ne gelecek?":"What would the bill have been before PV, and what will it be with PV?",
-"Yıl-1 Özet — Aktif Enerji Faturası":"Year-1 Summary — Active Energy Bill",
+"1. Yıl Özet — Aktif Enerji Faturası":"Year 1 Summary — Active Energy Bill",
 "· saatlik rejim, girdiğin tarifeyle":"· hourly regime, with your tariff",
 "Tablo aktif enerji kalemini karşılaştırır. GES'li satırda fazla satış geliri fatura mahsubu değil, görevli tedarik şirketinden alacaktır. GES işletme gideri (OPEX) bir fatura kalemi olmadığından buraya dahil edilmez.":"The table compares the active energy item. In the PV row, surplus sales revenue is not a bill offset but a receivable from the incumbent supplier. PV operating cost (OPEX) is not a bill item, so it is not included here.",
 "Aylık Kırılım":"Monthly Breakdown",
