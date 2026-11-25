@@ -187,13 +187,15 @@ export function SeriesChart({ points, color = '#18428F', payback = 'geri ödeme'
   const W = 900, H = 260, padL = 74, padR = 16, padT = 16, padB = 30;
   const n = points.length;
   const mn = Math.min(...points, 0), mx = Math.max(...points, 0);
-  const x = (i: number) => padL + ((W - padL - padR) * i) / (n - 1);
-  const y = (v: number) => padT + (H - padT - padB) * (1 - (v - mn) / ((mx - mn) || 1));
+  // Çubuk genişliği kadar içeriden başla: ilk çubuk eksen etiketlerinin üstüne binmesin
   const bw = Math.max(3, ((W - padL - padR) / n) * 0.55);
+  const x0 = padL + bw / 2 + 4, x1 = W - padR - bw / 2;
+  const x = (i: number) => x0 + ((x1 - x0) * i) / Math.max(1, n - 1);
+  const y = (v: number) => padT + (H - padT - padB) * (1 - (v - mn) / ((mx - mn) || 1));
   const axl = (v: number) => (Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + 'M$' : (v / 1e3).toFixed(0) + 'k$');
   let payIdx = -1;
   for (let i = 1; i < n; i++) if (points[i - 1] < 0 && points[i] >= 0) { payIdx = i; break; }
-  const step = (W - padL - padR) / Math.max(1, n - 1);
+  const step = (x1 - x0) / Math.max(1, n - 1);
   const cols: HoverCol[] = points.map((v, i) => ({
     x0: x(i) - step / 2, x1: x(i) + step / 2,
     title: i === 0 ? '0. yıl (yatırım)' : `${i}. yıl`,
@@ -223,7 +225,7 @@ export function SeriesChart({ points, color = '#18428F', payback = 'geri ödeme'
         <circle cx={x(payIdx)} cy={y(points[payIdx])} r="5" fill="#E8A020" stroke="#fff" strokeWidth="2" />
         <text x={x(payIdx)} y={y(points[payIdx]) - 10} textAnchor="middle" style={{ fontWeight: 600, fill: '#9A6A0E' }}>{payback}: {payIdx}. yıl</text>
       </g>)}
-      <text x={padL} y={H - 10}>yıl →</text>
+      <text x={padL - 8} y={H - 10} textAnchor="end">yıl →</text>
     </svg>
     </HoverChart>
   );

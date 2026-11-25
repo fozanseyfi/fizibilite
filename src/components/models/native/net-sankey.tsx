@@ -128,7 +128,7 @@ export function NetSankey({ f }: { f: NetFlows }) {
       <div className="ns-tip" aria-live="polite">
         {hover !== null
           ? <><b>{flows[hover].label}:</b> {fmtE(flows[hover].v)} · kaynağının {pct(flows[hover].v / tot(flows[hover].from) * 100, 1)}&apos;i</>
-          : <>Yük kullanımının <b>{pct(f.mah / Math.max(f.cons, 1e-9) * 100, 1)}</b>&apos;i doğrudan güneşten{f.dch > 0 && <>, <b>{pct(f.dch / Math.max(f.cons, 1e-9) * 100, 1)}</b>&apos;i bataryadan</>}, <b>{pct(f.cek / Math.max(f.cons, 1e-9) * 100, 1)}</b>&apos;i şebekeden karşılanıyor. Üretimin <b>{pct(f.faz / Math.max(f.prod, 1e-9) * 100, 1)}</b>&apos;i şebekeye fazla olarak gidiyor. Bantların üzerine gelince ayrıntı görünür.</>}
+          : <>Yük kullanımının <b>{pct(f.mah / Math.max(f.cons, 1e-9) * 100, 1)}</b>&apos;i doğrudan güneşten{f.dch > 0 && <>, <b>{pct(f.dch / Math.max(f.cons, 1e-9) * 100, 1)}</b>&apos;i bataryadan</>}, <b>{pct(f.cek / Math.max(f.cons, 1e-9) * 100, 1)}</b>&apos;i şebekeden karşılanıyor. Üretimin <b>{pct(f.faz / Math.max(f.prod, 1e-9) * 100, 1)}</b>&apos;i şebekeye fazla olarak gidiyor. <span className="no-print">Bantların üzerine gelince ayrıntı görünür.</span></>}
       </div>
     </div>
   );

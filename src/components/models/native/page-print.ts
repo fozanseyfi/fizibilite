@@ -11,24 +11,51 @@ export function printActivePage(from: HTMLElement) {
   const header = root.querySelector('.m-header') as HTMLElement | null;
   const tabName = (root.querySelector('.m-tabs nav .active')?.textContent ?? '').trim();
 
-  // Kopya: girilmiş değerler (input/select/textarea) da görünsün
+  // Kopya — rapor görünümü: form kontrolleri girilen değerin düz metnine dönüşür
   const copy = tab.cloneNode(true) as HTMLElement;
   const src = tab.querySelectorAll('input, select, textarea');
   const dst = copy.querySelectorAll('input, select, textarea');
   src.forEach((el, i) => {
     const d = dst[i];
     if (!d) return;
-    if (el instanceof HTMLInputElement && d instanceof HTMLInputElement) {
+    const val = document.createElement('span');
+    val.className = 'pp-val' + (d.classList.contains('rem') || d.classList.contains('remz') ? ' rem' : '');
+    if (el instanceof HTMLInputElement) {
       if (el.type === 'checkbox' || el.type === 'radio') {
-        if (el.checked) d.setAttribute('checked', '');
-        else d.removeAttribute('checked');
-      } else d.setAttribute('value', el.value);
-    } else if (el instanceof HTMLSelectElement && d instanceof HTMLSelectElement) {
-      Array.from(d.options).forEach((o, k) => (o.selected = k === el.selectedIndex));
-      d.options[el.selectedIndex]?.setAttribute('selected', '');
-    } else if (el instanceof HTMLTextAreaElement && d instanceof HTMLTextAreaElement) {
-      d.textContent = el.value;
+        if (el.type === 'radio' && !el.checked) {
+          // seçilmemiş seçenek gösterilmez
+          const lbl = d.closest('label');
+          (lbl ?? d).remove();
+          return;
+        }
+        val.className = 'pp-check';
+        val.textContent = el.checked ? '☑' : '☐';
+      } else if (el.type === 'hidden') {
+        d.remove();
+        return;
+      } else val.textContent = el.value === '' ? (el.placeholder ? '—' : '') : el.value;
+    } else if (el instanceof HTMLSelectElement) {
+      val.textContent = el.options[el.selectedIndex]?.text ?? '';
+    } else if (el instanceof HTMLTextAreaElement) {
+      val.classList.add('pp-text');
+      val.textContent = el.value || '—';
     }
+    d.replaceWith(val);
+  });
+  // Düğmeler: seçenek gruplarında yalnız seçili olan etiket olarak kalır; eylem düğmeleri çıkar
+  copy.querySelectorAll('button').forEach((b) => {
+    const on = b.classList.contains('active') || b.getAttribute('aria-pressed') === 'true' || b.getAttribute('aria-selected') === 'true';
+    const txt = (b.textContent ?? '').trim();
+    if (!on || !txt) { b.remove(); return; }
+    const chip = document.createElement('span');
+    chip.className = 'pp-chip';
+    chip.textContent = txt;
+    b.replaceWith(chip);
+  });
+  copy.querySelectorAll('.chips, .tab-actions').forEach((c) => { if (!c.textContent?.trim()) c.remove(); });
+  // Grafik kartı başlığıyla birlikte aynı sayfada kalsın (tablo/ızgara içeren uzun kartlar bölünebilir)
+  copy.querySelectorAll('.card, .chartcard').forEach((c) => {
+    if (c.querySelector('svg') && !c.querySelector('table, .hgrid, .card, .chartcard')) c.classList.add('pp-keep');
   });
   // SVG id çakışması: gradyan/klip id'leri gizli orijinalde de var → kopyada yeniden adlandır
   const ids = new Map<string, string>();

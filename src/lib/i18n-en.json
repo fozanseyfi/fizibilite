@@ -2801,6 +2801,8 @@
 "'i bataryadan":" from the battery",
 "'i şebekeden karşılanıyor. Üretimin":" from the grid. Of generation,",
 "'i şebekeye fazla olarak gidiyor. Bantların üzerine gelince ayrıntı görünür.":" goes to the grid as surplus. Hover over the bands for details.",
+"'i şebekeye fazla olarak gidiyor.":" goes to the grid as surplus.",
+"Bantların üzerine gelince ayrıntı görünür.":"Hover over the bands for details.",
 "· kaynağının":"· of its source:",
 "'i":" ",
 "2 · Mahsuplaşma":"2 · Netting",

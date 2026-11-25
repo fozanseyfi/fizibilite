@@ -409,7 +409,7 @@ export function CiModel({ projectId, initialInputs, variant = 'ci' }: { projectI
                   <div className="prof-left">
                     {lockMonthly ? <div className="lock-note">🔒 Aylık dağılım Excel verisinden geldi — ön ayar kapalı. Değerleri kutulardan ya da grafikten düzeltebilirsiniz.</div> : <SelF label="Aylık dağılım ön ayarı" tip={R.CI_TIPS.i_season} value={inputs.season} onChange={onSeason} options={[{ value: 'flat', label: 'Düz (yıl boyu eşit)' }, { value: 'yaz', label: 'Yaz pik (klima/soğutma)' }, { value: 'kis', label: 'Kış pik (ısıtma)' }]} />}
                     <PctGrid labels={MONTHS} values={inputs.monthly} onChange={(a) => set('monthly', a)} cols={4} />
-                    <p className="tsub">Kutulara yazabilir ya da sağdaki grafikte bir ayın çubuğunu tutup yukarı/aşağı çekebilirsiniz. Aralık, toplamı 100&apos;e tamamlayan kalan değerdir.</p>
+                    <p className="tsub no-print">Kutulara yazabilir ya da sağdaki grafikte bir ayın çubuğunu tutup yukarı/aşağı çekebilirsiniz. Aralık, toplamı 100&apos;e tamamlayan kalan değerdir.</p>
                   </div>
                   <div className="prof-right">
                     {lblToggles}

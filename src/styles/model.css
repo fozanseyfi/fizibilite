@@ -426,24 +426,105 @@
 .mdl .strat-ways { margin: 0 0 0 18px; padding: 0; list-style: disc; font-size: 13.5px; color: var(--ink); line-height: 1.55; }
 .mdl .strat-ways li { margin-bottom: 4px; }
 
-/* ---------- Sayfa PDF (yalnız aktif sekme) — page-print.ts ---------- */
+/* ---------- Sayfa PDF (yalnız aktif sekme) — page-print.ts ----------
+   Ekran görüntüsü değil rapor görünümü: Times, sıkı yerleşim, form kutuları düz metin,
+   A4 genişliğinde mobil düzene düşmeyen ızgaralar, kartlar sayfa arasında bölünebilir. */
 #mdl-page-print { display: none; }
-#mdl-page-print .pp-tabname { font-weight: 700; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: #5A6478; padding: 10px 2px 4px; border-bottom: 1px solid #D9E0EC; margin-bottom: 8px; }
-#mdl-page-print .page-print .no-print,
-#mdl-page-print .page-print .step-rail,
-#mdl-page-print .page-print .hc-tip { display: none !important; }
-#mdl-page-print .page-print .m-main { padding-top: 0; }
-/* Kopya yeni eklendiği için açılış animasyonu (opacity 0 → 1) baskıda başlangıçta donar → boş sayfa. Kapat. */
-#mdl-page-print, #mdl-page-print * { animation: none !important; transition: none !important; }
-#mdl-page-print .tab.active { display: block !important; opacity: 1 !important; transform: none !important; }
-/* Kaydırmalı tablolar kağıtta kesilmesin: kaydırma kalkar, tablo sayfa genişliğine sığar */
-#mdl-page-print .tablewrap, #mdl-page-print .senswrap { overflow: visible !important; }
-#mdl-page-print table { white-space: normal !important; width: 100% !important; font-size: 10.5px; table-layout: auto; }
-#mdl-page-print th, #mdl-page-print td { padding: 4px 6px !important; }
+#mdl-page-print .page-print {
+  --sans: 'Times New Roman', Times, 'Liberation Serif', serif; --disp: var(--sans); --mono: var(--sans);
+  --shadow: none; --radius: 5px; --line: #D9E0EC; --navy: #1E3A6E; --navy-deep: #0E2A5E; --gold: #B7791F; --gold-soft: #F1F3F7;
+  font-family: var(--sans); font-size: 11px; line-height: 1.45; color: #1A2436; background: #fff;
+}
+#mdl-page-print .page-print * { box-shadow: none !important; animation: none !important; transition: none !important; }
+#mdl-page-print .page-print svg text { font-family: var(--sans) !important; }
+#mdl-page-print .page-print .no-print, #mdl-page-print .page-print .step-rail, #mdl-page-print .page-print .hc-tip, #mdl-page-print .page-print .tab-actions, #mdl-page-print .page-print .btn-pdf, #mdl-page-print .page-print .btn-mini, #mdl-page-print .page-print .btn-link, #mdl-page-print .page-print .copybtn, #mdl-page-print .page-print .m-tabs,
+#mdl-page-print .page-print .db-hint, #mdl-page-print .page-print .lbl-toggles { display: none !important; }
+#mdl-page-print .page-print .tab.active { display: block !important; opacity: 1 !important; transform: none !important; }
+
+/* Başlık bandı + sekme adı */
+#mdl-page-print .page-print .m-header { padding: 12px 16px 10px; border-radius: 5px; }
+#mdl-page-print .page-print .m-header .eyebrow { font-size: 8.5px; letter-spacing: .14em; margin-bottom: 3px; color: #C9D3E6; }
+#mdl-page-print .page-print .m-header h1 { font-size: 17px; font-weight: 700; letter-spacing: 0; }
+#mdl-page-print .page-print .m-header .sub { font-size: 10px; max-width: none; margin-top: 2px; }
+#mdl-page-print .page-print .pp-tabname { font-weight: 700; font-size: 14px; color: var(--navy-deep); padding: 10px 0 3px; border-bottom: 2px solid var(--navy-deep); margin-bottom: 10px; }
+#mdl-page-print .page-print .m-main { padding: 0 !important; }
+
+/* Adım blokları → rapor bölümleri */
+#mdl-page-print .page-print .step { border: none; border-radius: 0; background: none; margin-bottom: 14px; overflow: visible; }
+#mdl-page-print .page-print .step-head { padding: 0 0 3px; gap: 8px; border-bottom: 1px solid var(--navy); background: none !important; break-after: avoid; flex-wrap: wrap; }
+#mdl-page-print .page-print .step-no { font-size: 9.5px; padding: 1px 6px; border-radius: 3px; color: var(--navy); background: var(--gold-soft); }
+#mdl-page-print .page-print .step-head h2 { font-size: 13.5px; }
+#mdl-page-print .page-print .step-head .why { display: block !important; font-size: 9.5px; max-width: none; margin-left: auto; }
+#mdl-page-print .page-print .step-body { padding: 8px 0 0; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 14px; }
+#mdl-page-print .page-print .step-body.single { display: block; }
+
+/* Kartlar: ince çerçeve, sayfa arasında bölünebilir (her sayfada kapalı çerçeve) */
+#mdl-page-print .page-print .card, #mdl-page-print .page-print .chartcard, #mdl-page-print .page-print .sucard, #mdl-page-print .page-print .usecard { border: 1px solid var(--line); border-radius: 5px; padding: 9px 11px; margin-bottom: 10px; background: #fff; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+#mdl-page-print .page-print .card h3, #mdl-page-print .page-print .chartcard h3 { font-size: 12.5px; margin-bottom: 6px; padding-bottom: 3px; break-after: avoid; }
+#mdl-page-print .page-print .card h3 small, #mdl-page-print .page-print .chartcard h3 small { font-size: 9.5px; }
+#mdl-page-print .page-print h2, #mdl-page-print .page-print h3, #mdl-page-print .page-print h4, #mdl-page-print .page-print .exec-sect { break-after: avoid; }
+#mdl-page-print .page-print .exec-sect { font-size: 12.5px; margin: 12px 0 6px; }
+/* Başlık sayfa sonunda yalnız kalmasın: altında ~90px yer yoksa başlık da sonraki sayfaya geçer */
+#mdl-page-print .page-print .step-head, #mdl-page-print .page-print .card h3, #mdl-page-print .page-print .chartcard h3, #mdl-page-print .page-print .exec-sect { break-inside: avoid; }
+#mdl-page-print .page-print .step-head::after, #mdl-page-print .page-print .exec-sect::before { content: ""; align-self: flex-start; flex: 0 0 0; width: 0; height: 90px; margin: 0 0 -90px -8px; }
+#mdl-page-print .page-print .card h3::after, #mdl-page-print .page-print .chartcard h3::after { content: ""; display: block; height: 90px; margin-bottom: -90px; }
+
+/* Izgaralar: A4'te de çok sütun */
+#mdl-page-print .page-print .grid2, #mdl-page-print .page-print .duo, #mdl-page-print .page-print .exec-grid2, #mdl-page-print .page-print .row2 { grid-template-columns: 1fr 1fr !important; gap: 8px; }
+#mdl-page-print .page-print .grid3 { grid-template-columns: repeat(3, 1fr) !important; gap: 8px; }
+#mdl-page-print .page-print .grid4 { grid-template-columns: repeat(4, 1fr) !important; gap: 8px; }
+#mdl-page-print .page-print .kpis { grid-template-columns: repeat(4, 1fr) !important; gap: 6px; margin-bottom: 8px; }
+#mdl-page-print .page-print .kpi { padding: 6px 8px; border-radius: 4px; break-inside: avoid; }
+#mdl-page-print .page-print .kpi .klabel, #mdl-page-print .page-print .kpi .kl { font-size: 8.5px; letter-spacing: .06em; }
+#mdl-page-print .page-print .kpi .kval, #mdl-page-print .page-print .kpi .kv { font-size: 15px; margin-top: 2px; }
+#mdl-page-print .page-print .kpi .khint, #mdl-page-print .page-print .kpi .kh { font-size: 9px; margin-top: 1px; }
+#mdl-page-print .page-print .exec-hero { padding: 12px 14px; border-radius: 5px; margin-bottom: 12px; background: var(--navy-deep); }
+#mdl-page-print .page-print .exec-hero h2 { font-size: 16px; }
+#mdl-page-print .page-print .exec-hero .eh-sub, #mdl-page-print .page-print .exec-hero .eh-eyebrow { font-size: 9.5px; }
+#mdl-page-print .page-print .exec-stats { grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)) !important; gap: 8px 0; margin-top: 10px; padding-top: 8px; }
+#mdl-page-print .page-print .exec-stat { break-inside: avoid; }
+#mdl-page-print .page-print .exec-stat .v { font-size: 15px; }
+#mdl-page-print .page-print .verdict { padding: 7px 10px; margin-bottom: 10px; font-size: 10.5px; border-radius: 4px; break-inside: avoid; }
+#mdl-page-print .page-print .pitch { padding: 10px 12px; }
+#mdl-page-print .page-print .pitch p { font-size: 10.5px; }
+
+/* Girdiler → etiket + değer */
+#mdl-page-print .page-print .inputs { gap: 6px; }
+#mdl-page-print .page-print .field label { font-size: 9.5px; margin-bottom: 1px; }
+#mdl-page-print .page-print .field { break-inside: avoid; }
+#mdl-page-print .page-print .pp-val { display: block; font-size: 11px; font-weight: 700; color: #1A2436; padding: 1px 0 2px; border-bottom: 1px dotted #B9C3D6; min-height: 1.3em; }
+#mdl-page-print .page-print .pp-val.rem { color: var(--navy); }
+#mdl-page-print .page-print .pp-text { font-weight: 400; white-space: pre-wrap; }
+#mdl-page-print .page-print .pp-check { font-size: 12px; margin-right: 4px; }
+#mdl-page-print .page-print .hgrid { gap: 2px 4px; overflow: visible !important; }
+#mdl-page-print .page-print .hgrid .pp-val { text-align: center; font-size: 9.5px; font-weight: 400; }
+#mdl-page-print .page-print .hlbl { font-size: 8px; }
+#mdl-page-print .page-print .chips { gap: 4px; margin-bottom: 6px; align-items: center; }
+#mdl-page-print .page-print .pp-chip { display: inline-block; font-size: 9.5px; font-weight: 700; color: var(--navy-deep); border: 1px solid var(--navy); border-radius: 3px; padding: 0 6px; margin-right: 4px; }
+#mdl-page-print .page-print .tipq { border-bottom: none; }
+
+/* Formül, not, açıklama */
+#mdl-page-print .page-print .formula-card, #mdl-page-print .page-print .formula { padding: 7px 10px; margin-top: 6px; margin-bottom: 8px; border-radius: 4px; overflow: visible; }
+#mdl-page-print .page-print .formula .fl, #mdl-page-print .page-print .formula-card .fl { font-size: 8.5px; margin-bottom: 3px; }
+#mdl-page-print .page-print .formula .ml, #mdl-page-print .page-print .subst { font-size: 10px; line-height: 1.55; margin: 2px 0; overflow: visible; }
+#mdl-page-print .page-print .subst { margin-top: 5px; padding-top: 5px; }
+#mdl-page-print .page-print .math, #mdl-page-print .page-print .codechip { font-size: 10px; }
+#mdl-page-print .page-print .note, #mdl-page-print .page-print .warnbox, #mdl-page-print .page-print .explain { font-size: 9.5px; padding: 5px 9px; margin-top: 6px; border-radius: 0 4px 4px 0; }
+#mdl-page-print .page-print .tsub, #mdl-page-print .page-print .legend { font-size: 9.5px; margin-top: 3px; margin-bottom: 6px; }
+#mdl-page-print .page-print .slist li, #mdl-page-print .page-print .strat-ways { font-size: 10.5px; }
+
+/* Tablolar: kaydırma yok, sayfa genişliğine sığar; satır bölünmez, başlık her sayfada tekrar */
+#mdl-page-print .page-print .tablewrap, #mdl-page-print .page-print .senswrap { overflow: visible !important; border-radius: 4px; }
+#mdl-page-print .page-print table { white-space: normal !important; width: 100% !important; font-size: 9.5px !important; table-layout: auto; }
+#mdl-page-print .page-print th, #mdl-page-print .page-print td { padding: 3px 5px !important; }
+#mdl-page-print .page-print thead { display: table-header-group; }
+#mdl-page-print .page-print tr { break-inside: avoid; }
+#mdl-page-print .page-print svg { max-width: 100%; height: auto; }
 @media print {
   body.mdl-page-printing > *:not(#mdl-page-print) { display: none !important; }
   body.mdl-page-printing #mdl-page-print { display: block; }
   body.mdl-page-printing { background: #fff; }
   #mdl-page-print * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  #mdl-page-print .card, #mdl-page-print table, #mdl-page-print svg { break-inside: avoid; }
+  #mdl-page-print svg, #mdl-page-print .kpi, #mdl-page-print .formula, #mdl-page-print .formula-card,
+  #mdl-page-print .note, #mdl-page-print .bess-chart, #mdl-page-print .legend, #mdl-page-print .pp-keep { break-inside: avoid; }
 }
